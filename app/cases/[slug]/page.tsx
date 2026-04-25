@@ -8,12 +8,10 @@ import { getCurrentSite } from "@/lib/site"
 export const dynamic = "force-static"
 
 export async function generateStaticParams() {
-  const site = await getCurrentSite()
-
   const casesDir = path.join(
     process.cwd(),
     "content",
-    site.contentKey,
+    "daeonlawfintech",
     "cases"
   )
 
