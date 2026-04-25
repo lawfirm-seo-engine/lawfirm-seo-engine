@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://daeonlawfintech.com
+
+# Sitemaps
+Sitemap: https://daeonlawfintech.com/sitemap.xml
