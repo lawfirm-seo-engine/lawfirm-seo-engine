@@ -1,6 +1,9 @@
 import fs from "fs"
 import path from "path"
 
+export const dynamic = "force-static"
+export const revalidate = false
+
 export async function GET() {
   const baseUrl = "https://daeonlawfintech.com"
 
@@ -48,7 +51,7 @@ ${items}
   return new Response(rss, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "Cache-Control": "public, max-age=3600",
     },
   })
 }

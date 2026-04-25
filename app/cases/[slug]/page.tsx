@@ -5,6 +5,30 @@ import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
 import { getCurrentSite } from "@/lib/site"
 
+export const dynamic = "force-static"
+
+export async function generateStaticParams() {
+  const site = await getCurrentSite()
+
+  const casesDir = path.join(
+    process.cwd(),
+    "content",
+    site.contentKey,
+    "cases"
+  )
+
+  if (!fs.existsSync(casesDir)) return []
+
+  return fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .map((file) => ({
+      slug: file.replace(/\.mdx$/, ""),
+    }))
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -153,30 +177,6 @@ export default async function CasePage({
         datePublished: new Date().toISOString(),
         dateModified: new Date().toISOString(),
       },
-      {
-        "@type": "BreadcrumbList",
-        "@id": `${pageUrl}#breadcrumb`,
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "홈",
-            item: site.baseUrl,
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "사기 피해 사례",
-            item: `${site.baseUrl}/cases`,
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: `${keyword} 사기 사칭 피해회복`,
-            item: pageUrl,
-          },
-        ],
-      },
     ],
   }
 
@@ -196,10 +196,6 @@ export default async function CasePage({
           <h2 className="related-cases-title">
             함께 확인해야 할 대표적인 최근 유사 사례
           </h2>
-
-          <p className="related-cases-desc">
-            {decodedSlug} 사기 사칭 피해와 같은 시기 유사한 구조의 사례들은 다음과 같습니다.
-          </p>
 
           <ul className="related-cases-list">
             {recentCases.map((item) => (
