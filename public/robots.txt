@@ -7,3 +7,4 @@ Host: https://daeonlawfintech.com
 
 # Sitemaps
 Sitemap: https://daeonlawfintech.com/sitemap.xml
+Sitemap: https://daeonlawfintech.com/rss.xml
