@@ -17,7 +17,17 @@ export default function HomePage() {
       .readdirSync(casesDir)
       .filter((file) => file.endsWith(".mdx"))
       .filter((file) => file !== "_template.mdx")
-      .map((file) => file.replace(".mdx", ""))
+      .filter((file) => !file.startsWith("_"))
+      .map((file) => {
+        const fullPath = path.join(casesDir, file)
+
+        return {
+          name: file.replace(/\.mdx$/, ""),
+          time: fs.statSync(fullPath).mtime.getTime(),
+        }
+      })
+      .sort((a, b) => b.time - a.time)
+      .map((item) => item.name)
   }
 
   return <CasesClient siteName="법무법인 대온 핀테크센터" cases={cases} />
