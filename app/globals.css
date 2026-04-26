@@ -690,3 +690,30 @@ body {
 .daeon-card:hover::before {
   transform: scaleX(1);
 }
+
+.daeon-reset-btn {
+  height: 54px;
+  padding: 0 22px;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.daeon-reset-btn:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.daeon-page-meta {
+  margin-top: 60px;
+  text-align: center;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 800;
+}

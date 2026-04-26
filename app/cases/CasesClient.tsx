@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 
-const CASES_PER_PAGE = 50
+const CASES_PER_PAGE = 35
 
 type CasesClientProps = {
   siteName: string
@@ -20,7 +20,7 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
     return cases.filter((name) => name.toLowerCase().includes(value))
   }, [cases, keyword])
 
-  const totalPages = Math.ceil(filteredCases.length / CASES_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(filteredCases.length / CASES_PER_PAGE))
 
   const currentCases = filteredCases.slice(
     (currentPage - 1) * CASES_PER_PAGE,
@@ -29,6 +29,11 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
 
   function handleSearch(value: string) {
     setKeyword(value)
+    setCurrentPage(1)
+  }
+
+  function handleReset() {
+    setKeyword("")
     setCurrentPage(1)
   }
 
@@ -54,6 +59,10 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
             />
             <span className="daeon-search-icon">⌕</span>
           </div>
+
+          <button type="button" className="daeon-reset-btn" onClick={handleReset}>
+            초기화
+          </button>
 
           <div className="daeon-search-meta">
             {keyword.trim()
@@ -96,6 +105,10 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
               ))}
             </div>
 
+            <div className="daeon-page-meta">
+              현재 {currentPage} / {totalPages} 페이지 · 페이지당 {CASES_PER_PAGE}건
+            </div>
+
             {totalPages > 1 && (
               <div className="daeon-pagination">
                 {Array.from({ length: totalPages }).map((_, index) => {
@@ -105,9 +118,7 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                     <button
                       key={page}
                       type="button"
-                      className={`daeon-page ${
-                        page === currentPage ? "active" : ""
-                      }`}
+                      className={`daeon-page ${page === currentPage ? "active" : ""}`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
