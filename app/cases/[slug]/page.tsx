@@ -172,6 +172,9 @@ export default async function CasePage({
       "@type": "Organization",
       name: siteName,
       url: siteUrl,
+      sameAs: [
+        "https://cafe.naver.com/daeonlawfintech"
+      ]  
     },
     publisher: {
       "@type": "Organization",
