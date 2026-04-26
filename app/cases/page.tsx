@@ -7,13 +7,13 @@ import { getCurrentSite } from "@/lib/site"
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCurrentSite()
 
-  const pageUrl = site.baseUrl
+  const pageUrl = `${site.baseUrl}/cases`
   const imageUrl = `${site.baseUrl}/images/og-default.png`
 
   return {
-    title: `진행 사건 목록 | ${site.siteName}`,
+    title: `금융사기 피해 사례 전체 목록 | ${site.siteName}`,
     description:
-      "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건을 확인할 수 있는 사건 목록 페이지입니다.",
+      "투자사기, 리딩방 사기, 쇼핑몰 사기, 부업 사기, 가상자산 사기 등 실제 피해 사례와 대응 전략을 정리한 사건 목록 페이지입니다.",
     robots: {
       index: true,
       follow: true,
@@ -25,9 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     openGraph: {
-      title: "진행 사건 목록",
+      title: "금융사기 피해 사례 전체 목록",
       description:
-        "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건 안내",
+        "투자사기, 리딩방 사기, 쇼핑몰 사기, 부업 사기, 가상자산 사기 등 주요 피해 사례 안내",
       url: pageUrl,
       siteName: site.siteName,
       locale: "ko_KR",
@@ -37,21 +37,21 @@ export async function generateMetadata(): Promise<Metadata> {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: "진행 사건 목록 페이지",
+          alt: "금융사기 피해 사례 전체 목록 페이지",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "진행 사건 목록",
+      title: "금융사기 피해 사례 전체 목록",
       description:
-        "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건 안내",
+        "투자사기, 리딩방 사기, 쇼핑몰 사기, 부업 사기, 가상자산 사기 등 주요 피해 사례 안내",
       images: [imageUrl],
     },
   }
 }
 
-export default async function HomePage() {
+export default async function CasesPage() {
   const site = await getCurrentSite()
 
   const casesDirectory = path.join(
@@ -69,18 +69,35 @@ export default async function HomePage() {
     .filter((filename) => filename.endsWith(".mdx"))
     .filter((filename) => filename !== "_template.mdx")
     .filter((filename) => !filename.startsWith("_"))
-    .map((filename) => filename.replace(/\.mdx$/, ""))
-    .sort((a, b) => a.localeCompare(b, "ko"))
+    .map((filename) => {
+      const filePath = path.join(casesDirectory, filename)
+      const stat = fs.statSync(filePath)
 
-  const pageUrl = site.baseUrl
+      return {
+        slug: filename.replace(/\.mdx$/, ""),
+        mtime: stat.mtime.getTime(),
+      }
+    })
+    .sort((a, b) => b.mtime - a.mtime)
+
+  const pageUrl = `${site.baseUrl}/cases`
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "진행 사건 목록",
+    name: "금융사기 피해 사례 전체 목록",
     url: pageUrl,
     description:
-      "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건 목록 페이지",
+      "투자사기, 리딩방 사기, 쇼핑몰 사기, 부업 사기, 가상자산 사기 등 주요 피해 사례와 대응 전략을 정리한 사건 목록 페이지입니다.",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: cases.slice(0, 50).map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: `${item.slug} 사기 피해 사례`,
+        url: `${site.baseUrl}/cases/${item.slug}`,
+      })),
+    },
   }
 
   return (
@@ -99,12 +116,12 @@ export default async function HomePage() {
           </p>
 
           <h1 className="text-4xl font-black text-slate-900 md:text-5xl">
-            진행 사건
+            금융사기 피해 사례 전체 목록
           </h1>
 
           <p className="mt-5 text-base leading-8 text-slate-600 md:text-lg">
-            금융사기, 투자사기, 리딩방 사기, 코인 사기, 플랫폼 사칭 사건 등
-            주요 피해 사건을 확인할 수 있습니다.
+            투자사기, 리딩방 사기, 쇼핑몰 사기, 부업 사기, 가상자산 사기 등
+            주요 피해 사례와 대응 전략을 확인할 수 있습니다.
           </p>
 
           <p className="mt-3 text-sm font-semibold text-slate-500">
@@ -115,8 +132,8 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {cases.map((item) => (
             <Link
-              key={item}
-              href={`/cases/${encodeURIComponent(item)}`}
+              key={item.slug}
+              href={`/cases/${encodeURIComponent(item.slug)}`}
               className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
             >
               <div className="absolute left-0 top-0 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
@@ -132,11 +149,11 @@ export default async function HomePage() {
               </div>
 
               <h2 className="min-h-[64px] break-keep text-center text-xl font-black leading-snug text-slate-900 group-hover:text-emerald-700">
-                {item}
+                {item.slug}
               </h2>
 
               <p className="mt-5 text-center text-sm font-semibold leading-6 text-slate-500">
-                사칭 피해 사건
+                사기 피해 사례
                 <br />
                 피해사건 접수 및 상담 진행중
               </p>

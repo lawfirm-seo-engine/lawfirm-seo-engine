@@ -74,21 +74,45 @@ export const metadata: Metadata = {
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
-  "@type": "LegalService",
-  "@id": `${siteUrl}/#organization`,
-  name: "법무법인 대온 핀테크센터",
-  alternateName: "대온 핀테크센터",
-  url: siteUrl,
-  logo: `${siteUrl}/images/logo.png`,
-  image: `${siteUrl}/images/logo.png`,
-  description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
-  areaServed: {
-    "@type": "Country",
-    name: "KR",
-  },
-  inLanguage: "ko-KR",
-  sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "법무법인 대온 핀테크센터",
+      alternateName: "대온 핀테크센터",
+      url: siteUrl,
+      logo: `${siteUrl}/images/logo.png`,
+      image: `${siteUrl}/images/logo.png`,
+      sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+    },
+    {
+      "@type": "LegalService",
+      "@id": `${siteUrl}/#legalservice`,
+      name: "법무법인 대온 핀테크센터",
+      alternateName: "대온 핀테크센터",
+      url: siteUrl,
+      logo: `${siteUrl}/images/logo.png`,
+      image: `${siteUrl}/images/logo.png`,
+      description:
+        "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+      areaServed: {
+        "@type": "Country",
+        name: "KR",
+      },
+      serviceType: [
+        "투자사기 피해 대응",
+        "가상자산 사기 대응",
+        "리딩방 사기 대응",
+        "쇼핑몰 사기 대응",
+        "부업 사기 대응",
+      ],
+      provider: {
+        "@id": `${siteUrl}/#organization`,
+      },
+      inLanguage: "ko-KR",
+      sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+    },
+  ],
 };
 
 const websiteJsonLd = {

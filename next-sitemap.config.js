@@ -44,13 +44,15 @@ module.exports = {
       .filter((file) => !file.startsWith("_"))
 
     return files.map((file) => {
+      const filePath = path.join(casesPath, file)
+      const stat = fs.statSync(filePath)
       const slug = file.replace(/\.mdx$/, "")
 
       return {
         loc: `/cases/${slug}`,
         changefreq: "daily",
-        priority: 0.7,
-        lastmod: new Date().toISOString(),
+        priority: 0.8,
+        lastmod: stat.mtime.toISOString(),
       }
     })
   },

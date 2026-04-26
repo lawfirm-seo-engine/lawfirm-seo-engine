@@ -24,6 +24,7 @@ body {
 .case-content {
   line-height: 1.9;
   font-size: 18px;
+  text-align: center;
 }
 
 .case-content h1 {
@@ -40,14 +41,46 @@ body {
   margin-bottom: 20px;
   border-bottom: 2px solid #e5e7eb;
   padding-bottom: 8px;
+  text-align: center;
 }
 
 .case-content p {
   margin-bottom: 16px;
+  text-align: center;
+}
+
+.case-content figure {
+  margin: 30px auto;
+  text-align: center;
+}
+
+.case-content figcaption {
+  margin-top: 10px;
+  color: #4b5563;
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.case-content figcaption p {
+  margin-bottom: 0;
+}
+
+.case-content .image-description {
+  margin: 10px auto 28px;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.case-content .image-description p {
+  margin-bottom: 0;
 }
 
 .case-content li {
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .case-content img {
@@ -55,6 +88,7 @@ body {
   margin: 30px auto;
   display: block;
   border-radius: 10px;
+  text-align: center;
 }
 
 /* ===== 표 스타일 ===== */
@@ -716,4 +750,169 @@ body {
   color: #475569;
   font-size: 15px;
   font-weight: 800;
+}
+
+/* ===== 제목만 중앙정렬 ===== */
+
+.case-content h1 {
+  text-align: center !important;
+}
+
+.case-content h2 {
+  text-align: center !important;
+}
+
+.case-content h3 {
+  text-align: center !important;
+}
+
+
+/* ===== 대표이미지 중앙정렬 ===== */
+
+.case-content img {
+  display: block;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+
+/* ===== 캡션 중앙정렬 ===== */
+
+.case-content figcaption {
+  text-align: center !important;
+}
+
+.case-content .image-description {
+  text-align: center !important;
+}
+
+
+/* ===== 본문은 좌측 정렬 ===== */
+
+.case-content p {
+  text-align: left !important;
+}
+
+.case-content li {
+  text-align: left !important;
+}
+
+
+/* ===== 체크리스트 정렬 유지 ===== */
+
+.case-content ul,
+.case-content ol {
+  display: block;
+  text-align: left;
+}
+
+
+/* ===== 표 중앙정렬 ===== */
+
+.case-content table {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ===== SEO 텍스트 화면 숨김 강제 적용 ===== */
+
+.case-content .seo-hidden,
+.case-content .seo-hidden *,
+.seo-hidden,
+.seo-hidden * {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+.typing-heading {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid #2563eb;
+  width: 0;
+}
+
+.typing-active {
+  animation:
+    typing 2.2s steps(40, end) forwards,
+    blink .7s infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0
+  }
+  to {
+    width: 100%
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent
+  }
+}
+
+/* Footer 카페 링크 간격 조정 */
+
+.daeon-footer-cafe {
+  margin-top: 14px;
+  margin-bottom: 22px;
+  font-size: 15px;
+}
+
+.daeon-footer-cafe-link {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.daeon-footer-cafe-link:hover {
+  text-decoration: underline;
+}
+
+.case-faq-box {
+  margin-top: 70px;
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid #d9dde3;
+  background: #fff;
+}
+
+.case-faq-title {
+  font-size: 34px;
+  font-weight: 900;
+  padding-bottom: 18px;
+  border-bottom: 3px solid #111827;
+  margin-bottom: 30px;
+}
+
+.case-faq-item {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 14px;
+  padding: 18px 22px;
+}
+
+.case-faq-item summary {
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.case-faq-answer {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #374151;
 }
