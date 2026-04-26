@@ -1,6 +1,6 @@
-import Link from "next/link"
 import fs from "fs"
 import path from "path"
+import CasesClient from "./cases/CasesClient"
 
 export default function HomePage() {
   const casesDir = path.join(
@@ -20,19 +20,5 @@ export default function HomePage() {
       .map((file) => file.replace(".mdx", ""))
   }
 
-  return (
-    <main style={{ padding: "40px" }}>
-      <h1>법무법인 대온 핀테크센터 사건 목록</h1>
-
-      <ul>
-        {cases.map((slug) => (
-          <li key={slug}>
-            <Link href={`/cases/${slug}`}>
-              {slug} 사기 사칭 피해 대응
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </main>
-  )
+  return <CasesClient siteName="법무법인 대온 핀테크센터" cases={cases} />
 }
