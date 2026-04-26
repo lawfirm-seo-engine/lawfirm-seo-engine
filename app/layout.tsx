@@ -19,6 +19,13 @@ const siteUrl = "https://daeonlawfintech.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
+  verification: {
+    other: {
+      "naver-site-verification":
+        "bd3e64eb58fefb8b0ddce38226625e283a662dc9",
+    },
+  },
+
   title: {
     default: "대온 핀테크센터",
     template: "%s | 대온 핀테크센터",
@@ -78,9 +85,7 @@ const organizationJsonLd = {
     name: "KR",
   },
   inLanguage: "ko-KR",
-  sameAs: [
-    "https://cafe.naver.com/daeonlawfintech",
-  ],
+  sameAs: ["https://cafe.naver.com/daeonlawfintech"],
 };
 
 const websiteJsonLd = {
