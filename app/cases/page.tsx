@@ -1,13 +1,13 @@
 import fs from "fs"
 import path from "path"
+import Link from "next/link"
 import type { Metadata } from "next"
 import { getCurrentSite } from "@/lib/site"
-import CasesClient from "./CasesClient"
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCurrentSite()
 
-  const pageUrl = `${site.baseUrl}/cases`
+  const pageUrl = site.baseUrl
   const imageUrl = `${site.baseUrl}/images/og-default.png`
 
   return {
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     openGraph: {
-      title: `진행 사건 목록`,
+      title: "진행 사건 목록",
       description:
         "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건 안내",
       url: pageUrl,
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `진행 사건 목록`,
+      title: "진행 사건 목록",
       description:
         "금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 진행 사건 안내",
       images: [imageUrl],
@@ -51,7 +51,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function CasesPage() {
+export default async function HomePage() {
   const site = await getCurrentSite()
 
   const casesDirectory = path.join(
@@ -70,9 +70,9 @@ export default async function CasesPage() {
     .filter((filename) => filename !== "_template.mdx")
     .filter((filename) => !filename.startsWith("_"))
     .map((filename) => filename.replace(/\.mdx$/, ""))
-    .sort((a, b) => a.localeCompare(b))
+    .sort((a, b) => a.localeCompare(b, "ko"))
 
-  const pageUrl = `${site.baseUrl}/cases`
+  const pageUrl = site.baseUrl
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -84,7 +84,7 @@ export default async function CasesPage() {
   }
 
   return (
-    <>
+    <main className="min-h-screen bg-[#f6f7fb] px-5 py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -92,7 +92,58 @@ export default async function CasesPage() {
         }}
       />
 
-      <CasesClient siteName={site.siteName} cases={cases} />
-    </>
+      <section className="mx-auto max-w-[1500px]">
+        <div className="mb-10 text-center">
+          <p className="mb-3 text-sm font-bold tracking-[0.25em] text-emerald-700">
+            DAEON FINTECH CENTER
+          </p>
+
+          <h1 className="text-4xl font-black text-slate-900 md:text-5xl">
+            진행 사건
+          </h1>
+
+          <p className="mt-5 text-base leading-8 text-slate-600 md:text-lg">
+            금융사기, 투자사기, 리딩방 사기, 코인 사기, 플랫폼 사칭 사건 등
+            주요 피해 사건을 확인할 수 있습니다.
+          </p>
+
+          <p className="mt-3 text-sm font-semibold text-slate-500">
+            총 {cases.length}건의 사건이 등록되어 있습니다.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {cases.map((item) => (
+            <Link
+              key={item}
+              href={`/cases/${encodeURIComponent(item)}`}
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
+            >
+              <div className="absolute left-0 top-0 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
+
+              <div className="mb-5 flex items-center justify-between">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                  사건 접수
+                </span>
+
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                  접수진행중
+                </span>
+              </div>
+
+              <h2 className="min-h-[64px] break-keep text-center text-xl font-black leading-snug text-slate-900 group-hover:text-emerald-700">
+                {item}
+              </h2>
+
+              <p className="mt-5 text-center text-sm font-semibold leading-6 text-slate-500">
+                사칭 피해 사건
+                <br />
+                피해사건 접수 및 상담 진행중
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </main>
   )
 }
