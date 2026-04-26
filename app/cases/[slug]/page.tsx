@@ -22,6 +22,7 @@ export async function generateStaticParams() {
   return fs
     .readdirSync(casesDir)
     .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
     .map((file) => ({
       slug: file.replace(/\.mdx$/, ""),
     }))
@@ -42,9 +43,7 @@ export async function generateMetadata({
 
   return {
     title: `${keyword} 사기 사칭 피해회복 | ${site.siteName}`,
-
-    description:
-      `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
+    description: `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
 
     robots: {
       index: true,
@@ -104,7 +103,7 @@ function getRecentCases(casesDir: string, currentSlug: string) {
       }
     })
     .sort((a, b) => b.mtime - a.mtime)
-    .slice(0, 3)
+    .slice(0, 6)
 }
 
 export default async function CasePage({
@@ -132,8 +131,22 @@ export default async function CasePage({
 
   const source = fs.readFileSync(filePath, "utf-8")
 
+  const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
+
   const { content } = await compileMDX({
     source,
+    components: {
+      img: (props) => (
+        <img
+          {...props}
+          alt={
+            typeof props.alt === "string" && props.alt.trim().length > 0
+              ? props.alt
+              : imageAlt
+          }
+        />
+      ),
+    },
   })
 
   const recentCases = getRecentCases(casesDir, decodedSlug)
@@ -141,15 +154,14 @@ export default async function CasePage({
   const pageUrl = `${site.baseUrl}/cases/${decodedSlug}`
   const imageUrl = `${site.baseUrl}/images/cases/${decodedSlug} 사기.png`
 
-  const jsonLd = {
+  const articleJsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Article",
         "@id": `${pageUrl}#article`,
         headline: `${keyword} 사기 사칭 피해회복`,
-        description:
-          `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
+        description: `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
         inLanguage: "ko-KR",
         url: pageUrl,
         image: {
@@ -178,12 +190,44 @@ export default async function CasePage({
     ],
   }
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "홈",
+        item: site.baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "사건 목록",
+        item: `${site.baseUrl}/cases`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${keyword} 사기 사칭 피해회복`,
+        item: pageUrl,
+      },
+    ],
+  }
+
   return (
     <main className="case-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
         }}
       />
 
