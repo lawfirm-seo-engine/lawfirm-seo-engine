@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import Footer from "./components/Footer";
 import FloatingContact from "./components/FloatingContact";
 import "./globals.css";
@@ -15,16 +16,16 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = "https://daeonlawfintech.com";
+const googleAnalyticsId = "G-RDQJT1FLNT";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   verification: {
+    google: "zY1U8LMHWWtmETEB1JpDKFEBDYPJcPuhBeYv6six-QE",
     other: {
       "naver-site-verification":
         "bd3e64eb58fefb8b0ddce38226625e283a662dc9",
-      "google-site-verification":
-        "zY1U8LMHWWtmETEB1JpDKFEBDYPJcPuhBeYv6six-QE",
     },
   },
 
@@ -87,9 +88,7 @@ const organizationJsonLd = {
     name: "KR",
   },
   inLanguage: "ko-KR",
-  sameAs: [
-    "https://cafe.naver.com/daeonlawfintech",
-  ],
+  sameAs: ["https://cafe.naver.com/daeonlawfintech"],
 };
 
 const websiteJsonLd = {
@@ -115,6 +114,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${googleAnalyticsId}');
+          `}
+        </Script>
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
