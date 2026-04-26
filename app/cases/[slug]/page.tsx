@@ -15,13 +15,13 @@ export async function generateStaticParams() {
     "cases"
   )
 
-  if (!fs.existsSync(casesDir)) return []
+  if (!fs.existsSync(casesDir)) {
+    return []
+  }
 
   return fs
     .readdirSync(casesDir)
     .filter((file) => file.endsWith(".mdx"))
-    .filter((file) => file !== "_template.mdx")
-    .filter((file) => !file.startsWith("_"))
     .map((file) => ({
       slug: file.replace(/\.mdx$/, ""),
     }))
