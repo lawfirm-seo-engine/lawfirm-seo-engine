@@ -3,9 +3,11 @@ import path from "path"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
-import { getCurrentSite } from "@/lib/site"
 
 export const dynamic = "force-static"
+
+const siteUrl = "https://daeonlawfintech.com"
+const siteName = "대온 핀테크센터"
 
 export async function generateStaticParams() {
   const casesDir = path.join(
@@ -23,6 +25,7 @@ export async function generateStaticParams() {
     .readdirSync(casesDir)
     .filter((file) => file.endsWith(".mdx"))
     .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
     .map((file) => ({
       slug: file.replace(/\.mdx$/, ""),
     }))
@@ -34,34 +37,30 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const site = await getCurrentSite()
   const decodedSlug = decodeURIComponent(slug)
   const keyword = decodedSlug.toUpperCase()
 
-  const pageUrl = `${site.baseUrl}/cases/${decodedSlug}`
-  const imageUrl = `${site.baseUrl}/images/cases/${decodedSlug} 사기.png`
+  const pageUrl = `${siteUrl}/cases/${decodedSlug}`
+  const imageUrl = `${siteUrl}/images/cases/${decodedSlug} 사기.png`
 
   return {
-    title: `${keyword} 사기 사칭 피해회복 | ${site.siteName}`,
+    title: `${keyword} 사기 사칭 피해회복 | ${siteName}`,
     description: `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
-
     robots: {
       index: true,
       follow: true,
     },
-
     alternates: {
       canonical: pageUrl,
       languages: {
         "ko-KR": pageUrl,
       },
     },
-
     openGraph: {
       title: `${keyword} 사기 사칭 피해회복`,
       description: `${keyword} 사기 사칭 피해 대응 전략 안내`,
       url: pageUrl,
-      siteName: site.siteName,
+      siteName,
       locale: "ko_KR",
       type: "article",
       images: [
@@ -73,7 +72,6 @@ export async function generateMetadata({
         },
       ],
     },
-
     twitter: {
       card: "summary_large_image",
       title: `${keyword} 사기 사칭 피해회복`,
@@ -90,6 +88,7 @@ function getRecentCases(casesDir: string, currentSlug: string) {
     .readdirSync(casesDir)
     .filter((file) => file.endsWith(".mdx"))
     .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
     .filter((file) => file !== `${currentSlug}.mdx`)
     .map((file) => {
       const filePath = path.join(casesDir, file)
@@ -112,14 +111,13 @@ export default async function CasePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const site = await getCurrentSite()
   const decodedSlug = decodeURIComponent(slug)
   const keyword = decodedSlug.toUpperCase()
 
   const casesDir = path.join(
     process.cwd(),
     "content",
-    site.contentKey,
+    "daeonlawfintech",
     "cases"
   )
 
@@ -130,7 +128,10 @@ export default async function CasePage({
   }
 
   const source = fs.readFileSync(filePath, "utf-8")
+  const stat = fs.statSync(filePath)
 
+  const pageUrl = `${siteUrl}/cases/${decodedSlug}`
+  const imageUrl = `${siteUrl}/images/cases/${decodedSlug} 사기.png`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
 
   const { content } = await compileMDX({
@@ -151,43 +152,39 @@ export default async function CasePage({
 
   const recentCases = getRecentCases(casesDir, decodedSlug)
 
-  const pageUrl = `${site.baseUrl}/cases/${decodedSlug}`
-  const imageUrl = `${site.baseUrl}/images/cases/${decodedSlug} 사기.png`
-
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        "@id": `${pageUrl}#article`,
-        headline: `${keyword} 사기 사칭 피해회복`,
-        description: `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
-        inLanguage: "ko-KR",
-        url: pageUrl,
-        image: {
-          "@type": "ImageObject",
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-        },
-        author: {
-          "@type": "Organization",
-          name: site.siteName,
-          url: site.baseUrl,
-        },
-        publisher: {
-          "@type": "Organization",
-          name: site.siteName,
-          url: site.baseUrl,
-        },
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": pageUrl,
-        },
-        datePublished: new Date().toISOString(),
-        dateModified: new Date().toISOString(),
+    "@type": "Article",
+    "@id": `${pageUrl}#article`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": pageUrl,
+    },
+    headline: `${keyword} 사기 사칭 피해회복`,
+    description: `${keyword} 사기 사칭 피해 사례, 발생 경위, 대응 전략, 회수 절차를 정리한 법률 정보 페이지입니다.`,
+    image: {
+      "@type": "ImageObject",
+      url: imageUrl,
+      width: 1200,
+      height: 630,
+    },
+    author: {
+      "@type": "Organization",
+      name: siteName,
+      url: siteUrl,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteName,
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/images/logo.png`,
       },
-    ],
+    },
+    datePublished: stat.birthtime.toISOString(),
+    dateModified: stat.mtime.toISOString(),
+    inLanguage: "ko-KR",
   }
 
   const breadcrumbJsonLd = {
@@ -198,13 +195,13 @@ export default async function CasePage({
         "@type": "ListItem",
         position: 1,
         name: "홈",
-        item: site.baseUrl,
+        item: siteUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
-        name: "사건 목록",
-        item: `${site.baseUrl}/cases`,
+        name: "진행 사건",
+        item: siteUrl,
       },
       {
         "@type": "ListItem",
