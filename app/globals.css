@@ -1051,6 +1051,35 @@ body {
 
 @media (max-width: 768px) {
   .daeon-type-text {
-    font-size: 14px !important;
+    font-size: 12px !important;
   }
+}
+
+/* ===== 모바일 긴 사건명 잘림 방지 ===== */
+
+@media (max-width: 768px) {
+  .daeon-card-head {
+    min-height: auto !important;
+    padding: 48px 14px 26px !important;
+  }
+
+  .daeon-card-title {
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow-wrap: anywhere !important;
+    display: block !important;
+    line-height: 1.45 !important;
+  }
+}
+
+/* ===== 전체 화면 긴 사건명 잘림 방지 ===== */
+
+.daeon-card-head {
+  min-height: auto !important;
+}
+
+.daeon-card-title {
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
 }
