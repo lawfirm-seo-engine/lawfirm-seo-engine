@@ -1,0 +1,86 @@
+[33mf650125[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m 홈페이지 Organization WebSite schema 추가
+[33m090eb69[m VIP603 구조화 데이터 참조 오류 수정
+[33md7218bf[m 구조화 데이터 중복 제거
+[33m8d7a1ed[m 햄버거 메뉴 UI 수정
+[33mc37cc35[m mobile header menu and schema fix
+[33maeb2f3a[m cases slug schema 중복 제거
+[33m7ca90c4[m LegalService schema address telephone priceRange 추가
+[33m54baf33[m homepage webpage schema 추가
+[33mbf47176[m header active menu 적용
+[33m5152498[m header and guide pages update
+[33m8be7742[m 헤더 구조 수정 및 services process consulting 페이지 추가
+[33mef3b82e[m update react react-dom sharp for security stability
+[33meace26e[m update thumbnail titleText logic for case-create image generation
+[33m6c07b45[m add speakable and howto structured data
+[33m3461954[m cors policy tightened
+[33mdf5e982[m schema address 정확한 실제 주소 반영
+[33m4525c29[m schema name duplication fix
+[33mf3e0c4d[m legalservice schema optional fields 추가
+[33m6053061[m legalservice schema optional fields 추가
+[33m5b50e34[m author schema url 추가
+[33mcb59d7b[m fix: remove unsupported LegalService provider and inLanguage schema properties
+[33m92c3d16[m fix: remove serviceType and finalize LegalService schema
+[33mfcb8391[m feat: add SearchAction schema
+[33mb4c3d58[m feat: add case search page
+[33m1cb47ed[m feat: add SiteNavigationElement schema
+[33m83e9c4e[m feat: Article schema SEO 강화 (about keywords + mentions + topical authority)
+[33m167867c[m Finalize technical SEO setup: robots.txt, CSP strict mode, canonical automation, schema organization, and IndexNow optimization
+[33m7338294[m Strengthen content security policy
+[33mb2ed6b8[m Improve organization and legal service schema
+[33mc8b8212[m Improve robots and sitemap security
+[33md8745e0[m Add security headers
+[33m8ee718b[m add new case pages
+[33m0ce231b[m add new case pages
+[33m529dfc6[m Add LogScan tracking script to footer
+[33mcbedc0b[m add new case pages
+[33ma82e603[m fix arrow clipping on small mobile screens
+[33m4e8ed1e[m prevent CTA text line-break on small screens
+[33m5762427[m prevent CTA text line-break on small screens
+[33mee5cc2c[m normalize card header height
+[33ma061e67[m normalize card header height
+[33m6465272[m normalize card header height
+[33m641ee33[m normalize card header height
+[33mf006594[m normalize card header height
+[33m3bf66a1[m update card warning text
+[33m4cd35fb[m mobile layout change 3-column to 2-column
+[33m6889a07[m mobile layout change 3-column to 2-column
+[33mf6cd6bd[m mobile layout change 3-column to 2-column
+[33me4a08eb[m mobile layout change 3-column to 2-column
+[33m38b6ac1[m increase mobile CTA font size
+[33md081a15[m adjust mobile arrow position
+[33m381cc4d[m fix mobile CTA button layout alignment
+[33m8ceafaa[m fix mobile CTA button layout alignment
+[33mbbd8cae[m fix mobile CTA button layout alignment
+[33mbb98bcc[m fix mobile CTA button layout alignment
+[33m32b8175[m fix mobile CTA button layout alignment
+[33m47c5bcb[m fix mobile card badge and button alignment
+[33m9366376[m mobile card height adjustment
+[33m1d09c67[m mobile card layout 3-column optimization
+[33ma0b1f97[m update FAQ structure + slug SEO optimization + related cases title fix
+[33m99ab92e[m SEO structure upgrade: slug strategy + schema + sitemap + rss + case-create automation
+[33mc5ff959[m add sameAs entity connection to article schema
+[33m7f4566a[m add article schema to case pages
+[33m0061895[m add indexnow verification key
+[33m4adcc77[m add google analytics tracking
+[33mc0a3809[m add google + naver site verification meta tags
+[33m618717e[m add robots.txt for search engine crawling
+[33m04abdc0[m add naver site verification meta tag
+[33m28bf76a[m add pagination meta layout and adjust page meta spacing
+[33m18e34db[m add pagination meta layout and adjust page meta spacing
+[33m8c0b9e0[m restore daeon card layout and hover interaction fix
+[33mc71d0cc[m restore stable card grid layout
+[33m95a8dd6[m enable auto indexnow on deploy
+[33m37714e0[m add indexnow key file
+[33ma2e75f0[m add indexnow key
+[33mbd1630b[m add indexnow submit system
+[33m476aaaa[m improve case seo structure
+[33m1ce43b0[m add organization schema
+[33mbaab4da[m vercel deploy ready
+[33m451e4a8[m fix basePath for github pages
+[33mc2d951d[m fix static case pages
+[33m10ebb06[m update homepage
+[33m7d4e39c[m add github pages deploy workflow
+[33m112690e[m enable static export for github pages
+[33m78a240e[m update next config for github pages deploy
+[33m1a7fff2[m cases template update + floating contact button + footer fix
+[33m30e6ff2[m initial commit
