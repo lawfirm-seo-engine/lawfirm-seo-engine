@@ -1010,3 +1010,25 @@ body {
     margin-left: 0 !important;
   }
 }
+
+/* ===== 모바일 사건 상세보기 버튼 정렬 복원 ===== */
+
+@media (max-width: 768px) {
+  .daeon-type {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important; /* 핵심 */
+    padding: 10px 14px !important;
+  }
+
+  .daeon-type-text {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+
+  .daeon-type-icon {
+    margin-left: auto !important;
+    transform: none !important;
+  }
+}
