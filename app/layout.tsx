@@ -78,8 +78,13 @@ const organizationJsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: "법무법인 대온 핀테크센터",
-      alternateName: "대온 핀테크센터",
+      name: "법무법인 대온",
+      legalName: "법무법인 대온",
+      alternateName: [
+        "대온 핀테크센터",
+        "법무법인 대온 핀테크센터",
+        "대온 금융사기 대응센터",
+      ],
       url: siteUrl,
       logo: `${siteUrl}/images/logo.png`,
       image: `${siteUrl}/images/logo.png`,
@@ -88,26 +93,65 @@ const organizationJsonLd = {
     {
       "@type": "LegalService",
       "@id": `${siteUrl}/#legalservice`,
-      name: "법무법인 대온 핀테크센터",
-      alternateName: "대온 핀테크센터",
+      name: "대온 핀테크센터",
+      legalName: "법무법인 대온",
+      alternateName: [
+        "법무법인 대온 핀테크센터",
+        "대온 금융사기 대응센터",
+      ],
       url: siteUrl,
       logo: `${siteUrl}/images/logo.png`,
       image: `${siteUrl}/images/logo.png`,
       description:
-        "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+        "대온 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기, 쇼핑몰 사칭 사기, 부업 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
       areaServed: {
         "@type": "Country",
-        name: "KR",
+        name: "대한민국",
       },
       serviceType: [
         "투자사기 피해 대응",
         "가상자산 사기 대응",
-        "리딩방 사기 대응",
-        "쇼핑몰 사기 대응",
-        "부업 사기 대응",
+        "코인 사기 피해 대응",
+        "리딩방 사기 피해 대응",
+        "주식리딩방 사기 피해 대응",
+        "주식 어플 사기 피해 대응",
+        "어플 사기 피해 대응",
+        "팀미션 사기 피해 대응",
+        "해외선물 사기 피해 대응",
+        "쇼핑몰 사칭 사기 피해 대응",
+        "부업 사기 피해 대응",
+        "플랫폼 사칭 사기 피해 대응",
+        "민사 손해배상 대응",
+        "형사 고소 대응",
+        "가압류 대응",
+        "계좌 동결 대응",
+      ],
+      knowsAbout: [
+        "투자사기",
+        "리딩방 사기",
+        "주식리딩방 사기",
+        "코인 사기",
+        "가상자산 사기",
+        "해외선물 사기",
+        "주식 어플 사기",
+        "어플 사기",
+        "팀미션 사기",
+        "쇼핑몰 사칭 사기",
+        "부업 사기",
+        "플랫폼 사칭 사기",
+        "가압류",
+        "계좌 동결",
+        "민사 손해배상",
+        "형사 고소",
       ],
       provider: {
         "@id": `${siteUrl}/#organization`,
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        areaServed: "KR",
+        availableLanguage: ["ko-KR"],
       },
       inLanguage: "ko-KR",
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
@@ -121,6 +165,8 @@ const websiteJsonLd = {
   "@id": `${siteUrl}/#website`,
   url: siteUrl,
   name: "대온 핀테크센터",
+  description:
+    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
   publisher: {
     "@id": `${siteUrl}/#organization`,
   },
@@ -153,6 +199,7 @@ export default function RootLayout({
         </Script>
 
         <script
+          id="organization-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
@@ -160,6 +207,7 @@ export default function RootLayout({
         />
 
         <script
+          id="website-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
