@@ -15,6 +15,81 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ===== 헤더 ===== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nav > a:first-child {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111827;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav ul {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav li {
+  margin: 0;
+  padding: 0;
+}
+
+.nav a {
+  color: #1f2937;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nav a:hover {
+  color: #047857;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #047857;
+  color: #ffffff !important;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cta-button:hover {
+  background: #065f46;
+  color: #ffffff !important;
+}
+
+/* ===== 사건 상세 페이지 ===== */
+
 .case-page {
   max-width: 900px;
   margin: 0 auto;
@@ -41,12 +116,16 @@ body {
   margin-bottom: 20px;
   border-bottom: 2px solid #e5e7eb;
   padding-bottom: 8px;
-  text-align: center;
+  text-align: center !important;
+}
+
+.case-content h3 {
+  text-align: center !important;
 }
 
 .case-content p {
   margin-bottom: 16px;
-  text-align: center;
+  text-align: left !important;
 }
 
 .case-content figure {
@@ -59,7 +138,7 @@ body {
   color: #4b5563;
   font-size: 15px;
   line-height: 1.7;
-  text-align: center;
+  text-align: center !important;
 }
 
 .case-content figcaption p {
@@ -71,7 +150,7 @@ body {
   color: #6b7280;
   font-size: 15px;
   line-height: 1.7;
-  text-align: center;
+  text-align: center !important;
 }
 
 .case-content .image-description p {
@@ -80,7 +159,13 @@ body {
 
 .case-content li {
   margin-bottom: 8px;
-  text-align: center;
+  text-align: left !important;
+}
+
+.case-content ul,
+.case-content ol {
+  display: block;
+  text-align: left;
 }
 
 .case-content img {
@@ -89,6 +174,8 @@ body {
   display: block;
   border-radius: 10px;
   text-align: center;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* ===== 표 스타일 ===== */
@@ -99,6 +186,8 @@ body {
   table-layout: fixed !important;
   border-collapse: collapse !important;
   margin-top: 30px;
+  margin-left: auto !important;
+  margin-right: auto !important;
   border: 1px solid #e5e7eb;
 }
 
@@ -155,10 +244,8 @@ body {
 .related-cases {
   margin-top: 80px;
   padding: 40px 28px 34px;
+  border: 1px solid #e5e7eb;
   border-top: 2px solid #e5e7eb;
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
-  border-left: 1px solid #e5e7eb;
   background: #f8fafc;
   border-radius: 14px;
   text-align: center;
@@ -203,16 +290,13 @@ body {
 
 .related-cases a:hover {
   color: #1e40af;
-  text-decoration: underline;
 }
 
 .related-cases-box {
   margin-top: 90px !important;
   padding: 42px 28px 36px !important;
+  border: 1px solid #e5e7eb !important;
   border-top: 2px solid #e5e7eb !important;
-  border-right: 1px solid #e5e7eb !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  border-left: 1px solid #e5e7eb !important;
   border-radius: 14px !important;
   background: #f8fafc !important;
   text-align: center !important;
@@ -289,6 +373,21 @@ body {
   line-height: 1.6;
 }
 
+.daeon-footer-cafe {
+  margin-top: 14px;
+  margin-bottom: 22px;
+  font-size: 15px;
+}
+
+.daeon-footer-cafe-link {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.daeon-footer-cafe-link:hover {
+  text-decoration: underline;
+}
+
 /* ===== 우측 고정 상담 버튼 ===== */
 
 .floating-contact {
@@ -351,9 +450,396 @@ body {
   margin-bottom: 5px;
 }
 
+/* ===== daeon 카드 스타일 ===== */
+
+.daeon-wrap {
+  width: 100%;
+  color: #0f172a;
+  font-family: Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  background: #ffffff;
+}
+
+.daeon-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+.daeon-eyebrow {
+  margin: 0;
+  color: #10b981;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.daeon-title {
+  margin: 6px 0 0;
+  font-size: 42px;
+  font-weight: 900;
+}
+
+.daeon-desc {
+  max-width: 900px;
+  margin: 18px 0 0;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.daeon-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 34px;
+  flex-wrap: wrap;
+}
+
+.daeon-search-box {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+}
+
+.daeon-search-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 52px 0 18px;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.daeon-search-icon {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.daeon-reset-btn {
+  height: 54px;
+  padding: 0 22px;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.daeon-reset-btn:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.daeon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 36px;
+}
+
+.daeon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  transition: 0.22s ease;
+}
+
+.daeon-card:hover {
+  transform: translateY(-6px);
+  background: #ffffff !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.18) !important;
+}
+
+.daeon-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: #10b981;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.25s ease;
+  z-index: 4;
+}
+
+.daeon-card:hover::before {
+  transform: scaleX(1);
+}
+
+.daeon-status {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 7px 13px;
+  background: #10b981;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.daeon-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 210px !important;
+  height: 210px !important;
+  padding: 48px 18px 28px !important;
+  box-sizing: border-box !important;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.22s ease;
+}
+
+.daeon-card:hover .daeon-card-head {
+  background: #ecfdf5 !important;
+}
+
+.daeon-card-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 900;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.35 !important;
+}
+
+.daeon-card:hover .daeon-card-title {
+  color: #10b981;
+}
+
+.daeon-card-title-sub {
+  font-size: 20px;
+}
+
+.daeon-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 26px;
+  padding: 26px 22px;
+  text-align: center;
+}
+
+.daeon-warning {
+  margin: 0;
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.75;
+}
+
+.daeon-cta-wrap {
+  margin-top: auto;
+}
+
+.daeon-type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 60px;
+  padding: 10px 10px 10px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.daeon-type-text {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  text-align: left;
+}
+
+.daeon-type-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.daeon-card:hover .daeon-type {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.28);
+}
+
+.daeon-card:hover .daeon-type-icon {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.daeon-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.daeon-page {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.daeon-page.active {
+  background: #10b981;
+  color: white;
+}
+
+.daeon-page-meta {
+  margin-top: 60px;
+  text-align: center;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ===== SEO 텍스트 화면 숨김 강제 적용 ===== */
+
+.case-content .seo-hidden,
+.case-content .seo-hidden *,
+.seo-hidden,
+.seo-hidden * {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* ===== 타이핑 효과 ===== */
+
+.typing-heading {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid #2563eb;
+  width: 0;
+}
+
+.typing-active {
+  animation:
+    typing 2.2s steps(40, end) forwards,
+    blink 0.7s infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* ===== FAQ ===== */
+
+.case-faq-box {
+  margin-top: 70px;
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid #d9dde3;
+  background: #fff;
+}
+
+.case-faq-title {
+  font-size: 34px;
+  font-weight: 900;
+  padding-bottom: 18px;
+  border-bottom: 3px solid #111827;
+  margin-bottom: 30px;
+}
+
+.case-faq-item {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 14px;
+  padding: 18px 22px;
+}
+
+.case-faq-item summary {
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.case-faq-answer {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #374151;
+}
+
 /* ===== 모바일 ===== */
 
 @media (max-width: 768px) {
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px 16px;
+    gap: 14px;
+  }
+
+  .nav ul {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 18px;
+  }
+
+  .nav > a:first-child {
+    width: 100%;
+    text-align: center;
+  }
+
+  .cta-button {
+    padding: 9px 16px;
+  }
+
   .case-page {
     padding: 36px 16px 70px;
   }
@@ -442,484 +928,7 @@ body {
     height: 22px;
     font-size: 10px;
   }
-}
 
-/* ===== daeon 카드 스타일 ===== */
-
-.daeon-wrap {
-  width: 100%;
-  color: #0f172a;
-  font-family: Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
-  background: #ffffff;
-}
-
-.daeon-section {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 60px 20px;
-}
-
-.daeon-eyebrow {
-  margin: 0;
-  color: #10b981;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.daeon-title {
-  margin: 6px 0 0;
-  font-size: 42px;
-  font-weight: 900;
-}
-
-.daeon-desc {
-  max-width: 900px;
-  margin: 18px 0 0;
-  color: #64748b;
-  font-size: 16px;
-  line-height: 1.8;
-}
-
-.daeon-search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-top: 34px;
-  flex-wrap: wrap;
-}
-
-.daeon-search-box {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-}
-
-.daeon-search-input {
-  width: 100%;
-  height: 54px;
-  padding: 0 52px 0 18px;
-  border: 1px solid #dbe4ee;
-  border-radius: 14px;
-  background: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.daeon-search-icon {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
-  color: #10b981;
-  font-size: 20px;
-  font-weight: 900;
-}
-
-.daeon-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 22px;
-  margin-top: 36px;
-}
-
-.daeon-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 340px;
-  overflow: hidden;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  text-decoration: none;
-  transition: 0.22s ease;
-}
-
-.daeon-card:hover {
-  transform: translateY(-6px);
-  border-color: #10b981;
-}
-
-.daeon-status {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 7px 13px;
-  background: #10b981;
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.daeon-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 190px;
-  padding: 44px 18px 28px;
-  background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.daeon-card-title {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.daeon-card-title-sub {
-  font-size: 20px;
-}
-
-.daeon-card-body {
-  flex: 1;
-  padding: 22px;
-  text-align: center;
-}
-
-.daeon-warning {
-  color: #ef4444;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.daeon-type {
-  display: flex;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 10px 18px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  font-weight: 900;
-}
-
-.daeon-pagination {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 40px;
-}
-
-.daeon-page {
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-}
-
-.daeon-page.active {
-  background: #10b981;
-  color: white;
-}
-
-/* ===== daeon 카드 hover/간격/버튼 정렬 보정 ===== */
-
-.daeon-card {
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
-}
-
-.daeon-card:hover {
-  transform: translateY(-6px);
-  border-color: #10b981;
-  background: #ecfdf5;
-  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.18);
-}
-
-.daeon-card-head {
-  transition: background 0.22s ease;
-}
-
-.daeon-card:hover .daeon-card-head {
-  background: #ecfdf5;
-}
-
-.daeon-card:hover .daeon-card-title {
-  color: #10b981;
-}
-
-.daeon-card-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 26px;
-  padding: 26px 22px 26px;
-}
-
-.daeon-warning {
-  margin: 0;
-  line-height: 1.75;
-}
-
-.daeon-cta-wrap {
-  margin-top: auto;
-}
-
-.daeon-type {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 60px;
-  padding: 10px 10px 10px 20px;
-  line-height: 1;
-}
-
-.daeon-type-text {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  text-align: left;
-}
-
-.daeon-type-icon {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.daeon-card:hover .daeon-type {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.28);
-}
-
-.daeon-card:hover .daeon-type-icon {
-  transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* ===== 카드 hover 최종 보정 ===== */
-
-.daeon-card:hover {
-  background: #ffffff !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.18) !important;
-}
-
-.daeon-card:hover .daeon-card-head {
-  background: #ecfdf5 !important;
-}
-
-.daeon-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background: #10b981;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.25s ease;
-  z-index: 4;
-}
-
-.daeon-card:hover::before {
-  transform: scaleX(1);
-}
-
-.daeon-reset-btn {
-  height: 54px;
-  padding: 0 22px;
-  border: 1px solid #dbe4ee;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.daeon-reset-btn:hover {
-  transform: translateY(-2px);
-  border-color: #10b981;
-  color: #10b981;
-}
-
-.daeon-page-meta {
-  margin-top: 60px;
-  text-align: center;
-  color: #475569;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-/* ===== 제목만 중앙정렬 ===== */
-
-.case-content h1 {
-  text-align: center !important;
-}
-
-.case-content h2 {
-  text-align: center !important;
-}
-
-.case-content h3 {
-  text-align: center !important;
-}
-
-
-/* ===== 대표이미지 중앙정렬 ===== */
-
-.case-content img {
-  display: block;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-
-/* ===== 캡션 중앙정렬 ===== */
-
-.case-content figcaption {
-  text-align: center !important;
-}
-
-.case-content .image-description {
-  text-align: center !important;
-}
-
-
-/* ===== 본문은 좌측 정렬 ===== */
-
-.case-content p {
-  text-align: left !important;
-}
-
-.case-content li {
-  text-align: left !important;
-}
-
-
-/* ===== 체크리스트 정렬 유지 ===== */
-
-.case-content ul,
-.case-content ol {
-  display: block;
-  text-align: left;
-}
-
-
-/* ===== 표 중앙정렬 ===== */
-
-.case-content table {
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* ===== SEO 텍스트 화면 숨김 강제 적용 ===== */
-
-.case-content .seo-hidden,
-.case-content .seo-hidden *,
-.seo-hidden,
-.seo-hidden * {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-  color: transparent !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-}
-
-.typing-heading {
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  border-right: 3px solid #2563eb;
-  width: 0;
-}
-
-.typing-active {
-  animation:
-    typing 2.2s steps(40, end) forwards,
-    blink .7s infinite;
-}
-
-@keyframes typing {
-  from {
-    width: 0
-  }
-  to {
-    width: 100%
-  }
-}
-
-@keyframes blink {
-  50% {
-    border-color: transparent
-  }
-}
-
-/* Footer 카페 링크 간격 조정 */
-
-.daeon-footer-cafe {
-  margin-top: 14px;
-  margin-bottom: 22px;
-  font-size: 15px;
-}
-
-.daeon-footer-cafe-link {
-  font-weight: 600;
-  color: #2563eb;
-}
-
-.daeon-footer-cafe-link:hover {
-  text-decoration: underline;
-}
-
-.case-faq-box {
-  margin-top: 70px;
-  padding: 40px;
-  border-radius: 20px;
-  border: 1px solid #d9dde3;
-  background: #fff;
-}
-
-.case-faq-title {
-  font-size: 34px;
-  font-weight: 900;
-  padding-bottom: 18px;
-  border-bottom: 3px solid #111827;
-  margin-bottom: 30px;
-}
-
-.case-faq-item {
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 14px;
-  padding: 18px 22px;
-}
-
-.case-faq-item summary {
-  cursor: pointer;
-  font-size: 19px;
-  font-weight: 800;
-}
-
-.case-faq-answer {
-  margin-top: 12px;
-  font-size: 16px;
-  line-height: 1.8;
-  color: #374151;
-}
-
-/* ===== 모바일 진행 사건 카드 2열 보정 (높이 확장 버전) ===== */
-
-@media (max-width: 768px) {
   .daeon-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 14px !important;
@@ -942,15 +951,19 @@ body {
   }
 
   .daeon-card-head {
-    min-height: 170px !important;
-    padding: 48px 14px 24px !important;
+    min-height: 180px !important;
+    height: 180px !important;
+    padding: 50px 14px 24px !important;
   }
 
   .daeon-card-title {
-    font-size: 20px !important;
-    line-height: 1.45 !important;
+    font-size: 19px !important;
+    line-height: 1.4 !important;
     letter-spacing: -0.04em !important;
     word-break: keep-all !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    display: block !important;
   }
 
   .daeon-card-title-sub {
@@ -968,157 +981,21 @@ body {
   }
 
   .daeon-type {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     min-height: 52px !important;
     padding: 10px 14px !important;
     border-radius: 14px !important;
     font-size: 14px !important;
   }
 
-  .daeon-type-icon {
-    width: 34px !important;
-    height: 34px !important;
-    flex: 0 0 34px !important;
-    font-size: 15px !important;
-  }
-}
-
-/* ===== 모바일 카드 상태/버튼 정렬 보정 ===== */
-
-@media (max-width: 768px) {
-  .daeon-status {
-    top: 14px !important;
-    right: 14px !important;
-    left: auto !important;
-    transform: none !important;
-  }
-
-  .daeon-type {
-    justify-content: center !important;
-    gap: 12px !important;
-    text-align: center !important;
-    padding: 10px 12px !important;
-  }
-
-  .daeon-type-text {
-    justify-content: center !important;
-    text-align: center !important;
-  }
-
-  .daeon-type-icon {
-    margin-left: 0 !important;
-  }
-}
-
-/* ===== 모바일 사건 상세보기 버튼 정렬 복원 ===== */
-
-@media (max-width: 768px) {
-  .daeon-type {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important; /* 핵심 */
-    padding: 10px 14px !important;
-  }
-
   .daeon-type-text {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-  }
-
-  .daeon-type-icon {
-    margin-left: auto !important;
-    transform: none !important;
-  }
-}
-
-/* ===== 모바일 사건 상세보기 텍스트 위치 보정 ===== */
-
-@media (max-width: 768px) {
-  .daeon-type-text {
     padding-left: 6px !important;
-  }
-}
-
-/* ===== 모바일 사건 상세보기 화살표 위치 미세 조정 ===== */
-
-@media (max-width: 768px) {
-  .daeon-type-icon {
-    margin-right: 8px !important; /* 기본 0 → 8px 이동 */
-  }
-}
-
-/* ===== 모바일 사건 상세보기 텍스트 폰트 크기 조정 ===== */
-
-@media (max-width: 768px) {
-  .daeon-type-text {
     font-size: 12px !important;
-  }
-}
-
-/* ===== 모바일 긴 사건명 잘림 방지 ===== */
-
-@media (max-width: 768px) {
-  .daeon-card-head {
-    min-height: auto !important;
-    padding: 48px 14px 26px !important;
-  }
-
-  .daeon-card-title {
-    white-space: normal !important;
-    word-break: keep-all !important;
-    overflow-wrap: anywhere !important;
-    display: block !important;
-    line-height: 1.45 !important;
-  }
-}
-
-/* ===== 전체 화면 긴 사건명 잘림 방지 ===== */
-
-.daeon-card-head {
-  min-height: auto !important;
-}
-
-.daeon-card-title {
-  white-space: normal !important;
-  word-break: keep-all !important;
-  overflow-wrap: anywhere !important;
-}
-
-/* ===== 카드 상단 회색 영역 높이 통일 ===== */
-
-.daeon-card-head {
-  min-height: 210px !important;
-  height: 210px !important;
-  padding: 48px 18px 28px !important;
-  box-sizing: border-box !important;
-}
-
-.daeon-card-title {
-  white-space: normal !important;
-  word-break: keep-all !important;
-  overflow-wrap: anywhere !important;
-  line-height: 1.35 !important;
-}
-
-/* ===== 모바일 카드 상단 회색 영역 높이 통일 ===== */
-
-@media (max-width: 768px) {
-  .daeon-card-head {
-    min-height: 180px !important;
-    height: 180px !important;
-    padding: 50px 14px 24px !important;
-  }
-
-  .daeon-card-title {
-    font-size: 19px !important;
-    line-height: 1.4 !important;
-  }
-}
-
-/* ===== 모바일 작은 화면에서도 '상세보기' 한 줄 유지 ===== */
-
-@media (max-width: 768px) {
-  .daeon-type-text {
     white-space: nowrap !important;
     word-break: keep-all !important;
     overflow-wrap: normal !important;
@@ -1126,14 +1003,16 @@ body {
     text-align: center !important;
   }
 
-  .daeon-type {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+  .daeon-type-icon {
+    width: 34px !important;
+    height: 34px !important;
+    flex: 0 0 34px !important;
+    font-size: 15px !important;
+    margin-left: auto !important;
+    margin-right: 8px !important;
+    transform: none !important;
   }
 }
-
-/* ===== 초소형 모바일에서도 화살표 잘림 방지 ===== */
 
 @media (max-width: 480px) {
   .daeon-type {
@@ -1151,5 +1030,195 @@ body {
     width: 30px !important;
     height: 30px !important;
     margin-right: 4px !important;
+  }
+}
+
+/* ===== 주력분야 페이지 전용 카드 그리드 ===== */
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 36px;
+}
+
+@media (max-width: 768px) {
+  .services-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+  }
+}
+
+/* ===== 대응절차 페이지 전용 ===== */
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 42px;
+}
+
+.process-card {
+  position: relative;
+  min-height: 250px;
+  padding: 34px 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  transition: 0.22s ease;
+}
+
+.process-card {
+  overflow: hidden;
+}
+
+.process-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: #10b981;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.25s ease;
+  z-index: 4;
+}
+
+.process-card:hover::before {
+  transform: scaleX(1);
+}
+
+.process-card:hover {
+  transform: translateY(-6px);
+  border-color: #10b981;
+  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.16);
+}
+
+.process-step {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 24px;
+}
+
+.process-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
+.process-desc {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+@media (max-width: 768px) {
+  .process-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .process-card {
+    min-height: auto;
+    padding: 28px 22px;
+  }
+
+  .process-title {
+    font-size: 21px;
+  }
+
+  .process-desc {
+    font-size: 15px;
+  }
+}
+
+/* ===== 상담안내 페이지 전용 ===== */
+
+.consulting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 42px;
+}
+
+.consulting-card {
+  position: relative;
+  min-height: 230px;
+  overflow: hidden;
+  padding: 34px 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  transition: 0.22s ease;
+}
+
+.consulting-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: #10b981;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.25s ease;
+  z-index: 4;
+}
+
+.consulting-card:hover {
+  transform: translateY(-6px);
+  border-color: #10b981;
+  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.16);
+}
+
+.consulting-card:hover::before {
+  transform: scaleX(1);
+}
+
+.consulting-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
+.consulting-desc {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+@media (max-width: 768px) {
+  .consulting-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .consulting-card {
+    min-height: auto;
+    padding: 28px 22px;
+  }
+
+  .consulting-title {
+    font-size: 21px;
+  }
+
+  .consulting-desc {
+    font-size: 15px;
   }
 }

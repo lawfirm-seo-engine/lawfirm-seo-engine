@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+
+import Header from "./components/Header";
 import Footer from "./components/Footer";
 import FloatingContact from "./components/FloatingContact";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -135,7 +138,7 @@ const organizationJsonLd = {
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
       },
-      sameAs: ["https://cafe.naver.com/daeonlawfintech"]
+      sameAs: ["https://cafe.naver.com/daeonlawfintech"],
     },
   ],
 };
@@ -163,11 +166,20 @@ const navigationJsonLd = {
   "@context": "https://schema.org",
   "@type": "SiteNavigationElement",
   "@id": `${siteUrl}/#navigation`,
-  name: ["홈", "진행 사건", "상담 안내", "네이버 카페"],
+  name: [
+    "홈",
+    "주력분야",
+    "진행사건",
+    "대응절차",
+    "상담안내",
+    "네이버카페",
+  ],
   url: [
     siteUrl,
+    `${siteUrl}/services`,
     `${siteUrl}/cases`,
-    `${siteUrl}/contact`,
+    `${siteUrl}/process`,
+    `${siteUrl}/consulting`,
     "https://cafe.naver.com/daeonlawfintech",
   ],
 };
@@ -183,6 +195,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
           strategy="afterInteractive"
@@ -197,8 +211,8 @@ export default function RootLayout({
           `}
         </Script>
 
+        {/* JSON-LD Schema */}
         <script
-          id="organization-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
@@ -206,7 +220,6 @@ export default function RootLayout({
         />
 
         <script
-          id="website-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
@@ -214,12 +227,14 @@ export default function RootLayout({
         />
 
         <script
-          id="navigation-jsonld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(navigationJsonLd).replace(/</g, "\\u003c"),
           }}
         />
+
+        {/* ✅ Header 추가됨 */}
+        <Header />
 
         {children}
 
@@ -230,6 +245,7 @@ export default function RootLayout({
           src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
           strategy="afterInteractive"
         />
+
       </body>
     </html>
   );
