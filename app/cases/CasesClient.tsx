@@ -89,7 +89,7 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
 
                   <div className="daeon-card-body">
                     <p className="daeon-warning">
-                      본 사건은 정상 업체명을
+                      본 사건은 업체명을
                       <br />
                       사칭한 사기입니다
                     </p>

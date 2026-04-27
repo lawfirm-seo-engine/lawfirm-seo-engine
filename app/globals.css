@@ -1035,7 +1035,7 @@ body {
 
 @media (max-width: 768px) {
   .daeon-type-text {
-    padding-left: 18px !important;
+    padding-left: 14px !important;
   }
 }
 
@@ -1082,4 +1082,35 @@ body {
   white-space: normal !important;
   word-break: keep-all !important;
   overflow-wrap: anywhere !important;
+}
+
+/* ===== 카드 상단 회색 영역 높이 통일 ===== */
+
+.daeon-card-head {
+  min-height: 210px !important;
+  height: 210px !important;
+  padding: 48px 18px 28px !important;
+  box-sizing: border-box !important;
+}
+
+.daeon-card-title {
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.35 !important;
+}
+
+/* ===== 모바일 카드 상단 회색 영역 높이 통일 ===== */
+
+@media (max-width: 768px) {
+  .daeon-card-head {
+    min-height: 180px !important;
+    height: 180px !important;
+    padding: 50px 14px 24px !important;
+  }
+
+  .daeon-card-title {
+    font-size: 19px !important;
+    line-height: 1.4 !important;
+  }
 }
