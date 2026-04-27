@@ -129,17 +129,13 @@ const organizationJsonLd = {
         "민사 손해배상",
         "형사 고소",
       ],
-      provider: {
-        "@id": `${siteUrl}/#organization`,
-      },
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
       },
-      inLanguage: "ko-KR",
-      sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+      sameAs: ["https://cafe.naver.com/daeonlawfintech"]
     },
   ],
 };

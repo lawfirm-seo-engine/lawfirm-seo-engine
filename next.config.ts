@@ -5,6 +5,8 @@ const withMDX = createMDX({
   extension: /\.mdx?$/,
 })
 
+const isDev = process.env.NODE_ENV === "development"
+
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -31,7 +33,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value:
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://logs.ai.kr; " +
+      `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ""}https://www.googletagmanager.com https://www.google-analytics.com https://logs.ai.kr; ` +
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: blob: https:; " +
       "font-src 'self' data:; " +
