@@ -263,13 +263,11 @@ export default async function CasePage({
 
   const authorJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
+    "@type": "Organization",
     "@id": `${siteUrl}/#author`,
-    name: authorName,
-    jobTitle: "변호사",
-    worksFor: {
-      "@id": `${siteUrl}/#organization`,
-    },
+    name: "법무법인 대온 핀테크센터",
+    url: siteUrl,
+    sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
 
   const articleJsonLd = {
