@@ -173,6 +173,19 @@ const websiteJsonLd = {
   inLanguage: "ko-KR",
 };
 
+const navigationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "@id": `${siteUrl}/#navigation`,
+  name: ["홈", "진행 사건", "상담 안내", "네이버 카페"],
+  url: [
+    siteUrl,
+    `${siteUrl}/cases`,
+    `${siteUrl}/contact`,
+    "https://cafe.naver.com/daeonlawfintech",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -211,6 +224,14 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+
+        <script
+          id="navigation-jsonld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(navigationJsonLd).replace(/</g, "\\u003c"),
           }}
         />
 
