@@ -1037,7 +1037,7 @@ body {
 
 @media (max-width: 768px) {
   .daeon-type-text {
-    padding-left: 20px !important;
+    padding-left: 24px !important;
   }
 }
 
@@ -1045,6 +1045,6 @@ body {
 
 @media (max-width: 768px) {
   .daeon-type-icon {
-    margin-right: 8px !important; /* 기본 0 → 8px 이동 */
+    margin-right: 12px !important; /* 기본 0 → 8px 이동 */
   }
 }
