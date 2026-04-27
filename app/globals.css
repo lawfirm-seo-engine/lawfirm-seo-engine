@@ -1048,3 +1048,11 @@ body {
     margin-right: 12px !important; /* 기본 0 → 8px 이동 */
   }
 }
+
+/* ===== 모바일 사건 상세보기 텍스트 폰트 크기 조정 ===== */
+
+@media (max-width: 768px) {
+  .daeon-type-text {
+    font-size: 14px !important;
+  }
+}
