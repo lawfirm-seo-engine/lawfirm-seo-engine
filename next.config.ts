@@ -45,6 +45,10 @@ const securityHeaders = [
       "frame-ancestors 'self'; " +
       "upgrade-insecure-requests;",
   },
+  {
+    key: "Access-Control-Allow-Origin",
+    value: "https://daeonlawfintech.com",
+  },
 ]
 
 const nextConfig: NextConfig = {
