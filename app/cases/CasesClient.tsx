@@ -91,7 +91,7 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                     <p className="daeon-warning">
                       해당 사건은 정상 업체명을
                       <br />
-                      사칭한 사기 사건입니다
+                      사칭한 사기입니다
                     </p>
 
                     <div className="daeon-cta-wrap">
