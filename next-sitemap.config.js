@@ -12,6 +12,9 @@ module.exports = {
   exclude: [
     "/cases/_template",
     "/server-sitemap.xml",
+    "/api/*",
+    "/admin/*",
+    "/private/*",
   ],
 
   robotsTxtOptions: {
@@ -19,11 +22,17 @@ module.exports = {
       {
         userAgent: "*",
         allow: "/",
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/private/",
+          "/cases/_template",
+          "/server-sitemap.xml",
+        ],
       },
     ],
     additionalSitemaps: [
       "https://daeonlawfintech.com/sitemap.xml",
-      "https://daeonlawfintech.com/rss.xml",
     ],
   },
 
