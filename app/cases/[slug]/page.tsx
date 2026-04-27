@@ -229,6 +229,17 @@ export default async function CasePage({
     url: siteUrl,
     logo: `${siteUrl}/images/logo.png`,
     image: `${siteUrl}/images/logo.png`,
+
+    telephone: "+82-2-6952-3695",
+
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "KR",
+      addressLocality: "서울",
+    },
+
+    priceRange: "$$$",
+
     description:
       "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
     areaServed: {
