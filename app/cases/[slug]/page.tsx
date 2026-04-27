@@ -238,8 +238,11 @@ export default async function CasePage({
 
     address: {
       "@type": "PostalAddress",
-      addressCountry: "KR",
+      streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
       addressLocality: "서울",
+      addressRegion: "서울특별시",
+      postalCode: "06647",
+      addressCountry: "KR",
     },
 
     priceRange: "$$$",
