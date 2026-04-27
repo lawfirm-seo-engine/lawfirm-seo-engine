@@ -1040,3 +1040,11 @@ body {
     padding-left: 20px !important;
   }
 }
+
+/* ===== 모바일 사건 상세보기 화살표 위치 미세 조정 ===== */
+
+@media (max-width: 768px) {
+  .daeon-type-icon {
+    margin-right: 8px !important; /* 기본 0 → 8px 이동 */
+  }
+}
