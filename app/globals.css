@@ -1222,3 +1222,23 @@ body {
     font-size: 15px;
   }
 }
+
+.nav-link.active,
+.nav-logo.active {
+  color: #10b981 !important;
+}
+
+.nav-link.active {
+  position: relative;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 3px;
+  border-radius: 999px;
+  background: #10b981;
+}
