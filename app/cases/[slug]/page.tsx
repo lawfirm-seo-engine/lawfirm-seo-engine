@@ -223,9 +223,13 @@ export default async function CasePage({
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "LegalService",
-    "@id": `${siteUrl}/#organization`,
-    name: "법무법인 대온 핀테크센터",
-    alternateName: siteName,
+    "@id": `${siteUrl}/#legalservice`,
+    name: "대온 핀테크센터",
+    legalName: "법무법인 대온",
+    alternateName: [
+      "법무법인 대온 핀테크센터",
+      "대온 금융사기 대응센터"
+    ],
     url: siteUrl,
     logo: `${siteUrl}/images/logo.png`,
     image: `${siteUrl}/images/logo.png`,
