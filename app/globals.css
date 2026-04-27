@@ -983,3 +983,30 @@ body {
     font-size: 14px !important;
   }
 }
+
+/* ===== 모바일 카드 상태/버튼 정렬 보정 ===== */
+
+@media (max-width: 768px) {
+  .daeon-status {
+    top: 14px !important;
+    right: 14px !important;
+    left: auto !important;
+    transform: none !important;
+  }
+
+  .daeon-type {
+    justify-content: center !important;
+    gap: 12px !important;
+    text-align: center !important;
+    padding: 10px 12px !important;
+  }
+
+  .daeon-type-text {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .daeon-type-icon {
+    margin-left: 0 !important;
+  }
+}
