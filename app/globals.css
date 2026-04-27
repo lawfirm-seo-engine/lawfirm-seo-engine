@@ -917,70 +917,68 @@ body {
   color: #374151;
 }
 
-/* ===== 모바일 진행 사건 카드 3열 보정 (높이 확장 버전) ===== */
+/* ===== 모바일 진행 사건 카드 2열 보정 (높이 확장 버전) ===== */
 
 @media (max-width: 768px) {
   .daeon-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 12px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
     margin-top: 28px;
   }
 
   .daeon-card {
     min-width: 0 !important;
-    min-height: 270px !important; /* 기존 230 → 270 증가 */
+    min-height: 300px !important;
     border-radius: 18px !important;
   }
 
   .daeon-status {
-    top: 10px;
-    right: 50%;
-    transform: translateX(50%);
-    padding: 6px 10px;
-    font-size: 11px;
-    white-space: nowrap;
+    top: 14px !important;
+    right: 14px !important;
+    left: auto !important;
+    transform: none !important;
+    padding: 7px 12px;
+    font-size: 12px;
   }
 
   .daeon-card-head {
-    min-height: 150px !important; /* 기존 126 → 150 증가 */
-    padding: 44px 10px 20px !important;
+    min-height: 170px !important;
+    padding: 48px 14px 24px !important;
   }
 
   .daeon-card-title {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
-    letter-spacing: -0.05em !important;
+    font-size: 20px !important;
+    line-height: 1.45 !important;
+    letter-spacing: -0.04em !important;
     word-break: keep-all !important;
-    overflow-wrap: anywhere !important;
   }
 
   .daeon-card-title-sub {
-    font-size: 16px !important;
+    font-size: 18px !important;
   }
 
   .daeon-card-body {
-    padding: 16px 10px 18px !important;
-    gap: 16px !important;
+    padding: 18px 14px 20px !important;
+    gap: 18px !important;
   }
 
   .daeon-warning {
-    font-size: 13px !important;
+    font-size: 14px !important;
     line-height: 1.6 !important;
-    word-break: keep-all !important;
   }
 
   .daeon-type {
-    min-height: 48px !important;
-    padding: 8px 10px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
+    min-height: 52px !important;
+    padding: 10px 14px !important;
+    border-radius: 14px !important;
+    font-size: 14px !important;
   }
 
   .daeon-type-icon {
-    width: 30px !important;
-    height: 30px !important;
-    flex: 0 0 30px !important;
-    font-size: 14px !important;
+    width: 34px !important;
+    height: 34px !important;
+    flex: 0 0 34px !important;
+    font-size: 15px !important;
   }
 }
 
