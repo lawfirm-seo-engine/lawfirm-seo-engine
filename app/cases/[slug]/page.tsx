@@ -9,7 +9,6 @@ export const dynamic = "force-static"
 
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 핀테크센터"
-const authorName = "변호사명"
 
 const scamTopicKeywords = [
   "팀미션 사기",
@@ -223,19 +222,17 @@ export default async function CasePage({
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "LegalService",
-    "@id": `${siteUrl}/#legalservice`,
+    "@id": `${siteUrl}/#organization`,
     name: "대온 핀테크센터",
     legalName: "법무법인 대온",
     alternateName: [
       "법무법인 대온 핀테크센터",
-      "대온 금융사기 대응센터"
+      "대온 금융사기 대응센터",
     ],
     url: siteUrl,
     logo: `${siteUrl}/images/logo.png`,
     image: `${siteUrl}/images/logo.png`,
-
     telephone: "+82-2-6952-3695",
-
     address: {
       "@type": "PostalAddress",
       streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
@@ -244,9 +241,7 @@ export default async function CasePage({
       postalCode: "06647",
       addressCountry: "KR",
     },
-
     priceRange: "$$$",
-
     description:
       "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
     areaServed: {
@@ -326,6 +321,71 @@ export default async function CasePage({
     inLanguage: "ko-KR",
   }
 
+  const speakableJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SpeakableSpecification",
+    cssSelector: [
+      ".case-content h1",
+      ".case-content h2",
+      ".case-content p",
+      ".case-faq-title",
+    ],
+  }
+
+  const howToJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "@id": `${pageUrl}#howto`,
+    name: `${keyword} 사기 피해 대응 방법`,
+    description: `${keyword} 사기 피해 발생 후 증거 보존, 계좌 확인, 상담 및 민형사 대응을 준비하는 절차입니다.`,
+    image: imageUrl,
+    totalTime: "PT30M",
+    supply: [
+      {
+        "@type": "HowToSupply",
+        name: "입금 내역",
+      },
+      {
+        "@type": "HowToSupply",
+        name: "대화 내역",
+      },
+      {
+        "@type": "HowToSupply",
+        name: "사이트 주소 및 화면 캡처",
+      },
+      {
+        "@type": "HowToSupply",
+        name: "가상자산 지갑주소 또는 계좌정보",
+      },
+    ],
+    step: [
+      {
+        "@type": "HowToStep",
+        position: 1,
+        name: "증거자료 보존",
+        text: "사기 사이트 주소, 대화방, 입금 내역, 계좌번호, 지갑주소, 담당자 프로필 등을 삭제하지 말고 캡처해 보관합니다.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 2,
+        name: "추가 입금 중단",
+        text: "세금, 보증금, 인증비, 출금 수수료 등 추가 입금을 요구받더라도 더 이상 송금하지 않습니다.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 3,
+        name: "자금 흐름 확인",
+        text: "입금 계좌, 가상자산 지갑주소, 송금 시각, 거래소 이용 내역을 정리해 피해금 이동 경로를 확인합니다.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 4,
+        name: "법률 상담 진행",
+        text: "피해 자료를 바탕으로 가압류, 계좌 동결, 민사 손해배상, 형사 고소 등 가능한 대응 방향을 검토합니다.",
+      },
+    ],
+  }
+
   const imageJsonLd = {
     "@context": "https://schema.org",
     "@type": "ImageObject",
@@ -355,7 +415,7 @@ export default async function CasePage({
         "@type": "ListItem",
         position: 2,
         name: "진행 사건",
-        item: siteUrl,
+        item: `${siteUrl}/cases`,
       },
       {
         "@type": "ListItem",
@@ -541,6 +601,20 @@ export default async function CasePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(speakableJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(howToJsonLd).replace(/</g, "\\u003c"),
         }}
       />
 
