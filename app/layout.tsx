@@ -142,6 +142,7 @@ export default function RootLayout({
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
           strategy="afterInteractive"
         />
+
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
@@ -166,8 +167,16 @@ export default function RootLayout({
         />
 
         {children}
+
         <Footer />
         <FloatingContact />
+
+        {/* LogScan */}
+        <Script
+          src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
+          strategy="afterInteractive"
+        />
+        {/* End LogScan Code */}
       </body>
     </html>
   );
