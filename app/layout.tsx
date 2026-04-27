@@ -93,6 +93,7 @@ const organizationJsonLd = {
       image: `${siteUrl}/images/logo.png`,
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
     },
+
     {
       "@type": "LegalService",
       "@id": `${siteUrl}/#legalservice`,
@@ -107,10 +108,25 @@ const organizationJsonLd = {
       image: `${siteUrl}/images/logo.png`,
       description:
         "대온 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기, 쇼핑몰 사칭 사기, 부업 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "서초대로 250 스타갤러리브릿지빌딩 802호",
+        addressLocality: "서초구",
+        addressRegion: "서울",
+        postalCode: "06647",
+        addressCountry: "KR",
+      },
+
+      telephone: "+82-2-3476-0915",
+
+      priceRange: "$$$",
+
       areaServed: {
         "@type": "Country",
         name: "대한민국",
       },
+
       knowsAbout: [
         "투자사기",
         "리딩방 사기",
@@ -132,12 +148,14 @@ const organizationJsonLd = {
         "민사 손해배상",
         "형사 고소",
       ],
+
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
       },
+
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
     },
   ],
@@ -158,6 +176,23 @@ const websiteJsonLd = {
     "@type": "SearchAction",
     target: `${siteUrl}/search?q={search_term_string}`,
     "query-input": "required name=search_term_string",
+  },
+  inLanguage: "ko-KR",
+};
+
+const homepageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${siteUrl}/#homepage`,
+  url: siteUrl,
+  name: "대온 핀테크센터",
+  description:
+    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+  isPartOf: {
+    "@id": `${siteUrl}/#website`,
+  },
+  about: {
+    "@id": `${siteUrl}/#legalservice`,
   },
   inLanguage: "ko-KR",
 };
@@ -186,16 +221,15 @@ const navigationJsonLd = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-
         {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
@@ -229,11 +263,17 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
+            __html: JSON.stringify(homepageJsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
             __html: JSON.stringify(navigationJsonLd).replace(/</g, "\\u003c"),
           }}
         />
 
-        {/* ✅ Header 추가됨 */}
         <Header />
 
         {children}
@@ -245,7 +285,6 @@ export default function RootLayout({
           src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
           strategy="afterInteractive"
         />
-
       </body>
     </html>
   );
