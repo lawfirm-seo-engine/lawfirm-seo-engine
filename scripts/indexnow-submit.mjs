@@ -4,6 +4,7 @@ import crypto from "crypto"
 
 const SITE_URL = "https://daeonlawfintech.com"
 const HOST = "daeonlawfintech.com"
+const MAX_URLS_PER_REQUEST = 10000
 
 const CASES_DIR = path.join(
   process.cwd(),
@@ -40,21 +41,32 @@ function getCaseUrls() {
     .readdirSync(CASES_DIR)
     .filter((file) => file.endsWith(".mdx"))
     .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
     .map((file) => {
       const slug = file.replace(/\.mdx$/, "")
       return `${SITE_URL}/cases/${encodeURIComponent(slug)}`
     })
 }
 
-async function submitIndexNow() {
-  const key = ensureIndexNowKey()
-
-  const urlList = [
+function getUrlList() {
+  const urls = [
     SITE_URL,
     `${SITE_URL}/sitemap.xml`,
     `${SITE_URL}/rss.xml`,
     ...getCaseUrls(),
   ]
+
+  return Array.from(new Set(urls)).slice(0, MAX_URLS_PER_REQUEST)
+}
+
+async function submitIndexNow() {
+  const key = ensureIndexNowKey()
+  const urlList = getUrlList()
+
+  if (urlList.length === 0) {
+    console.log("No URLs to submit")
+    return
+  }
 
   const payload = {
     host: HOST,
@@ -76,6 +88,10 @@ async function submitIndexNow() {
   console.log("IndexNow status:", response.status)
   console.log("Submitted URLs:", urlList.length)
   console.log(text || "IndexNow submitted successfully")
+
+  if (!response.ok) {
+    throw new Error(`IndexNow submit failed with status ${response.status}`)
+  }
 }
 
 submitIndexNow().catch((error) => {
