@@ -93,7 +93,7 @@ const pngPath = path.join(
   `${slug}-사기.png`
 )
 
-const titleText = `${caseName} (사칭) 사기`
+const titleText = `${caseName}`
 const subText = "피해 회복을 위한 법률 정보"
 
 /*
