@@ -916,3 +916,106 @@ body {
   line-height: 1.8;
   color: #374151;
 }
+
+/* ===== 모바일 진행 사건 카드 3열 보정 ===== */
+
+@media (max-width: 768px) {
+  .daeon-section {
+    padding: 42px 12px;
+  }
+
+  .daeon-title {
+    font-size: 32px;
+    line-height: 1.25;
+  }
+
+  .daeon-desc {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .daeon-search-wrap {
+    gap: 10px;
+    margin-top: 26px;
+  }
+
+  .daeon-search-box {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .daeon-search-input {
+    height: 50px;
+    font-size: 14px;
+  }
+
+  .daeon-reset-btn {
+    height: 48px;
+    padding: 0 16px;
+    font-size: 13px;
+  }
+
+  .daeon-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-top: 28px;
+  }
+
+  .daeon-card {
+    min-width: 0 !important;
+    min-height: 230px !important;
+    border-radius: 18px !important;
+  }
+
+  .daeon-status {
+    top: 10px;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .daeon-card-head {
+    min-height: 126px !important;
+    padding: 42px 8px 18px !important;
+  }
+
+  .daeon-card-title {
+    font-size: 17px !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.06em !important;
+    word-break: keep-all !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .daeon-card-title-sub {
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+  }
+
+  .daeon-card-body {
+    padding: 14px 8px 16px !important;
+    gap: 14px !important;
+  }
+
+  .daeon-warning {
+    font-size: 12px !important;
+    line-height: 1.55 !important;
+    word-break: keep-all !important;
+  }
+
+  .daeon-type {
+    min-height: 44px !important;
+    padding: 8px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+  }
+
+  .daeon-type-icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+    font-size: 13px !important;
+  }
+}
