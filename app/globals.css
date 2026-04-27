@@ -1032,3 +1032,11 @@ body {
     transform: none !important;
   }
 }
+
+/* ===== 모바일 사건 상세보기 텍스트 위치 보정 ===== */
+
+@media (max-width: 768px) {
+  .daeon-type-text {
+    padding-left: 16px !important;
+  }
+}
