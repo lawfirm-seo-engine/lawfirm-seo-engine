@@ -11,6 +11,25 @@ const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 핀테크센터"
 const authorName = "변호사명"
 
+const scamTopicKeywords = [
+  "팀미션 사기",
+  "주식 어플 사기",
+  "주식리딩방 사기",
+  "어플 사기",
+  "투자사기",
+  "코인 사기",
+  "리딩방 사기",
+  "플랫폼 사칭 사기",
+  "쇼핑몰 사칭 사기",
+  "부업 사기",
+  "해외선물 사기",
+  "체험단 사기",
+  "여행사 사칭 사기",
+  "라이브방송 사기",
+  "증권사 사칭 사기",
+  "금 투자 사기",
+]
+
 export async function generateStaticParams() {
   const casesDir = path.join(
     process.cwd(),
@@ -161,6 +180,20 @@ export default async function CasePage({
   const imageCaption = `${keyword} 사기 사칭 피해 사례 및 대응 방법 안내`
   const imageDescription = `${keyword} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
 
+  const articleKeywords = [
+    `${keyword} 사기`,
+    `${keyword} 사칭`,
+    `${keyword} 피해회복`,
+    `${keyword} 피해 사례`,
+    `${keyword} 대응 방법`,
+    ...scamTopicKeywords,
+  ]
+
+  const articleAbout = articleKeywords.map((name) => ({
+    "@type": "Thing",
+    name,
+  }))
+
   const { content } = await compileMDX({
     source,
     components: {
@@ -211,6 +244,7 @@ export default async function CasePage({
       "계좌 추적",
       "가압류",
       "민형사 대응",
+      ...scamTopicKeywords,
     ],
     sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
@@ -224,6 +258,7 @@ export default async function CasePage({
     publisher: {
       "@id": `${siteUrl}/#organization`,
     },
+    inLanguage: "ko-KR",
   }
 
   const authorJsonLd = {
@@ -245,8 +280,14 @@ export default async function CasePage({
       "@type": "WebPage",
       "@id": pageUrl,
     },
+    isPartOf: {
+      "@id": `${siteUrl}/#website`,
+    },
     headline: `${keyword} 사기 사칭 피해회복`,
     description: `${keyword} 사기 피해 사례 및 대응 전략 안내`,
+    keywords: articleKeywords.join(", "),
+    about: articleAbout,
+    mentions: articleAbout,
     image: {
       "@type": "ImageObject",
       "@id": `${imageUrl}#image`,
@@ -554,9 +595,10 @@ export default async function CasePage({
             <span>후불제로 사건 진행을 하고 싶은데 가능한가요?</span>
           </summary>
           <div className="case-faq-answer">
-            변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 
-            변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 
-            각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의하시기 바랍니다.         
+            변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를
+            사칭하는 곳이며, 변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에
+            각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의하시기
+            바랍니다.
           </div>
         </details>
 
@@ -566,8 +608,8 @@ export default async function CasePage({
             <span>단체 소송으로 진행하는게 좋은가요?</span>
           </summary>
           <div className="case-faq-answer">
-            단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 
-            의뢰인의 실익이 없기에 대온은 진행하지 않습니다.
+            단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이
+            길어져 의뢰인의 실익이 없기에 대온은 진행하지 않습니다.
           </div>
         </details>
       </section>
@@ -585,9 +627,8 @@ export default async function CasePage({
                   href={`/cases/${item.slug}`}
                   className="related-cases-link"
                 >
-                  {item.title
-                    .replace(/-/g, " ")
-                    .replace(/사기$/, "")} 사기 피해 사례
+                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해
+                  사례
                 </Link>
               </li>
             ))}
