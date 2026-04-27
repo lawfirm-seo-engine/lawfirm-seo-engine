@@ -540,11 +540,34 @@ export default async function CasePage({
         <details className="case-faq-item">
           <summary>
             <span className="case-faq-number">3</span>
-            <span>대응은 언제 시작해야 하나요?</span>
+            <span>대응과 상담은 언제 시작해야 하나요?</span>
           </summary>
           <div className="case-faq-answer">
-            사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 대응을
-            시작하는 것이 중요합니다.
+            사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 바로 상담과
+            대응을 시작하는 것이 중요합니다.
+          </div>
+        </details>
+
+        <details className="case-faq-item">
+          <summary>
+            <span className="case-faq-number">4</span>
+            <span>후불제로 사건 진행을 하고 싶은데 가능한가요?</span>
+          </summary>
+          <div className="case-faq-answer">
+            변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 
+            변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 
+            각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의하시기 바랍니다.         
+          </div>
+        </details>
+
+        <details className="case-faq-item">
+          <summary>
+            <span className="case-faq-number">5</span>
+            <span>단체 소송으로 진행하는게 좋은가요?</span>
+          </summary>
+          <div className="case-faq-answer">
+            단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 
+            의뢰인의 실익이 없기에 대온은 진행하지 않습니다.
           </div>
         </details>
       </section>
@@ -562,7 +585,9 @@ export default async function CasePage({
                   href={`/cases/${item.slug}`}
                   className="related-cases-link"
                 >
-                  {item.title} 사기 피해 사례
+                  {item.title
+                    .replace(/-/g, " ")
+                    .replace(/사기$/, "")} 사기 피해 사례
                 </Link>
               </li>
             ))}
