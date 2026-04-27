@@ -108,37 +108,22 @@ const organizationJsonLd = {
         "@type": "Country",
         name: "대한민국",
       },
-      serviceType: [
-        "투자사기 피해 대응",
-        "가상자산 사기 대응",
-        "코인 사기 피해 대응",
-        "리딩방 사기 피해 대응",
-        "주식리딩방 사기 피해 대응",
-        "주식 어플 사기 피해 대응",
-        "어플 사기 피해 대응",
-        "팀미션 사기 피해 대응",
-        "해외선물 사기 피해 대응",
-        "쇼핑몰 사칭 사기 피해 대응",
-        "부업 사기 피해 대응",
-        "플랫폼 사칭 사기 피해 대응",
-        "민사 손해배상 대응",
-        "형사 고소 대응",
-        "가압류 대응",
-        "계좌 동결 대응",
-      ],
       knowsAbout: [
         "투자사기",
         "리딩방 사기",
         "주식리딩방 사기",
+        "증권사 사칭 사기",
         "코인 사기",
         "가상자산 사기",
         "해외선물 사기",
+        "금 투자 사기",
         "주식 어플 사기",
         "어플 사기",
         "팀미션 사기",
         "쇼핑몰 사칭 사기",
         "부업 사기",
         "플랫폼 사칭 사기",
+        "여행사 사칭 사기",
         "가압류",
         "계좌 동결",
         "민사 손해배상",
@@ -245,12 +230,10 @@ export default function RootLayout({
         <Footer />
         <FloatingContact />
 
-        {/* LogScan */}
         <Script
           src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
           strategy="afterInteractive"
         />
-        {/* End LogScan Code */}
       </body>
     </html>
   );
