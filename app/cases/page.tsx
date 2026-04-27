@@ -3,6 +3,7 @@ import path from "path"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { getCurrentSite } from "@/lib/site"
+import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd"
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCurrentSite()
@@ -102,6 +103,19 @@ export default async function CasesPage() {
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-5 py-12">
+      <BreadcrumbJsonLd
+        items={[
+          {
+            name: "홈",
+            url: site.baseUrl,
+          },
+          {
+            name: "진행사건",
+            url: `${site.baseUrl}/cases`,
+          },
+        ]}
+      />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

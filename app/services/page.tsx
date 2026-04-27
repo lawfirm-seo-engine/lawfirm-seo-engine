@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
+import BreadcrumbJsonLd from "../components/BreadcrumbJsonLd";
 
 const siteUrl = "https://daeonlawfintech.com";
 
@@ -57,25 +57,6 @@ const services = [
   },
 ];
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "홈",
-      item: siteUrl,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "주력분야",
-      item: `${siteUrl}/services`,
-    },
-  ],
-};
-
 const serviceCollectionJsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
@@ -105,14 +86,21 @@ const serviceCollectionJsonLd = {
 export default function ServicesPage() {
   return (
     <>
-      <script
-        id="services-breadcrumb-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
-        }}
+      {/* Breadcrumb Schema 자동 적용 */}
+      <BreadcrumbJsonLd
+        items={[
+          {
+            name: "홈",
+            url: siteUrl,
+          },
+          {
+            name: "주력분야",
+            url: `${siteUrl}/services`,
+          },
+        ]}
       />
 
+      {/* CollectionPage Schema 유지 */}
       <script
         id="services-collection-jsonld"
         type="application/ld+json"
