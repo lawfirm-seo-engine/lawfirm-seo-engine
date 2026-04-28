@@ -83,6 +83,10 @@ if (!fs.existsSync(outputImageDir)) {
   fs.mkdirSync(outputImageDir, { recursive: true })
 }
 
+/*
+대표이미지 파일명 (slug 기준 통일)
+*/
+
 const avifPath = path.join(
   outputImageDir,
   `${slug}.avif`
@@ -160,7 +164,7 @@ ${subText}
 
 
   /*
-  PNG fallback 생성 (OG 안정성용)
+  PNG 생성 (네이버 검색 썸네일용 대표이미지)
   */
 
   await sharp(templateImagePath)
@@ -180,7 +184,7 @@ ${subText}
     })
     .toFile(pngPath)
 
-  console.log("대표이미지 PNG fallback 생성 완료")
+  console.log("대표이미지 PNG 생성 완료")
 
 
   /*
@@ -189,7 +193,11 @@ ${subText}
 
   const template = fs.readFileSync(templatePath, "utf-8")
 
-  const imagePath = `/images/cases/${slug}.avif`
+  /*
+  네이버 검색 썸네일 대응 → PNG 연결
+  */
+
+  const imagePath = `/images/cases/${slug}.png`
 
   const imageAlt =
     `${caseName} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
