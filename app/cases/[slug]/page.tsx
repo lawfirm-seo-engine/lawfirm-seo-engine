@@ -87,6 +87,15 @@ export async function generateMetadata({
       },
     },
 
+    other: {
+      "og:image": imagePng,
+      "og:image:secure_url": imagePng,
+      "og:image:type": "image/png",
+      "og:image:width": "1200",
+      "og:image:height": "630",
+      "og:image:alt": imageAlt,
+    },
+
     openGraph: {
       title: `${keyword} 사기 사칭 피해회복`,
       description: `${keyword} 사기 사칭 피해 대응 전략 안내`,
@@ -96,17 +105,17 @@ export async function generateMetadata({
       type: "article",
       images: [
         {
-          url: imageAvif,
-          secureUrl: imageAvif,
-          type: "image/avif",
+          url: imagePng,
+          secureUrl: imagePng,
+          type: "image/png",
           width: 1200,
           height: 630,
           alt: imageAlt,
         },
         {
-          url: imagePng,
-          secureUrl: imagePng,
-          type: "image/png",
+          url: imageAvif,
+          secureUrl: imageAvif,
+          type: "image/avif",
           width: 1200,
           height: 630,
           alt: imageAlt,
