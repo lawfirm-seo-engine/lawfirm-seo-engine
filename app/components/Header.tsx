@@ -8,26 +8,22 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-center px-4">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8 max-lg:h-14 max-lg:px-4">
+        {/* 로고 */}
+        <Link
+          href="/"
+          className="truncate text-2xl font-extrabold tracking-tight text-gray-900 max-lg:text-base"
+          onClick={() => setMenuOpen(false)}
+        >
+          대온 핀테크센터
+        </Link>
 
-        {/* PC 메뉴 (좌측) */}
-        <nav className="absolute left-4 hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-800">
-          <Link href="/services">
-            주력분야
-          </Link>
-
-          <Link href="/cases">
-            진행사건
-          </Link>
-
-          <Link href="/process">
-            대응절차
-          </Link>
-
-          <Link href="/consulting">
-            상담안내
-          </Link>
-
+        {/* PC 메뉴 */}
+        <nav className="hidden items-center gap-12 text-base font-extrabold text-gray-900 lg:flex">
+          <Link href="/services">주력분야</Link>
+          <Link href="/cases">진행사건</Link>
+          <Link href="/process">대응절차</Link>
+          <Link href="/consulting">상담안내</Link>
           <a
             href="https://cafe.naver.com/daeonlawfintech"
             target="_blank"
@@ -37,21 +33,11 @@ export default function Header() {
           </a>
         </nav>
 
-
-        {/* 중앙 로고 */}
-        <Link
-          href="/"
-          className="truncate text-center text-base font-extrabold tracking-tight text-gray-900"
-          onClick={() => setMenuOpen(false)}
-        >
-          대온 핀테크센터
-        </Link>
-
-
-        {/* 햄버거 버튼 (모바일 전용) */}
+        {/* 모바일 햄버거 버튼 */}
         <button
+          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="absolute right-4 flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-white lg:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-white lg:hidden"
           aria-label="모바일 메뉴"
         >
           <span className="relative block h-4 w-5">
@@ -74,12 +60,10 @@ export default function Header() {
         </button>
       </div>
 
-
       {/* 모바일 드롭다운 메뉴 */}
       {menuOpen && (
         <div className="border-t bg-white lg:hidden">
           <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-[12px] font-semibold text-gray-800">
-
             <Link href="/services" onClick={() => setMenuOpen(false)}>
               주력분야
             </Link>
@@ -104,7 +88,6 @@ export default function Header() {
             >
               네이버카페
             </a>
-
           </div>
         </div>
       )}
