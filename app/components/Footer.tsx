@@ -41,7 +41,7 @@ export default function Footer() {
         {/* 저작권 */}
 
         <div className="daeon-footer-copy">
-          COPYRIGHT © 2024 법무법인 대온 All rights reserved.
+          COPYRIGHT © 2024 대온 법률사무소 All rights reserved.
         </div>
 
       </div>
