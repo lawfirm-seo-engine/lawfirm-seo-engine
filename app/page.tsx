@@ -30,5 +30,5 @@ export default function HomePage() {
       .map((item) => item.name)
   }
 
-  return <CasesClient siteName="법무법인 대온 핀테크센터" cases={cases} />
+  return <CasesClient siteName="대온 법률사무소 핀테크센터" cases={cases} />
 }

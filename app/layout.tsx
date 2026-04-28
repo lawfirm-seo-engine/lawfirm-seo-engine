@@ -81,11 +81,11 @@ const organizationJsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: "법무법인 대온",
-      legalName: "법무법인 대온",
+      name: " 대온",
+      legalName: " 대온",
       alternateName: [
         "대온 핀테크센터",
-        "법무법인 대온 핀테크센터",
+        " 대온 핀테크센터",
         "대온 금융사기 대응센터",
       ],
       url: siteUrl,
@@ -98,9 +98,9 @@ const organizationJsonLd = {
       "@type": "LegalService",
       "@id": `${siteUrl}/#legalservice`,
       name: "대온 핀테크센터",
-      legalName: "법무법인 대온",
+      legalName: " 대온",
       alternateName: [
-        "법무법인 대온 핀테크센터",
+        " 대온 핀테크센터",
         "대온 금융사기 대응센터",
       ],
       url: siteUrl,

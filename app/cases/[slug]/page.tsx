@@ -233,9 +233,9 @@ export default async function CasePage({
     "@type": "LegalService",
     "@id": `${siteUrl}/#organization`,
     name: "대온 핀테크센터",
-    legalName: "법무법인 대온",
+    legalName: "대온 법률사무소",
     alternateName: [
-      "법무법인 대온 핀테크센터",
+      "대온 핀테크센터",
       "대온 금융사기 대응센터",
     ],
     url: siteUrl,
@@ -276,7 +276,7 @@ export default async function CasePage({
     "@type": "WebSite",
     "@id": `${siteUrl}/#website`,
     url: siteUrl,
-    name: "법무법인 대온 핀테크센터",
+    name: "대온 핀테크센터",
     publisher: {
       "@id": `${siteUrl}/#organization`,
     },
@@ -287,7 +287,7 @@ export default async function CasePage({
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${siteUrl}/#author`,
-    name: "법무법인 대온 핀테크센터",
+    name: "대온 핀테크센터",
     url: siteUrl,
     sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
