@@ -8,18 +8,18 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8 max-lg:h-14 max-lg:px-4">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8 max-md:h-14 max-md:px-4">
         {/* 로고 */}
         <Link
           href="/"
-          className="truncate text-2xl font-extrabold tracking-tight text-gray-900 max-lg:text-base"
+          className="truncate text-2xl font-extrabold tracking-tight text-gray-900 max-md:text-base"
           onClick={() => setMenuOpen(false)}
         >
           대온 핀테크센터
         </Link>
 
-        {/* PC 메뉴 */}
-        <nav className="hidden items-center gap-12 text-base font-extrabold text-gray-900 lg:flex">
+        {/* PC/태블릿 메뉴 */}
+        <nav className="hidden items-center gap-10 text-base font-extrabold text-gray-900 md:flex">
           <Link href="/services">주력분야</Link>
           <Link href="/cases">진행사건</Link>
           <Link href="/process">대응절차</Link>
@@ -37,7 +37,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-white lg:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-white md:hidden"
           aria-label="모바일 메뉴"
         >
           <span className="relative block h-4 w-5">
@@ -62,7 +62,7 @@ export default function Header() {
 
       {/* 모바일 드롭다운 메뉴 */}
       {menuOpen && (
-        <div className="border-t bg-white lg:hidden">
+        <div className="border-t bg-white md:hidden">
           <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-[12px] font-semibold text-gray-800">
             <Link href="/services" onClick={() => setMenuOpen(false)}>
               주력분야
