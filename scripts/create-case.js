@@ -85,12 +85,12 @@ if (!fs.existsSync(outputImageDir)) {
 
 const avifPath = path.join(
   outputImageDir,
-  `${slug}-사기.avif`
+  `${slug}.avif`
 )
 
 const pngPath = path.join(
   outputImageDir,
-  `${slug}-사기.png`
+  `${slug}.png`
 )
 
 const titleText = `${caseName}`
@@ -134,92 +134,92 @@ ${subText}
 
 ;(async () => {
 
-/*
-AVIF 생성
-*/
+  /*
+  AVIF 생성
+  */
 
-await sharp(templateImagePath)
-.resize(1200, 630, {
-fit: "cover",
-position: "center"
-})
-.composite([
-{
-input: Buffer.from(svgOverlay),
-top: 0,
-left: 0
-}
-])
-.avif({
-quality: 72,
-effort: 6
-})
-.toFile(avifPath)
+  await sharp(templateImagePath)
+    .resize(1200, 630, {
+      fit: "cover",
+      position: "center"
+    })
+    .composite([
+      {
+        input: Buffer.from(svgOverlay),
+        top: 0,
+        left: 0
+      }
+    ])
+    .avif({
+      quality: 72,
+      effort: 6
+    })
+    .toFile(avifPath)
 
-console.log("대표이미지 AVIF 생성 완료")
-
-
-/*
-PNG fallback 생성 (OG 안정성용)
-*/
-
-await sharp(templateImagePath)
-.resize(1200, 630, {
-fit: "cover",
-position: "center"
-})
-.composite([
-{
-input: Buffer.from(svgOverlay),
-top: 0,
-left: 0
-}
-])
-.png({
-quality: 90
-})
-.toFile(pngPath)
-
-console.log("대표이미지 PNG fallback 생성 완료")
+  console.log("대표이미지 AVIF 생성 완료")
 
 
-/*
-MDX 생성
-*/
+  /*
+  PNG fallback 생성 (OG 안정성용)
+  */
 
-const template = fs.readFileSync(templatePath, "utf-8")
+  await sharp(templateImagePath)
+    .resize(1200, 630, {
+      fit: "cover",
+      position: "center"
+    })
+    .composite([
+      {
+        input: Buffer.from(svgOverlay),
+        top: 0,
+        left: 0
+      }
+    ])
+    .png({
+      quality: 90
+    })
+    .toFile(pngPath)
 
-const imagePath = `/images/cases/${slug}-사기.avif`
+  console.log("대표이미지 PNG fallback 생성 완료")
 
-const imageAlt =
-`${caseName} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
 
-const imageCaption =
-`${caseName} 사기 사칭 피해 사례 및 대응 방법 안내`
+  /*
+  MDX 생성
+  */
 
-const imageDescription =
-`${caseName} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+  const template = fs.readFileSync(templatePath, "utf-8")
 
-const result = template
-.replaceAll("{{CASE_NAME}}", caseName)
-.replaceAll("{{IMAGE_PATH}}", imagePath)
-.replaceAll("{{IMAGE_ALT}}", imageAlt)
-.replaceAll("{{IMAGE_CAPTION}}", imageCaption)
-.replaceAll("{{IMAGE_DESCRIPTION}}", imageDescription)
-.replaceAll("{{SLUG}}", slug)
+  const imagePath = `/images/cases/${slug}.avif`
 
-fs.writeFileSync(
-outputPath,
-result,
-"utf-8"
-)
+  const imageAlt =
+    `${caseName} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
 
-console.log("")
-console.log("MDX 생성 완료:")
-console.log(outputPath)
+  const imageCaption =
+    `${caseName} 사기 사칭 피해 사례 및 대응 방법 안내`
 
-console.log("")
-console.log("접속 주소:")
-console.log(`/cases/${slug}`)
+  const imageDescription =
+    `${caseName} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+
+  const result = template
+    .replaceAll("{{CASE_NAME}}", caseName)
+    .replaceAll("{{IMAGE_PATH}}", imagePath)
+    .replaceAll("{{IMAGE_ALT}}", imageAlt)
+    .replaceAll("{{IMAGE_CAPTION}}", imageCaption)
+    .replaceAll("{{IMAGE_DESCRIPTION}}", imageDescription)
+    .replaceAll("{{SLUG}}", slug)
+
+  fs.writeFileSync(
+    outputPath,
+    result,
+    "utf-8"
+  )
+
+  console.log("")
+  console.log("MDX 생성 완료:")
+  console.log(outputPath)
+
+  console.log("")
+  console.log("접속 주소:")
+  console.log(`/cases/${slug}`)
 
 })()
