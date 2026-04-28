@@ -1,11 +1,14 @@
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
+
 export const alt = "사기 피해 대응 법률 정보"
+
 export const size = {
   width: 1200,
   height: 630,
 }
+
 export const contentType = "image/png"
 
 export default async function Image({
@@ -14,7 +17,13 @@ export default async function Image({
   params: { slug: string }
 }) {
   const decodedSlug = decodeURIComponent(params.slug)
-  const keyword = decodedSlug.toUpperCase()
+
+  const cleanKeyword = decodedSlug
+    .replace(/-/g, " ")
+    .replace(/\s*사기\s*$/g, "")
+    .trim()
+
+  const keyword = cleanKeyword.toUpperCase()
 
   return new ImageResponse(
     (
@@ -32,7 +41,7 @@ export default async function Image({
         }}
       >
         <div style={{ fontSize: 38, marginBottom: 24 }}>
-          법무법인 대온 핀테크센터
+          대온 핀테크센터
         </div>
 
         <div
