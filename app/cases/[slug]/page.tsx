@@ -179,11 +179,17 @@ export default async function CasePage({
     notFound()
   }
 
-  const source = fs.readFileSync(filePath, "utf-8")
+  const rawSource = fs.readFileSync(filePath, "utf-8")
+
+  const source = rawSource.replace(
+    new RegExp(`/images/cases/${decodedSlug}\\.png`, "g"),
+    `/images/cases/${decodedSlug}.png?v=20260429`
+  )
+
   const stat = fs.statSync(filePath)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=2`
+  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=20260429`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${keyword} 사기 사칭 피해 사례 및 대응 방법 안내`
   const imageDescription = `${keyword} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
