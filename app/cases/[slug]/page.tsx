@@ -60,8 +60,8 @@ export async function generateMetadata({
   const keyword = decodedSlug.toUpperCase()
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif`
-  const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png`
+  const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif?v=2`
+  const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png?v=2`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
 
   return {
@@ -183,7 +183,7 @@ export default async function CasePage({
   const stat = fs.statSync(filePath)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png`
+  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=2`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${keyword} 사기 사칭 피해 사례 및 대응 방법 안내`
   const imageDescription = `${keyword} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
@@ -205,16 +205,24 @@ export default async function CasePage({
   const { content } = await compileMDX({
     source,
     components: {
-      img: (props) => (
-        <img
-          {...props}
-          alt={
-            typeof props.alt === "string" && props.alt.trim().length > 0
-              ? props.alt
-              : imageAlt
-          }
-        />
-      ),
+      img: (props) => {
+        const src =
+          typeof props.src === "string" && props.src.includes("/images/cases/")
+            ? `${props.src}${props.src.includes("?") ? "&" : "?"}v=2`
+            : props.src
+
+        return (
+          <img
+            {...props}
+            src={src}
+            alt={
+              typeof props.alt === "string" && props.alt.trim().length > 0
+                ? props.alt
+                : imageAlt
+            }
+          />
+        )
+      },  
 
       h2: ({ children }) => (
         <TypingHeading text={String(children)} level="h2" />
