@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="daeon-footer-logo">
           <img
             src="/images/logo.png"
-            alt="법무법인 대온 핀테크센터 로고"
+            alt="대온 법률사무소 핀테크센터 로고"
             className="daeon-footer-logo-img"
           />
         </div>
