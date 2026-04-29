@@ -6,13 +6,33 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/private/",
+          "/cases/_template",
+          "/server-sitemap.xml",
+        ],
       },
+
       {
         userAgent: "Yeti",
         allow: "/",
       },
+
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+      },
+
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+      },
     ],
+
     sitemap: "https://daeonlawfintech.com/sitemap.xml",
+
     host: "https://daeonlawfintech.com",
   }
 }
