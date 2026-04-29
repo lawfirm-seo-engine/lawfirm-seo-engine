@@ -33,6 +33,118 @@ const scamTopicKeywords = [
   "금 투자 사기",
 ]
 
+function stripFrontmatter(source: string) {
+  return source.replace(/^---[\s\S]*?---\s*/, "")
+}
+
+function parseFrontmatter(source: string) {
+  const match = source.match(/^---\s*([\s\S]*?)\s*---/)
+  const data: Record<string, string> = {}
+
+  if (!match) return data
+
+  const lines = match[1].split(/\r?\n/)
+
+  lines.forEach((line) => {
+    const colonIndex = line.indexOf(":")
+    if (colonIndex === -1) return
+
+    const key = line.slice(0, colonIndex).trim()
+    let value = line.slice(colonIndex + 1).trim()
+
+    value = value.replace(/^["']|["']$/g, "")
+
+    if (key) {
+      data[key] = value
+    }
+  })
+
+  return data
+}
+
+function normalizeSlugTitle(slug: string) {
+  return slug.replace(/-/g, " ").replace(/\s+/g, " ").trim()
+}
+
+function withKeyword(text: string, keyword: string) {
+  return text.includes(keyword) ? text : `${text} ${keyword}`
+}
+
+function buildSearchKeyword(caseName: string) {
+  return withKeyword(withKeyword(caseName, "사기"), "사칭")
+}
+
+function buildSeoTitle(caseName: string) {
+  return `${buildSearchKeyword(caseName)} 피해회복`
+}
+
+function buildSeoDescription(caseName: string) {
+  return `${withKeyword(caseName, "사기")} 피해 사례 및 대응 전략 안내`
+}
+
+function getCaseFilePath(slug: string) {
+  return path.join(
+    process.cwd(),
+    "content",
+    "daeonlawfintech",
+    "cases",
+    `${slug}.mdx`
+  )
+}
+
+function getCaseMeta(decodedSlug: string) {
+  const filePath = getCaseFilePath(decodedSlug)
+
+  if (!fs.existsSync(filePath)) {
+    const fallbackCaseName = normalizeSlugTitle(decodedSlug)
+
+    return {
+      filePath,
+      rawSource: "",
+      mdxSource: "",
+      caseName: fallbackCaseName,
+      searchKeyword: buildSearchKeyword(fallbackCaseName),
+      seoTitle: buildSeoTitle(fallbackCaseName),
+      seoDescription: buildSeoDescription(fallbackCaseName),
+    }
+  }
+
+  const rawSource = fs.readFileSync(filePath, "utf-8")
+  const frontmatter = parseFrontmatter(rawSource)
+
+  const caseName =
+    frontmatter.caseName ||
+    frontmatter.title?.replace(/\s*피해회복\s*$/g, "") ||
+    normalizeSlugTitle(decodedSlug)
+
+  const searchKeyword = buildSearchKeyword(caseName)
+
+  const seoTitle = frontmatter.title || buildSeoTitle(caseName)
+  const seoDescription =
+    frontmatter.description || buildSeoDescription(caseName)
+
+  let mdxSource = stripFrontmatter(rawSource)
+
+  if (caseName.includes("사칭")) {
+    mdxSource = mdxSource
+      .replaceAll(" (사칭)", "")
+      .replaceAll("(사칭)", "")
+      .replaceAll("사칭 사기 공모주 사칭", "사칭 사기 공모주")
+      .replaceAll("사칭 사기 사칭", "사칭 사기")
+      .replaceAll("사칭 사칭", "사칭")
+  }
+
+  return {
+    filePath,
+    rawSource,
+    mdxSource,
+    caseName,
+    searchKeyword,
+    seoTitle,
+    seoDescription,
+  }
+}
+
 export async function generateStaticParams() {
   const casesDir = path.join(
     process.cwd(),
@@ -61,16 +173,16 @@ export async function generateMetadata({
   const { slug } = await params
 
   const decodedSlug = decodeURIComponent(slug)
-  const keyword = decodedSlug.toUpperCase()
+  const { searchKeyword, seoTitle, seoDescription } = getCaseMeta(decodedSlug)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
   const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif?v=${imageVersion}`
   const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
-  const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
+  const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
 
   return {
-    title: `${keyword} 사기 사칭 피해회복 | ${siteName}`,
-    description: `${keyword} 사기 피해 사례 및 대응 전략 안내`,
+    title: seoTitle,
+    description: seoDescription,
 
     robots: {
       index: true,
@@ -101,8 +213,8 @@ export async function generateMetadata({
     },
 
     openGraph: {
-      title: `${keyword} 사기 사칭 피해회복`,
-      description: `${keyword} 사기 사칭 피해 대응 전략 안내`,
+      title: seoTitle,
+      description: seoDescription,
       url: pageUrl,
       siteName,
       locale: "ko_KR",
@@ -129,8 +241,8 @@ export async function generateMetadata({
 
     twitter: {
       card: "summary_large_image",
-      title: `${keyword} 사기 사칭 피해회복`,
-      description: `${keyword} 사기 사칭 피해 대응 전략 안내`,
+      title: seoTitle,
+      description: seoDescription,
       images: [imagePng],
     },
   }
@@ -168,7 +280,6 @@ export default async function CasePage({
   const { slug } = await params
 
   const decodedSlug = decodeURIComponent(slug)
-  const keyword = decodedSlug.toUpperCase()
 
   const casesDir = path.join(
     process.cwd(),
@@ -177,15 +288,20 @@ export default async function CasePage({
     "cases"
   )
 
-  const filePath = path.join(casesDir, `${decodedSlug}.mdx`)
+  const {
+    filePath,
+    mdxSource,
+    caseName,
+    searchKeyword,
+    seoTitle,
+    seoDescription,
+  } = getCaseMeta(decodedSlug)
 
   if (!fs.existsSync(filePath)) {
     notFound()
   }
 
-  const rawSource = fs.readFileSync(filePath, "utf-8")
-
-  const source = rawSource.replace(
+  const source = mdxSource.replace(
     new RegExp(`/images/cases/${decodedSlug}\\.png`, "g"),
     `/images/cases/${decodedSlug}.png?v=${imageVersion}`
   )
@@ -194,16 +310,16 @@ export default async function CasePage({
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
   const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
-  const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
-  const imageCaption = `${keyword} 사기 사칭 피해 사례 및 대응 방법 안내`
-  const imageDescription = `${keyword} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+  const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
+  const imageCaption = `${searchKeyword} 피해 사례 및 대응 방법 안내`
+  const imageDescription = `${searchKeyword} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
 
   const articleKeywords = [
-    `${keyword} 사기`,
-    `${keyword} 사칭`,
-    `${keyword} 피해회복`,
-    `${keyword} 피해 사례`,
-    `${keyword} 대응 방법`,
+    `${searchKeyword}`,
+    `${caseName}`,
+    `${caseName} 피해회복`,
+    `${caseName} 피해 사례`,
+    `${caseName} 대응 방법`,
     ...scamTopicKeywords,
   ]
 
@@ -216,7 +332,7 @@ export default async function CasePage({
     source,
     options: {
       parseFrontmatter: true,
-    },  
+    },
     components: {
       img: (props) => {
         const src =
@@ -391,8 +507,8 @@ export default async function CasePage({
     isPartOf: {
       "@id": `${siteUrl}/#website`,
     },
-    headline: `${keyword} 사기 사칭 피해회복`,
-    description: `${keyword} 사기 피해 사례 및 대응 전략 안내`,
+    headline: seoTitle,
+    description: seoDescription,
     keywords: articleKeywords.join(", "),
     about: articleAbout,
     mentions: articleAbout,
@@ -449,8 +565,8 @@ export default async function CasePage({
     "@context": "https://schema.org",
     "@type": "HowTo",
     "@id": `${pageUrl}#howto`,
-    name: `${keyword} 사기 피해 대응 방법`,
-    description: `${keyword} 사기 피해 발생 후 증거 보존, 계좌 확인, 상담 및 민형사 대응을 준비하는 절차입니다.`,
+    name: `${searchKeyword} 피해 대응 방법`,
+    description: `${searchKeyword} 피해 발생 후 증거 보존, 계좌 확인, 상담 및 민형사 대응을 준비하는 절차입니다.`,
     image: imageUrl,
     totalTime: "PT30M",
     supply: [
@@ -533,7 +649,7 @@ export default async function CasePage({
       {
         "@type": "ListItem",
         position: 3,
-        name: `${keyword} 사기 사칭 피해회복`,
+        name: seoTitle,
         item: pageUrl,
       },
     ],
@@ -779,7 +895,7 @@ export default async function CasePage({
 
       <section className="case-faq-box">
         <h2 className="case-faq-title">
-          {keyword} 사기 피해 관련 자주 묻는 질문
+          {searchKeyword} 피해 관련 자주 묻는 질문
         </h2>
 
         <details className="case-faq-item">
