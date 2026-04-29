@@ -37,6 +37,15 @@ function stripFrontmatter(source: string) {
   return source.replace(/^---[\s\S]*?---\s*/, "")
 }
 
+function stripLeakedMetaLines(source: string) {
+  return source
+    .replace(/^title:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^caseName:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^description:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^slug:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+}
+
 function parseFrontmatter(source: string) {
   const match = source.match(/^---\s*([\s\S]*?)\s*---/)
   const data: Record<string, string> = {}
@@ -64,6 +73,15 @@ function parseFrontmatter(source: string) {
 
 function normalizeSlugTitle(slug: string) {
   return slug.replace(/-/g, " ").replace(/\s+/g, " ").trim()
+}
+
+function normalizeImpersonationText(text: string) {
+  return text
+    .replace(/\s*\(사칭\)\s*/g, " ")
+    .replace(/사칭\s+사칭/g, "사칭")
+    .replace(/사칭\s*\(사칭\)/g, "사칭")
+    .replace(/\s+/g, " ")
+    .trim()
 }
 
 function withKeyword(text: string, keyword: string) {
@@ -97,25 +115,27 @@ function getCaseMeta(decodedSlug: string) {
 
   if (!fs.existsSync(filePath)) {
     const fallbackCaseName = normalizeSlugTitle(decodedSlug)
+    const normalizedFallbackCaseName = normalizeImpersonationText(fallbackCaseName)
 
     return {
       filePath,
       rawSource: "",
       mdxSource: "",
-      caseName: fallbackCaseName,
-      searchKeyword: buildSearchKeyword(fallbackCaseName),
-      seoTitle: buildSeoTitle(fallbackCaseName),
-      seoDescription: buildSeoDescription(fallbackCaseName),
+      caseName: normalizedFallbackCaseName,
+      searchKeyword: buildSearchKeyword(normalizedFallbackCaseName),
+      seoTitle: buildSeoTitle(normalizedFallbackCaseName),
+      seoDescription: buildSeoDescription(normalizedFallbackCaseName),
     }
   }
 
   const rawSource = fs.readFileSync(filePath, "utf-8")
   const frontmatter = parseFrontmatter(rawSource)
 
-  const caseName =
+  const caseName = normalizeImpersonationText(
     frontmatter.caseName ||
-    frontmatter.title?.replace(/\s*피해회복\s*$/g, "") ||
-    normalizeSlugTitle(decodedSlug)
+      frontmatter.title?.replace(/\s*피해회복\s*$/g, "") ||
+      normalizeSlugTitle(decodedSlug)
+  )
 
   const searchKeyword = buildSearchKeyword(caseName)
 
@@ -124,15 +144,22 @@ function getCaseMeta(decodedSlug: string) {
     frontmatter.description || buildSeoDescription(caseName)
 
   let mdxSource = stripFrontmatter(rawSource)
+  mdxSource = stripLeakedMetaLines(mdxSource)
 
   if (caseName.includes("사칭")) {
     mdxSource = mdxSource
+      .replaceAll("{{CASE_NAME}} (사칭)", "{{CASE_NAME}}")
+      .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
+      .replaceAll(`${caseName} (사칭)`, caseName)
+      .replaceAll(`${caseName}(사칭)`, caseName)
       .replaceAll(" (사칭)", "")
       .replaceAll("(사칭)", "")
       .replaceAll("사칭 사기 공모주 사칭", "사칭 사기 공모주")
       .replaceAll("사칭 사기 사칭", "사칭 사기")
       .replaceAll("사칭 사칭", "사칭")
   }
+
+  mdxSource = stripLeakedMetaLines(mdxSource)
 
   return {
     filePath,
@@ -331,7 +358,7 @@ export default async function CasePage({
   const { content } = await compileMDX({
     source,
     options: {
-      parseFrontmatter: true,
+      parseFrontmatter: false,
     },
     components: {
       img: (props) => {
