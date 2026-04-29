@@ -280,7 +280,7 @@ export default async function CasePage({
         "@id": `${siteUrl}/#organization`,
       },
     },
-    sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+    sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
   }
 
   const legalServiceJsonLd = {
@@ -331,7 +331,7 @@ export default async function CasePage({
       availableLanguage: ["ko-KR"],
       telephone: phoneNumber,
     },
-    sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+    sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
   }
 
   const websiteJsonLd = {
@@ -358,19 +358,21 @@ export default async function CasePage({
         alternateName: [siteName, "대온 핀테크센터"],
         url: siteUrl,
         logo: `${siteUrl}/images/logo.png`,
-        sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+        sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
       },
       {
         "@type": "Person",
         "@id": `${siteUrl}/#representative`,
         name: representativeName,
         jobTitle: "대표변호사",
+        url: siteUrl,
         worksFor: {
           "@id": `${siteUrl}/#organization`,
         },
         affiliation: {
           "@id": `${siteUrl}/#organization`,
         },
+        sameAs: [siteUrl],
       },
     ],
   }
@@ -379,21 +381,18 @@ export default async function CasePage({
     "@context": "https://schema.org",
     "@type": "Article",
     "@id": `${pageUrl}#article`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": pageUrl,
+    },
+    isPartOf: {
+      "@id": `${siteUrl}/#website`,
+    },
     headline: `${keyword} 사기 사칭 피해회복`,
     description: `${keyword} 사기 피해 사례 및 대응 전략 안내`,
     keywords: articleKeywords.join(", "),
     about: articleAbout,
     mentions: articleAbout,
-
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": pageUrl,
-    },
-
-    isPartOf: {
-      "@id": `${siteUrl}/#website`,
-    },
-
     image: {
       "@type": "ImageObject",
       "@id": `${imageUrl}#image`,
@@ -405,43 +404,28 @@ export default async function CasePage({
       description: imageDescription,
       inLanguage: "ko-KR",
     },
-
     author: [
       {
-        "@type": "Organization",
         "@id": `${siteUrl}/#author`,
-        name: organizationName,
-        legalName: organizationName,
-        url: siteUrl,
-        sameAs: ["https://cafe.naver.com/daeonlawfintech"],
       },
       {
-        "@type": "Person",
         "@id": `${siteUrl}/#representative`,
-        name: representativeName,
-        jobTitle: "대표변호사",
-        worksFor: {
-          "@id": `${siteUrl}/#organization`,
-        },
-        affiliation: {
-          "@id": `${siteUrl}/#organization`,
-        },
       },
     ],
-
     publisher: {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
       name: organizationName,
       legalName: organizationName,
+      url: siteUrl,
       logo: {
         "@type": "ImageObject",
         url: `${siteUrl}/images/logo.png`,
         width: 512,
         height: 512,
       },
+      sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
     },
-
     datePublished: stat.birthtime.toISOString(),
     dateModified: stat.mtime.toISOString(),
     inLanguage: "ko-KR",
