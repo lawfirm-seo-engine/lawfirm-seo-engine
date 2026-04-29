@@ -31,9 +31,6 @@ module.exports = {
         ],
       },
     ],
-    additionalSitemaps: [
-      "https://daeonlawfintech.com/sitemap.xml",
-    ],
   },
 
   additionalPaths: async () => {
