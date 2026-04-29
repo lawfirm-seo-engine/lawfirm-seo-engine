@@ -21,6 +21,9 @@ const geistMono = Geist_Mono({
 const siteUrl = "https://daeonlawfintech.com";
 const googleAnalyticsId = "G-RDQJT1FLNT";
 
+const siteName = "대온 법률사무소 핀테크센터";
+const organizationName = "대온 법률사무소";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
@@ -33,12 +36,12 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "대온 핀테크센터",
-    template: "%s | 대온 핀테크센터",
+    default: siteName,
+    template: `%s | ${siteName}`,
   },
 
   description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+    "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
 
   alternates: {
     canonical: siteUrl,
@@ -46,7 +49,7 @@ export const metadata: Metadata = {
       "application/rss+xml": [
         {
           url: `${siteUrl}/rss.xml`,
-          title: "대온 핀테크센터 사건 업데이트 RSS",
+          title: `${siteName} 사건 업데이트 RSS`,
         },
       ],
     },
@@ -56,10 +59,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: siteUrl,
-    siteName: "대온 핀테크센터",
-    title: "대온 핀테크센터",
+    siteName,
+    title: siteName,
     description:
-      "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+      "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+    images: [
+      {
+        url: `${siteUrl}/images/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: `${siteName} 로고`,
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description:
+      "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+    images: [`${siteUrl}/images/logo.png`],
   },
 
   robots: {
@@ -81,12 +100,13 @@ const organizationJsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: " 대온",
-      legalName: " 대온",
+      name: organizationName,
+      legalName: organizationName,
       alternateName: [
+        siteName,
         "대온 핀테크센터",
-        " 대온 핀테크센터",
         "대온 금융사기 대응센터",
+        "대온 법률사무소 금융사기 대응센터",
       ],
       url: siteUrl,
       logo: `${siteUrl}/images/logo.png`,
@@ -97,17 +117,18 @@ const organizationJsonLd = {
     {
       "@type": "LegalService",
       "@id": `${siteUrl}/#legalservice`,
-      name: "대온 핀테크센터",
-      legalName: " 대온",
+      name: siteName,
+      legalName: organizationName,
       alternateName: [
-        " 대온 핀테크센터",
+        "대온 핀테크센터",
         "대온 금융사기 대응센터",
+        "대온 법률사무소 금융사기 대응센터",
       ],
       url: siteUrl,
       logo: `${siteUrl}/images/logo.png`,
       image: `${siteUrl}/images/logo.png`,
       description:
-        "대온 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기, 쇼핑몰 사칭 사기, 부업 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+        "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기, 쇼핑몰 사칭 사기, 부업 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
 
       address: {
         "@type": "PostalAddress",
@@ -119,7 +140,6 @@ const organizationJsonLd = {
       },
 
       telephone: "+82-2-3476-0915",
-
       priceRange: "$$$",
 
       areaServed: {
@@ -154,6 +174,7 @@ const organizationJsonLd = {
         contactType: "customer support",
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
+        telephone: "+82-2-3476-0915",
       },
 
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
@@ -166,9 +187,10 @@ const websiteJsonLd = {
   "@type": "WebSite",
   "@id": `${siteUrl}/#website`,
   url: siteUrl,
-  name: "대온 핀테크센터",
+  name: siteName,
+  alternateName: ["대온 핀테크센터", "대온 법률사무소"],
   description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+    "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
   publisher: {
     "@id": `${siteUrl}/#organization`,
   },
@@ -185,9 +207,9 @@ const homepageJsonLd = {
   "@type": "WebPage",
   "@id": `${siteUrl}/#homepage`,
   url: siteUrl,
-  name: "대온 핀테크센터",
+  name: siteName,
   description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+    "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
   isPartOf: {
     "@id": `${siteUrl}/#website`,
   },
@@ -230,7 +252,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
           strategy="afterInteractive"
@@ -245,7 +266,6 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* JSON-LD Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
