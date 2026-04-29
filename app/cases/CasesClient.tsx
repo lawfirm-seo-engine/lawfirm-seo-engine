@@ -20,16 +20,11 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
 
   const filteredCases = useMemo(() => {
     const value = keyword.trim().toLowerCase()
-
     if (!value) return cases
-
     return cases.filter((name) => name.toLowerCase().includes(value))
   }, [cases, keyword])
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCases.length / CASES_PER_PAGE)
-  )
+  const totalPages = Math.max(1, Math.ceil(filteredCases.length / CASES_PER_PAGE))
 
   const currentCases = filteredCases.slice(
     (currentPage - 1) * CASES_PER_PAGE,
@@ -47,47 +42,33 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] px-5 py-12">
-      <section className="mx-auto max-w-[1500px]">
-        <div className="mb-10 text-center">
-          <p className="mb-3 text-sm font-bold tracking-[0.25em] text-emerald-700">
-            MAIN PRACTICE
-          </p>
+    <main className="daeon-wrap">
+      <section className="daeon-section">
+        <p className="daeon-eyebrow">MAIN PRACTICE</p>
 
-          <h1 className="text-4xl font-black text-slate-900 md:text-5xl">
-            {siteName} 진행 사건
-          </h1>
+        <h1 className="daeon-title">{siteName} 진행 사건</h1>
 
-          <p className="mt-5 text-base leading-8 text-slate-600 md:text-lg">
-            금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요
-            사건을 확인할 수 있습니다.
-          </p>
-        </div>
+        <p className="daeon-desc">
+          금융투자사기, 부업사기, 가상자산 사기, 플랫폼 사칭 사건 등 주요 사건을 확인할 수 있습니다.
+        </p>
 
-        <div className="mx-auto mb-9 flex max-w-[860px] flex-col gap-3 md:flex-row md:items-center">
-          <div className="relative flex-1">
+        <div className="daeon-search-wrap">
+          <div className="daeon-search-box">
             <input
               type="text"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 pr-12 text-base font-semibold text-slate-800 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-              placeholder="사건명 검색 (예: faisuro, 토스증권, 다우트래블)"
+              className="daeon-search-input"
+              placeholder="사건명 검색 (예: 쿠센트럴, 토스증권, 다우트래블)"
               value={keyword}
               onChange={(event) => handleSearch(event.target.value)}
             />
-
-            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-2xl font-black text-emerald-700">
-              ⌕
-            </span>
+            <span className="daeon-search-icon">⌕</span>
           </div>
 
-          <button
-            type="button"
-            className="rounded-2xl bg-slate-900 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-700"
-            onClick={handleReset}
-          >
+          <button type="button" className="daeon-reset-btn" onClick={handleReset}>
             초기화
           </button>
 
-          <div className="text-center text-sm font-bold text-slate-500 md:min-w-[120px]">
+          <div className="daeon-search-meta">
             {keyword.trim()
               ? `검색 결과 ${filteredCases.length}건`
               : `전체 ${cases.length}건`}
@@ -95,12 +76,10 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
         </div>
 
         {filteredCases.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center text-lg font-bold text-slate-500 shadow-sm">
-            검색 결과가 없습니다.
-          </div>
+          <div className="daeon-empty">검색 결과가 없습니다.</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="daeon-grid">
               {currentCases.map((name) => {
                 const displayName = getDisplayName(name)
                 const imagePath = `/images/cases/${name}.png`
@@ -109,33 +88,37 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                   <Link
                     key={name}
                     href={`/cases/${encodeURIComponent(name)}`}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
+                    className="daeon-card"
                   >
-                    <div className="absolute left-0 top-0 z-20 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
+                    <span className="daeon-status">접수진행중</span>
 
                     <div
-                      className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-t-2xl bg-slate-100 bg-cover bg-center px-5 py-10 text-center"
+                      className="daeon-card-head"
                       style={{
-                        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)), url("${imagePath}")`,
+                        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.52), rgba(15, 23, 42, 0.52)), url("${imagePath}")`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
                       }}
                     >
-                      <h2 className="break-keep text-2xl font-black leading-snug text-black drop-shadow-[0_2px_8px_rgba(255,255,255,0.85)] transition group-hover:text-emerald-600">
-                        {displayName}
-                      </h2>  
+                      <div className="daeon-card-title">
+                        <span className="daeon-card-title-main">
+                          {displayName}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="p-5">
-                      <p className="text-center text-base font-black leading-7 text-red-500">
+                    <div className="daeon-card-body">
+                      <p className="daeon-warning">
                         본 사건은 업체명을
                         <br />
                         사칭한 사기입니다
                       </p>
 
-                      <div className="mt-7 flex items-center justify-between rounded-2xl bg-emerald-600 px-5 py-4 text-white transition group-hover:bg-emerald-700">
-                        <span className="text-base font-black">상세보기</span>
-
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-xl font-black">
-                          →
+                      <div className="daeon-cta-wrap">
+                        <span className="daeon-type">
+                          <span className="daeon-type-text">상세보기</span>
+                          <span className="daeon-type-icon">→</span>
                         </span>
                       </div>
                     </div>
@@ -144,13 +127,12 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
               })}
             </div>
 
-            <div className="mt-9 text-center text-sm font-bold text-slate-500">
-              현재 {currentPage} / {totalPages} 페이지 · 페이지당{" "}
-              {CASES_PER_PAGE}건
+            <div className="daeon-page-meta">
+              현재 {currentPage} / {totalPages} 페이지 · 페이지당 {CASES_PER_PAGE}건
             </div>
 
             {totalPages > 1 && (
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <div className="daeon-pagination">
                 {Array.from({ length: totalPages }).map((_, index) => {
                   const page = index + 1
 
@@ -158,11 +140,7 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                     <button
                       key={page}
                       type="button"
-                      className={`h-10 min-w-10 rounded-xl px-4 text-sm font-black transition ${
-                        page === currentPage
-                          ? "bg-emerald-600 text-white"
-                          : "bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
-                      }`}
+                      className={`daeon-page ${page === currentPage ? "active" : ""}`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
