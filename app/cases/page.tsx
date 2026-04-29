@@ -73,10 +73,12 @@ export default async function CasesPage() {
     .map((filename) => {
       const filePath = path.join(casesDirectory, filename)
       const stat = fs.statSync(filePath)
+      const slug = filename.replace(/\.mdx$/, "")
 
       return {
-        slug: filename.replace(/\.mdx$/, ""),
+        slug,
         mtime: stat.mtime.getTime(),
+        imagePath: `/images/cases/${slug}.png`,
       }
     })
     .sort((a, b) => b.mtime - a.mtime)
@@ -148,29 +150,39 @@ export default async function CasesPage() {
             <Link
               key={item.slug}
               href={`/cases/${encodeURIComponent(item.slug)}`}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
             >
-              <div className="absolute left-0 top-0 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
+              <div className="absolute left-0 top-0 z-20 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
 
-              <div className="mb-5 flex items-center justify-between">
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                  사건 접수
-                </span>
-
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+              <div
+                className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-t-2xl bg-slate-900 bg-cover bg-center px-5 py-10 text-center"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.48), rgba(15, 23, 42, 0.48)), url("${item.imagePath}")`,
+                }}
+              >
+                <span className="absolute right-4 top-4 rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white shadow-md">
                   접수진행중
                 </span>
+
+                <h2 className="break-keep text-2xl font-black leading-snug text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.55)] group-hover:text-emerald-100">
+                  {item.slug}
+                </h2>
               </div>
 
-              <h2 className="min-h-[64px] break-keep text-center text-xl font-black leading-snug text-slate-900 group-hover:text-emerald-700">
-                {item.slug}
-              </h2>
+              <div className="p-5">
+                <p className="text-center text-base font-black leading-7 text-red-500">
+                  본 사건은 업체명을
+                  <br />
+                  사칭한 사기입니다
+                </p>
 
-              <p className="mt-5 text-center text-sm font-semibold leading-6 text-slate-500">
-                사기 피해 사례
-                <br />
-                피해사건 접수 및 상담 진행중
-              </p>
+                <div className="mt-7 flex items-center justify-between rounded-2xl bg-emerald-600 px-5 py-4 text-white transition group-hover:bg-emerald-700">
+                  <span className="text-base font-black">상세보기</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-xl font-black">
+                    →
+                  </span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
