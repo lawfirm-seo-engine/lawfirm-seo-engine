@@ -139,7 +139,7 @@ const organizationJsonLd = {
         addressCountry: "KR",
       },
 
-      telephone: "+82-2-3476-0915",
+      telephone: "+82-2-6952-3695",
       priceRange: "$$$",
 
       areaServed: {
