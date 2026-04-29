@@ -10,7 +10,7 @@ export const dynamic = "force-static"
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"
 const organizationName = "대온 법률사무소"
-const phoneNumber = "+82-2-3476-0915"
+const phoneNumber = "+82-2-6952-3695"
 const imageVersion = "20260429"
 
 const scamTopicKeywords = [
