@@ -9,7 +9,9 @@ if (!caseName) {
   process.exit(1)
 }
 
-const slug = caseName
+const cleanCaseName = caseName.trim().replace(/\s+/g, " ")
+
+const slug = cleanCaseName
   .toLowerCase()
   .replace(/\s+/g, "-")
   .replace(/[^\w가-힣-]/g, "")
@@ -47,9 +49,9 @@ if (!fs.existsSync(outputImageDir)) {
 const avifPath = path.join(outputImageDir, `${slug}.avif`)
 const pngPath = path.join(outputImageDir, `${slug}.png`)
 
-const titleText = caseName.includes("사칭")
-  ? caseName
-  : `${caseName} (사칭)`
+const titleText = cleanCaseName.includes("사칭")
+  ? cleanCaseName
+  : `${cleanCaseName} (사칭)`
 
 const subText = "피해 회복을 위한 법률 정보"
 
@@ -60,6 +62,31 @@ const escapeXml = (text) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;")
+
+const escapeYaml = (text) =>
+  text
+    .replaceAll("\\", "\\\\")
+    .replaceAll('"', '\\"')
+
+const hasScamKeyword = cleanCaseName.includes("사기")
+const hasImpersonationKeyword = cleanCaseName.includes("사칭")
+
+const seoTitle = `${cleanCaseName}${hasScamKeyword ? "" : " 사기"}${
+  hasImpersonationKeyword ? "" : " 사칭"
+} 피해회복`
+
+const seoDescription = `${cleanCaseName}${
+  hasScamKeyword ? "" : " 사기"
+} 피해 사례 및 대응 전략 안내`
+
+const frontmatter = `---
+title: "${escapeYaml(seoTitle)}"
+caseName: "${escapeYaml(cleanCaseName)}"
+description: "${escapeYaml(seoDescription)}"
+slug: "${escapeYaml(slug)}"
+---
+
+`
 
 const svgOverlay = `
 <svg width="1200" height="630">
@@ -141,7 +168,7 @@ ${escapeXml(subText)}
   const imagePath = `/images/cases/${slug}.png`
 
   let result = template
-    .replaceAll("{{CASE_NAME}}", caseName)
+    .replaceAll("{{CASE_NAME}}", cleanCaseName)
     .replaceAll("{{IMAGE_PATH}}", imagePath)
     .replaceAll("{{SLUG}}", slug)
 
@@ -155,6 +182,10 @@ ${escapeXml(subText)}
       `${slug}-${num}${realExt}`
     )
   })
+
+  if (!result.trimStart().startsWith("---")) {
+    result = frontmatter + result
+  }
 
   fs.writeFileSync(outputPath, result, "utf-8")
 
