@@ -10,6 +10,7 @@ export const dynamic = "force-static"
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"
 const organizationName = "대온 법률사무소"
+const representativeName = "신동우"
 const phoneNumber = "+82-2-6952-3695"
 const imageVersion = "20260429"
 
@@ -269,6 +270,15 @@ export default async function CasePage({
       postalCode: "06647",
       addressCountry: "KR",
     },
+    founder: {
+      "@type": "Person",
+      "@id": `${siteUrl}/#representative`,
+      name: representativeName,
+      jobTitle: "대표변호사",
+      worksFor: {
+        "@id": `${siteUrl}/#organization`,
+      },
+    },
     sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
 
@@ -338,30 +348,51 @@ export default async function CasePage({
 
   const authorJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${siteUrl}/#author`,
-    name: organizationName,
-    alternateName: [siteName, "대온 핀테크센터"],
-    url: siteUrl,
-    sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#author`,
+        name: organizationName,
+        legalName: organizationName,
+        alternateName: [siteName, "대온 핀테크센터"],
+        url: siteUrl,
+        logo: `${siteUrl}/images/logo.png`,
+        sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+      },
+      {
+        "@type": "Person",
+        "@id": `${siteUrl}/#representative`,
+        name: representativeName,
+        jobTitle: "대표변호사",
+        worksFor: {
+          "@id": `${siteUrl}/#organization`,
+        },
+        affiliation: {
+          "@id": `${siteUrl}/#organization`,
+        },
+      },
+    ],
   }
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     "@id": `${pageUrl}#article`,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": pageUrl,
-    },
-    isPartOf: {
-      "@id": `${siteUrl}/#website`,
-    },
     headline: `${keyword} 사기 사칭 피해회복`,
     description: `${keyword} 사기 피해 사례 및 대응 전략 안내`,
     keywords: articleKeywords.join(", "),
     about: articleAbout,
     mentions: articleAbout,
+
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": pageUrl,
+    },
+
+    isPartOf: {
+      "@id": `${siteUrl}/#website`,
+    },
+
     image: {
       "@type": "ImageObject",
       "@id": `${imageUrl}#image`,
@@ -373,12 +404,43 @@ export default async function CasePage({
       description: imageDescription,
       inLanguage: "ko-KR",
     },
-    author: {
-      "@id": `${siteUrl}/#author`,
-    },
+
+    author: [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#author`,
+        name: organizationName,
+        legalName: organizationName,
+        url: siteUrl,
+        sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+      },
+      {
+        "@type": "Person",
+        "@id": `${siteUrl}/#representative`,
+        name: representativeName,
+        jobTitle: "대표변호사",
+        worksFor: {
+          "@id": `${siteUrl}/#organization`,
+        },
+        affiliation: {
+          "@id": `${siteUrl}/#organization`,
+        },
+      },
+    ],
+
     publisher: {
+      "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
+      name: organizationName,
+      legalName: organizationName,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/images/logo.png`,
+        width: 512,
+        height: 512,
+      },
     },
+
     datePublished: stat.birthtime.toISOString(),
     dateModified: stat.mtime.toISOString(),
     inLanguage: "ko-KR",
