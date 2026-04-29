@@ -114,13 +114,6 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                     <div className="absolute left-0 top-0 z-20 h-1 w-full bg-emerald-600 opacity-0 transition group-hover:opacity-100" />
 
                     <div
-                      className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-t-2xl bg-slate-900 bg-cover bg-center px-5 py-10 text-center"
-                      style={{
-                        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.42), rgba(15, 23, 42, 0.42)), url("${imagePath}")`,
-                      }}
-                    />
-                    
-                    <div
                       className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-t-2xl bg-slate-100 bg-cover bg-center px-5 py-10 text-center"
                       style={{
                         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)), url("${imagePath}")`,
