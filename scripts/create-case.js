@@ -14,6 +14,10 @@ const cleanCaseName = caseName.trim().replace(/\s+/g, " ")
 const hasScamKeyword = cleanCaseName.includes("사기")
 const hasImpersonationKeyword = cleanCaseName.includes("사칭")
 
+const caseDisplayName = cleanCaseName.includes("사칭")
+  ? cleanCaseName
+  : `${cleanCaseName} (사칭)`
+
 const normalizedCaseNameForDisplay = cleanCaseName
   .replace(/\s*\(사칭\)\s*/g, " ")
   .replace(/\s+/g, " ")
@@ -200,9 +204,16 @@ function stripVisibleFrontmatterLines(text) {
 
   let result = template
     .replaceAll("{{CASE_NAME}}", cleanCaseName)
+    .replaceAll("{{CASE_DISPLAY_NAME}}", caseDisplayName)
     .replaceAll("{{IMAGE_PATH}}", imagePath)
+    .replaceAll("{{IMAGE_ALT}}", `${caseDisplayName} 피해 회복을 위한 법률 정보 이미지`)
+    .replaceAll("{{IMAGE_CAPTION}}", `${caseDisplayName} 피해 사례 및 대응 방법 안내`)
+    .replaceAll(
+      "{{IMAGE_DESCRIPTION}}",
+      `${caseDisplayName} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+    )
     .replaceAll("{{SLUG}}", slug)
-
+    
   result = removeDuplicateImpersonationText(result)
   result = stripVisibleFrontmatterLines(result)
 

@@ -39,11 +39,9 @@ function stripFrontmatter(source: string) {
 
 function stripLeakedMetaLines(source: string) {
   return source
-    .replace(/^title:\s*["']?.*?["']?\s*$/gim, "")
-    .replace(/^caseName:\s*["']?.*?["']?\s*$/gim, "")
-    .replace(/^description:\s*["']?.*?["']?\s*$/gim, "")
-    .replace(/^slug:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^\s*(title|caseName|description|slug)\s*:\s*["']?.*?["']?\s*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
+    .trim()
 }
 
 function parseFrontmatter(source: string) {
