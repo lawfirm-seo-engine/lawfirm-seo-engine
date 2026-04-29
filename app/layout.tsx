@@ -174,7 +174,7 @@ const organizationJsonLd = {
         contactType: "customer support",
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
-        telephone: "+82-2-3476-0915",
+        telephone: "+82-2-6952-3695",
       },
 
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
