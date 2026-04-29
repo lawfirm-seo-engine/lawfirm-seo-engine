@@ -64,9 +64,7 @@ const escapeXml = (text) =>
     .replaceAll("'", "&apos;")
 
 const escapeYaml = (text) =>
-  text
-    .replaceAll("\\", "\\\\")
-    .replaceAll('"', '\\"')
+  text.replaceAll("\\", "\\\\").replaceAll('"', '\\"')
 
 const hasScamKeyword = cleanCaseName.includes("사기")
 const hasImpersonationKeyword = cleanCaseName.includes("사칭")
@@ -118,6 +116,19 @@ ${escapeXml(subText)}
 </svg>
 `
 
+function removeDuplicateImpersonationText(text) {
+  if (!cleanCaseName.includes("사칭")) return text
+
+  return text
+    .replaceAll("{{CASE_NAME}} (사칭)", "{{CASE_NAME}}")
+    .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
+    .replaceAll(`${cleanCaseName} (사칭)`, cleanCaseName)
+    .replaceAll(`${cleanCaseName}(사칭)`, cleanCaseName)
+    .replaceAll("사칭 (사칭)", "사칭")
+    .replaceAll("사칭(사칭)", "사칭")
+    .replaceAll("사칭 사칭", "사칭")
+}
+
 ;(async () => {
   await sharp(templateImagePath)
     .resize(1200, 630)
@@ -164,13 +175,9 @@ ${escapeXml(subText)}
     console.log(`생성 완료: ${slug}-${num}${realExt}`)
   })
 
-  const template = fs.readFileSync(templatePath, "utf-8")
+  let template = fs.readFileSync(templatePath, "utf-8")
 
-  if (cleanCaseName.includes("사칭")) {
-    template = template
-      .replaceAll("{{CASE_NAME}} (사칭)", "{{CASE_NAME}}")
-      .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
-  }
+  template = removeDuplicateImpersonationText(template)
 
   const imagePath = `/images/cases/${slug}.png`
 
@@ -178,6 +185,8 @@ ${escapeXml(subText)}
     .replaceAll("{{CASE_NAME}}", cleanCaseName)
     .replaceAll("{{IMAGE_PATH}}", imagePath)
     .replaceAll("{{SLUG}}", slug)
+
+  result = removeDuplicateImpersonationText(result)
 
   fixedNumbers.forEach((num) => {
     const realExt = imageExtMap[num]
