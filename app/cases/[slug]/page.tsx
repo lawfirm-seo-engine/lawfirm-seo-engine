@@ -275,6 +275,7 @@ export default async function CasePage({
       "@id": `${siteUrl}/#representative`,
       name: representativeName,
       jobTitle: "대표변호사",
+      url: siteUrl,
       worksFor: {
         "@id": `${siteUrl}/#organization`,
       },
