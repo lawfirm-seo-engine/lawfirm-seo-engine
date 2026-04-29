@@ -8,7 +8,10 @@ import TypingHeading from "@/app/components/TypingHeading"
 export const dynamic = "force-static"
 
 const siteUrl = "https://daeonlawfintech.com"
-const siteName = "대온 핀테크센터"
+const siteName = "대온 법률사무소 핀테크센터"
+const organizationName = "대온 법률사무소"
+const phoneNumber = "+82-2-3476-0915"
+const imageVersion = "20260429"
 
 const scamTopicKeywords = [
   "팀미션 사기",
@@ -60,8 +63,8 @@ export async function generateMetadata({
   const keyword = decodedSlug.toUpperCase()
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif?v=2`
-  const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png?v=2`
+  const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif?v=${imageVersion}`
+  const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
 
   return {
@@ -183,13 +186,13 @@ export default async function CasePage({
 
   const source = rawSource.replace(
     new RegExp(`/images/cases/${decodedSlug}\\.png`, "g"),
-    `/images/cases/${decodedSlug}.png?v=20260429`
+    `/images/cases/${decodedSlug}.png?v=${imageVersion}`
   )
 
   const stat = fs.statSync(filePath)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=20260429`
+  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
   const imageAlt = `${keyword} 사기 사칭 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${keyword} 사기 사칭 피해 사례 및 대응 방법 안내`
   const imageDescription = `${keyword} 사기 사칭 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
@@ -214,7 +217,7 @@ export default async function CasePage({
       img: (props) => {
         const src =
           typeof props.src === "string" && props.src.includes("/images/cases/")
-            ? `${props.src}${props.src.includes("?") ? "&" : "?"}v=2`
+            ? `${props.src}${props.src.includes("?") ? "&" : "?"}v=${imageVersion}`
             : props.src
 
         return (
@@ -228,7 +231,7 @@ export default async function CasePage({
             }
           />
         )
-      },  
+      },
 
       h2: ({ children }) => (
         <TypingHeading text={String(children)} level="h2" />
@@ -244,32 +247,60 @@ export default async function CasePage({
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
-    "@type": "LegalService",
+    "@type": "Organization",
     "@id": `${siteUrl}/#organization`,
-    name: "대온 핀테크센터",
-    legalName: "대온 법률사무소",
+    name: organizationName,
+    legalName: organizationName,
     alternateName: [
+      siteName,
       "대온 핀테크센터",
       "대온 금융사기 대응센터",
+      "대온 법률사무소 금융사기 대응센터",
     ],
     url: siteUrl,
     logo: `${siteUrl}/images/logo.png`,
     image: `${siteUrl}/images/logo.png`,
-    telephone: "+82-2-6952-3695",
+    telephone: phoneNumber,
     address: {
       "@type": "PostalAddress",
       streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
-      addressLocality: "서울",
+      addressLocality: "서초구",
       addressRegion: "서울특별시",
       postalCode: "06647",
       addressCountry: "KR",
     },
+    sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+  }
+
+  const legalServiceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LegalService",
+    "@id": `${siteUrl}/#legalservice`,
+    name: siteName,
+    legalName: organizationName,
+    alternateName: [
+      "대온 핀테크센터",
+      "대온 금융사기 대응센터",
+      "대온 법률사무소 금융사기 대응센터",
+    ],
+    url: siteUrl,
+    logo: `${siteUrl}/images/logo.png`,
+    image: `${siteUrl}/images/logo.png`,
+    telephone: phoneNumber,
     priceRange: "$$$",
     description:
-      "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+      "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
+      addressLocality: "서초구",
+      addressRegion: "서울특별시",
+      postalCode: "06647",
+      addressCountry: "KR",
+    },
     areaServed: {
       "@type": "Country",
-      name: "KR",
+      name: "대한민국",
     },
     knowsAbout: [
       "금융사기 피해 대응",
@@ -282,6 +313,13 @@ export default async function CasePage({
       "민형사 대응",
       ...scamTopicKeywords,
     ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      areaServed: "KR",
+      availableLanguage: ["ko-KR"],
+      telephone: phoneNumber,
+    },
     sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
 
@@ -290,7 +328,8 @@ export default async function CasePage({
     "@type": "WebSite",
     "@id": `${siteUrl}/#website`,
     url: siteUrl,
-    name: "대온 핀테크센터",
+    name: siteName,
+    alternateName: ["대온 핀테크센터", "대온 법률사무소"],
     publisher: {
       "@id": `${siteUrl}/#organization`,
     },
@@ -301,7 +340,8 @@ export default async function CasePage({
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${siteUrl}/#author`,
-    name: "대온 핀테크센터",
+    name: organizationName,
+    alternateName: [siteName, "대온 핀테크센터"],
     url: siteUrl,
     sameAs: ["https://cafe.naver.com/daeonlawfintech"],
   }
@@ -477,6 +517,22 @@ export default async function CasePage({
           text: "사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 대응을 시작하는 것이 중요합니다.",
         },
       },
+      {
+        "@type": "Question",
+        name: "후불제로 사건 진행을 하고 싶은데 가능한가요?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의해야 합니다.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "단체 소송으로 진행하는게 좋은가요?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 의뢰인의 실익이 없기에 대온은 진행하지 않습니다.",
+        },
+      },
     ],
   }
 
@@ -603,6 +659,13 @@ export default async function CasePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(legalServiceJsonLd).replace(/</g, "\\u003c"),
         }}
       />
 
