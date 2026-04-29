@@ -27,6 +27,14 @@ const organizationName = "대온 법률사무소";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png" }],
+  },
+
   verification: {
     google: "zY1U8LMHWWtmETEB1JpDKFEBDYPJcPuhBeYv6six-QE",
     other: {
