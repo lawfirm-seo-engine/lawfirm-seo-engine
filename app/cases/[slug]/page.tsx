@@ -214,6 +214,9 @@ export default async function CasePage({
 
   const { content } = await compileMDX({
     source,
+    options: {
+      parseFrontmatter: true,
+    },  
     components: {
       img: (props) => {
         const src =

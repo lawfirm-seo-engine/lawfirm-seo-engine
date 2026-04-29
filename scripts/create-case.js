@@ -165,6 +165,13 @@ ${escapeXml(subText)}
   })
 
   const template = fs.readFileSync(templatePath, "utf-8")
+
+  if (cleanCaseName.includes("사칭")) {
+    template = template
+      .replaceAll("{{CASE_NAME}} (사칭)", "{{CASE_NAME}}")
+      .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
+  }
+
   const imagePath = `/images/cases/${slug}.png`
 
   let result = template
