@@ -50,7 +50,11 @@ function stripLeakedMetaLines(source: string) {
 function stripBrokenRelatedGuide(source: string) {
   return source
     .replace(
-      /(^|\n)#{1,6}\s*관련\s*대표\s*사건\s*안내[\s\S]*?(?=\n#{1,6}\s|\n---|\n$)/g,
+      /(^|\n)#{1,6}\s*관련\s*대표\s*사건\s*안내[\s\S]*?(?=\n#{1,6}\s|\n<img|\n!\[|\n\d+\.\s|\n##|\n###|$)/g,
+      "\n"
+    )
+    .replace(
+      /(^|\n)\s*관련\s*대표\s*사건\s*안내\s*\n[\s\S]*?(?=\n#{1,6}\s|\n<img|\n!\[|\n\d+\.\s|\n##|\n###|$)/g,
       "\n"
     )
     .replace(/^\s*해당 사건은 아래 대표 사건과 동일 유형입니다\.\s*$/gim, "")
@@ -59,12 +63,13 @@ function stripBrokenRelatedGuide(source: string) {
     .trim()
 }
 
-function stripTopAutoHeadings(source: string) {
-  return source
-    .replace(/^\s*#\s+.*$/gm, "")
-    .replace(/^\s*##\s+.*$/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim()
+function stripOnlyLeadingAutoHeadings(source: string) {
+  let result = source.trimStart()
+
+  result = result.replace(/^#\s+.*\n+/m, "")
+  result = result.replace(/^##\s+.*\n+/m, "")
+
+  return result.replace(/\n{3,}/g, "\n\n").trim()
 }
 
 function parseFrontmatter(source: string) {
@@ -129,17 +134,16 @@ function getCaseMeta(decodedSlug: string) {
   const filePath = getCaseFilePath(decodedSlug)
 
   if (!fs.existsSync(filePath)) {
-    const fallbackCaseName = normalizeSlugTitle(decodedSlug)
-    const normalizedFallbackCaseName = normalizeImpersonationText(fallbackCaseName)
+    const fallbackCaseName = normalizeImpersonationText(normalizeSlugTitle(decodedSlug))
 
     return {
       filePath,
       rawSource: "",
       mdxSource: "",
-      caseName: normalizedFallbackCaseName,
-      searchKeyword: buildSearchKeyword(normalizedFallbackCaseName),
-      seoTitle: buildSeoTitle(normalizedFallbackCaseName),
-      seoDescription: buildSeoDescription(normalizedFallbackCaseName),
+      caseName: fallbackCaseName,
+      searchKeyword: buildSearchKeyword(fallbackCaseName),
+      seoTitle: buildSeoTitle(fallbackCaseName),
+      seoDescription: buildSeoDescription(fallbackCaseName),
     }
   }
 
@@ -147,20 +151,21 @@ function getCaseMeta(decodedSlug: string) {
   const frontmatter = parseFrontmatter(rawSource)
 
   const caseName = normalizeImpersonationText(
-    frontmatter.caseName ||
-      frontmatter.title?.replace(/\s*피해회복\s*$/g, "") ||
-      normalizeSlugTitle(decodedSlug)
+    frontmatter.caseName || normalizeSlugTitle(decodedSlug)
   )
 
   const searchKeyword = buildSearchKeyword(caseName)
+  const seoTitle = buildSeoTitle(caseName)
 
-  const seoTitle = frontmatter.title || buildSeoTitle(caseName)
-  const seoDescription = frontmatter.description || buildSeoDescription(caseName)
+  const seoDescription =
+    frontmatter.description && !frontmatter.description.includes("관련 대표 사건 안내")
+      ? frontmatter.description
+      : buildSeoDescription(caseName)
 
   let mdxSource = stripFrontmatter(rawSource)
   mdxSource = stripLeakedMetaLines(mdxSource)
   mdxSource = stripBrokenRelatedGuide(mdxSource)
-  mdxSource = stripTopAutoHeadings(mdxSource)
+  mdxSource = stripOnlyLeadingAutoHeadings(mdxSource)
 
   if (caseName.includes("사칭")) {
     mdxSource = mdxSource
@@ -178,6 +183,7 @@ function getCaseMeta(decodedSlug: string) {
     .replaceAll("{{SEARCH_KEYWORD}}", searchKeyword)
 
   mdxSource = stripLeakedMetaLines(mdxSource)
+  mdxSource = stripBrokenRelatedGuide(mdxSource)
 
   return {
     filePath,
@@ -314,57 +320,41 @@ function detectCaseType(text: string) {
   const value = text.toLowerCase()
 
   if (
-    /대신증권|증권|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자/.test(
+    /대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자/.test(
       value
     )
   ) {
     return {
       label: "증권사 사칭 사기",
-      representativeSlug: "증권사-사칭-사기",
     }
   }
 
   if (/쇼핑몰|마켓|mall|market|shop|store|구매대행|팀미션|리뷰|부업/.test(value)) {
     return {
       label: "쇼핑몰 사칭 사기",
-      representativeSlug: "쇼핑몰-사칭-사기",
     }
   }
 
   if (/코인|거래소|wallet|지갑|스테이킹|crypto|coin|bit/.test(value)) {
     return {
       label: "코인 거래소 사칭 사기",
-      representativeSlug: "코인-거래소-사칭-사기",
     }
   }
 
   if (/해외선물|fx|마진|나스닥|선물/.test(value)) {
     return {
       label: "해외선물 사칭 사기",
-      representativeSlug: "해외선물-사칭-사기",
     }
   }
 
   if (/방송|라이브|환전|채팅|만남/.test(value)) {
     return {
       label: "방송 환전 사칭 사기",
-      representativeSlug: "방송-환전-사칭-사기",
     }
   }
 
   return {
     label: "플랫폼 사칭 사기",
-    representativeSlug: "플랫폼-사칭-사기",
-  }
-}
-
-function getRepresentativeCase(currentSlug: string, caseName: string) {
-  const detected = detectCaseType(`${currentSlug} ${caseName}`)
-
-  return {
-    label: detected.label,
-    slug: detected.representativeSlug,
-    exists: fs.existsSync(getCaseFilePath(detected.representativeSlug)),
   }
 }
 
@@ -394,6 +384,16 @@ function getSameTypeCases(currentSlug: string, caseName: string) {
     .filter((item) => item.type === currentType)
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, 6)
+}
+
+function getRepresentativeCase(currentSlug: string, caseName: string) {
+  const sameTypeCases = getSameTypeCases(currentSlug, caseName)
+
+  if (sameTypeCases.length === 0) {
+    return null
+  }
+
+  return sameTypeCases[0]
 }
 
 function resolveImageSrc(src: string, decodedSlug: string) {
@@ -451,6 +451,13 @@ function normalizeMdxImagePaths(source: string, decodedSlug: string) {
   return source.replace(
     /!\[([^\]]*)\]\((\/images\/cases\/[^)]+)\)/g,
     (_match, alt, src) => `![${alt}](${resolveImageSrc(src, decodedSlug)})`
+  )
+}
+
+function normalizeHtmlImagePaths(source: string, decodedSlug: string) {
+  return source.replace(
+    /src=["'](\/images\/cases\/[^"']+)["']/g,
+    (_match, src) => `src="${resolveImageSrc(src, decodedSlug)}"`
   )
 }
 
@@ -681,7 +688,8 @@ export default async function CasePage({
     notFound()
   }
 
-  const source = normalizeMdxImagePaths(mdxSource, decodedSlug)
+  let source = normalizeMdxImagePaths(mdxSource, decodedSlug)
+  source = normalizeHtmlImagePaths(source, decodedSlug)
 
   const stat = fs.statSync(filePath)
 
@@ -1281,23 +1289,19 @@ export default async function CasePage({
         </details>
       </section>
 
-      <section className="related-cases related-cases-box">
-        <h2 className="related-cases-title">관련 대표 사건 안내</h2>
+      {representativeCase && (
+        <section className="related-cases related-cases-box">
+          <h2 className="related-cases-title">관련 대표 사건 안내</h2>
 
-        <ul className="related-cases-list">
-          <li className="related-cases-item">
-            {representativeCase.exists ? (
+          <ul className="related-cases-list">
+            <li className="related-cases-item">
               <Link href={`/cases/${representativeCase.slug}`} className="related-cases-link">
-                {representativeCase.label} 대표 사례 바로가기
+                {representativeCase.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
               </Link>
-            ) : (
-              <span className="related-cases-link">
-                {representativeCase.label} 대표 사례
-              </span>
-            )}
-          </li>
-        </ul>
-      </section>
+            </li>
+          </ul>
+        </section>
+      )}
 
       {sameTypeCases.length > 0 && (
         <section className="related-cases related-cases-box">
