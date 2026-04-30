@@ -19,6 +19,18 @@ const publicCasesDir = path.join(process.cwd(), "public", "images", "cases")
 
 const imageExtensions = ["png", "jpg", "jpeg", "webp", "avif", "gif"]
 
+type CaseSummary = {
+  slug: string
+  title: string
+  caseName: string
+  searchKeyword: string
+  text: string
+  birthtime: number
+  mtime: number
+}
+
+let caseSummariesCache: CaseSummary[] | null = null
+
 const scamTopicKeywords = [
   "팀미션 사기",
   "주식 어플 사기",
@@ -344,6 +356,44 @@ function getRecentCases(currentSlug: string) {
     .slice(0, 6)
 }
 
+function getCaseSummaries() {
+  if (caseSummariesCache) return caseSummariesCache
+  if (!fs.existsSync(casesDir)) return []
+
+  caseSummariesCache = fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "")
+      const filePath = path.join(casesDir, file)
+      const rawSource = fs.readFileSync(filePath, "utf-8")
+      const frontmatter = parseFrontmatter(rawSource)
+      const safeFrontmatterCaseName = !isBadCaseName(frontmatter.caseName)
+        ? frontmatter.caseName
+        : ""
+      const caseName = normalizeImpersonationText(
+        safeFrontmatterCaseName || normalizeSlugTitle(slug)
+      )
+      const searchKeyword = buildSearchKeyword(caseName)
+      const stat = fs.statSync(filePath)
+      const text = `${slug} ${caseName} ${searchKeyword}`
+
+      return {
+        slug,
+        title: caseName,
+        caseName,
+        searchKeyword,
+        text,
+        birthtime: stat.birthtime.getTime(),
+        mtime: stat.mtime.getTime(),
+      }
+    })
+
+  return caseSummariesCache
+}
+
 function detectCaseType(text: string) {
   const value = text.toLowerCase()
 
@@ -387,29 +437,14 @@ function detectCaseType(text: string) {
 }
 
 function getSameTypeCases(currentSlug: string, caseName: string) {
-  if (!fs.existsSync(casesDir)) return []
-
   const currentType = detectCaseType(`${currentSlug} ${caseName}`).label
 
-  return fs
-    .readdirSync(casesDir)
-    .filter((file) => file.endsWith(".mdx"))
-    .filter((file) => file !== "_template.mdx")
-    .filter((file) => !file.startsWith("_"))
-    .filter((file) => file !== `${currentSlug}.mdx`)
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, "")
-      const meta = getCaseMeta(slug)
-      const stat = fs.statSync(path.join(casesDir, file))
-
-      return {
-        slug,
-        title: meta.caseName,
-        type: detectCaseType(`${slug} ${meta.caseName}`).label,
-        mtime: stat.mtime.getTime(),
-        birthtime: stat.birthtime.getTime(),
-      }
-    })
+  return getCaseSummaries()
+    .filter((item) => item.slug !== currentSlug)
+    .map((item) => ({
+      ...item,
+      type: detectCaseType(`${item.slug} ${item.caseName}`).label,
+    }))
     .filter((item) => item.type === currentType)
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, 6)
@@ -648,30 +683,19 @@ function isSameCaseGroup(currentText: string, targetText: string) {
 }
 
 function getClusterCases(currentSlug: string) {
-  if (!fs.existsSync(casesDir)) return []
-
   const currentMeta = getCaseMeta(currentSlug)
   const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
 
-  return fs
-    .readdirSync(casesDir)
-    .filter((file) => file.endsWith(".mdx"))
-    .filter((file) => file !== "_template.mdx")
-    .filter((file) => !file.startsWith("_"))
-    .filter((file) => file !== `${currentSlug}.mdx`)
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, "")
-      const meta = getCaseMeta(slug)
-      const stat = fs.statSync(path.join(casesDir, file))
-      const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
-
-      const sameGroup = isSameCaseGroup(currentText, text)
+  return getCaseSummaries()
+    .filter((item) => item.slug !== currentSlug)
+    .map((item) => {
+      const sameGroup = isSameCaseGroup(currentText, item.text)
 
       const similarity = sameGroup
         ? Math.max(
-            getDiceSimilarity(normalizeClusterText(currentText), normalizeClusterText(text)),
+            getDiceSimilarity(normalizeClusterText(currentText), normalizeClusterText(item.text)),
             ...getImportantCaseTokens(currentText).flatMap((token) =>
-              getImportantCaseTokens(text).map((target) =>
+              getImportantCaseTokens(item.text).map((target) =>
                 getDiceSimilarity(token, target)
               )
             )
@@ -679,11 +703,11 @@ function getClusterCases(currentSlug: string) {
         : 0
 
       return {
-        slug,
-        title: meta.caseName,
+        slug: item.slug,
+        title: item.title,
         score: sameGroup ? Math.max(similarity, 0.9) : 0,
-        birthtime: stat.birthtime.getTime(),
-        mtime: stat.mtime.getTime(),
+        birthtime: item.birthtime,
+        mtime: item.mtime,
       }
     })
     .filter((item) => item.score >= 0.72)
@@ -692,30 +716,11 @@ function getClusterCases(currentSlug: string) {
 }
 
 function getRepresentativeCase(currentSlug: string) {
-  if (!fs.existsSync(casesDir)) return null
+  const current = getCaseSummaries().find((item) => item.slug === currentSlug)
+  const currentMeta = current || getCaseMeta(currentSlug)
+  const currentText = current ? current.text : `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
 
-  const currentMeta = getCaseMeta(currentSlug)
-  const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
-
-  const group = fs
-    .readdirSync(casesDir)
-    .filter((file) => file.endsWith(".mdx"))
-    .filter((file) => file !== "_template.mdx")
-    .filter((file) => !file.startsWith("_"))
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, "")
-      const meta = getCaseMeta(slug)
-      const stat = fs.statSync(path.join(casesDir, file))
-      const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
-
-      return {
-        slug,
-        title: meta.caseName,
-        text,
-        birthtime: stat.birthtime.getTime(),
-        mtime: stat.mtime.getTime(),
-      }
-    })
+  const group = getCaseSummaries()
     .filter((item) => isSameCaseGroup(currentText, item.text))
     .sort((a, b) => a.birthtime - b.birthtime)
 
