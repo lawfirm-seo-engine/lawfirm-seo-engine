@@ -26,7 +26,7 @@ export default function MainHeroSlider() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % slides.length)
-    }, 7500)
+    }, 8500)
 
     return () => clearInterval(timer)
   }, [])
@@ -40,8 +40,8 @@ export default function MainHeroSlider() {
           <div className="hero-overlay" />
 
           <div className="hero-text">
-            <h2>{slide.title}</h2>
-            <p>{slide.desc}</p>
+            <h2 className="hero-title">{slide.title}</h2>
+            <p className="hero-desc">{slide.desc}</p>
           </div>
         </div>
       ))}
@@ -50,10 +50,8 @@ export default function MainHeroSlider() {
         {slides.map((_, i) => (
           <button
             key={i}
-            type="button"
             className={i === index ? "active" : ""}
             onClick={() => setIndex(i)}
-            aria-label={`${i + 1}번 슬라이드 보기`}
           />
         ))}
       </div>
