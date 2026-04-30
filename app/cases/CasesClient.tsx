@@ -10,10 +10,6 @@ type CasesClientProps = {
   cases: string[]
 }
 
-function getDisplayName(name: string) {
-  return name.includes("사칭") ? name : `${name} (사칭)`
-}
-
 export default function CasesClient({ siteName, cases }: CasesClientProps) {
   const [keyword, setKeyword] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -80,51 +76,33 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
         ) : (
           <>
             <div className="daeon-grid">
-              {currentCases.map((name) => {
-                const displayName = getDisplayName(name)
-                const imagePath = `/images/cases/${name}.png`
+              {currentCases.map((name) => (
+                <Link key={name} href={`/cases/${name}`} className="daeon-card">
+                  <span className="daeon-status">접수진행중</span>
 
-                return (
-                  <Link
-                    key={name}
-                    href={`/cases/${encodeURIComponent(name)}`}
-                    className="daeon-card"
-                  >
-                    <span className="daeon-status">접수진행중</span>
-
-                    <div
-                      className="daeon-card-head"
-                      style={{
-                        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.52), rgba(15, 23, 42, 0.52)), url("${imagePath}")`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    >
-                      <div className="daeon-card-title">
-                        <span className="daeon-card-title-main">
-                          {displayName}
-                        </span>
-                      </div>
+                  <div className="daeon-card-head">
+                    <div className="daeon-card-title">
+                      <span className="daeon-card-title-main">{name}</span>
+                      <span className="daeon-card-title-sub">(사칭)</span>
                     </div>
+                  </div>
 
-                    <div className="daeon-card-body">
-                      <p className="daeon-warning">
-                        본 사건은 업체명을
-                        <br />
-                        사칭한 사기입니다
-                      </p>
+                  <div className="daeon-card-body">
+                    <p className="daeon-warning">
+                      본 사건은 업체명을
+                      <br />
+                      사칭한 사기입니다
+                    </p>
 
-                      <div className="daeon-cta-wrap">
-                        <span className="daeon-type">
-                          <span className="daeon-type-text">상세보기</span>
-                          <span className="daeon-type-icon">→</span>
-                        </span>
-                      </div>
+                    <div className="daeon-cta-wrap">
+                      <span className="daeon-type">
+                        <span className="daeon-type-text">상세보기</span>
+                        <span className="daeon-type-icon">→</span>
+                      </span>
                     </div>
-                  </Link>
-                )
-              })}
+                  </div>
+                </Link>
+              ))}
             </div>
 
             <div className="daeon-page-meta">
