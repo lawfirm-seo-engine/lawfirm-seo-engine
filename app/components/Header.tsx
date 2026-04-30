@@ -12,14 +12,18 @@ export default function Header() {
         {/* 로고 */}
         <Link
           href="/"
-          className="truncate text-2xl font-extrabold tracking-tight text-gray-900 max-md:text-base"
+          className="truncate text-2xl font-extrabold tracking-tight text-gray-900 max-md:max-w-[230px] max-md:text-sm"
           onClick={() => setMenuOpen(false)}
+          aria-label="대온 법률사무소 핀테크센터 홈으로 이동"
         >
-          대온 핀테크센터
+          대온 법률사무소 핀테크센터
         </Link>
 
         {/* PC/태블릿 메뉴 */}
-        <nav className="hidden items-center gap-10 text-base font-extrabold text-gray-900 md:flex">
+        <nav
+          className="hidden items-center gap-10 text-base font-extrabold text-gray-900 md:flex"
+          aria-label="주요 메뉴"
+        >
           <Link href="/services">주력분야</Link>
           <Link href="/cases">진행사건</Link>
           <Link href="/process">대응절차</Link>
@@ -38,7 +42,9 @@ export default function Header() {
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex h-8 w-8 items-center justify-center rounded border border-gray-300 bg-white md:hidden"
-          aria-label="모바일 메뉴"
+          aria-label={menuOpen ? "모바일 메뉴 닫기" : "모바일 메뉴 열기"}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
         >
           <span className="relative block h-4 w-5">
             <span
@@ -62,8 +68,11 @@ export default function Header() {
 
       {/* 모바일 드롭다운 메뉴 */}
       {menuOpen && (
-        <div className="border-t bg-white md:hidden">
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-[12px] font-semibold text-gray-800">
+        <div id="mobile-menu" className="border-t bg-white md:hidden">
+          <nav
+            className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-[12px] font-semibold text-gray-800"
+            aria-label="모바일 주요 메뉴"
+          >
             <Link href="/services" onClick={() => setMenuOpen(false)}>
               주력분야
             </Link>
@@ -88,7 +97,7 @@ export default function Header() {
             >
               네이버카페
             </a>
-          </div>
+          </nav>
         </div>
       )}
     </header>

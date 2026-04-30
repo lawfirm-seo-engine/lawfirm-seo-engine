@@ -9,7 +9,21 @@ if (!caseName) {
   process.exit(1)
 }
 
-const slug = caseName
+const cleanCaseName = caseName.trim().replace(/\s+/g, " ")
+
+const hasScamKeyword = cleanCaseName.includes("사기")
+const hasImpersonationKeyword = cleanCaseName.includes("사칭")
+
+const caseDisplayName = cleanCaseName.includes("사칭")
+  ? cleanCaseName
+  : `${cleanCaseName} (사칭)`
+
+const normalizedCaseNameForDisplay = cleanCaseName
+  .replace(/\s*\(사칭\)\s*/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+
+const slug = cleanCaseName
   .toLowerCase()
   .replace(/\s+/g, "-")
   .replace(/[^\w가-힣-]/g, "")
@@ -47,9 +61,9 @@ if (!fs.existsSync(outputImageDir)) {
 const avifPath = path.join(outputImageDir, `${slug}.avif`)
 const pngPath = path.join(outputImageDir, `${slug}.png`)
 
-const titleText = caseName.includes("사칭")
-  ? caseName
-  : `${caseName} (사칭)`
+const titleText = hasImpersonationKeyword
+  ? normalizedCaseNameForDisplay
+  : `${normalizedCaseNameForDisplay} (사칭)`
 
 const subText = "피해 회복을 위한 법률 정보"
 
@@ -60,6 +74,26 @@ const escapeXml = (text) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;")
+
+const escapeYaml = (text) =>
+  text.replaceAll("\\", "\\\\").replaceAll('"', '\\"')
+
+const seoTitle = `${cleanCaseName}${hasScamKeyword ? "" : " 사기"}${
+  hasImpersonationKeyword ? "" : " 사칭"
+} 피해회복`
+
+const seoDescription = `${cleanCaseName}${
+  hasScamKeyword ? "" : " 사기"
+} 피해 사례 및 대응 전략 안내`
+
+const frontmatter = `---
+title: "${escapeYaml(seoTitle)}"
+caseName: "${escapeYaml(cleanCaseName)}"
+description: "${escapeYaml(seoDescription)}"
+slug: "${escapeYaml(slug)}"
+---
+
+`
 
 const svgOverlay = `
 <svg width="1200" height="630">
@@ -90,6 +124,30 @@ ${escapeXml(subText)}
 </text>
 </svg>
 `
+
+function removeDuplicateImpersonationText(text) {
+  if (!hasImpersonationKeyword) return text
+
+  return text
+    .replaceAll("{{CASE_NAME}} (사칭)", "{{CASE_NAME}}")
+    .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
+    .replaceAll(`${cleanCaseName} (사칭)`, cleanCaseName)
+    .replaceAll(`${cleanCaseName}(사칭)`, cleanCaseName)
+    .replaceAll(`${normalizedCaseNameForDisplay} (사칭)`, normalizedCaseNameForDisplay)
+    .replaceAll(`${normalizedCaseNameForDisplay}(사칭)`, normalizedCaseNameForDisplay)
+    .replaceAll("사칭 (사칭)", "사칭")
+    .replaceAll("사칭(사칭)", "사칭")
+    .replaceAll("사칭 사칭", "사칭")
+}
+
+function stripVisibleFrontmatterLines(text) {
+  return text
+    .replace(/^title:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^caseName:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^description:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^slug:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+}
 
 ;(async () => {
   await sharp(templateImagePath)
@@ -137,13 +195,27 @@ ${escapeXml(subText)}
     console.log(`생성 완료: ${slug}-${num}${realExt}`)
   })
 
-  const template = fs.readFileSync(templatePath, "utf-8")
+  let template = fs.readFileSync(templatePath, "utf-8")
+
+  template = stripVisibleFrontmatterLines(template)
+  template = removeDuplicateImpersonationText(template)
+
   const imagePath = `/images/cases/${slug}.png`
 
   let result = template
-    .replaceAll("{{CASE_NAME}}", caseName)
+    .replaceAll("{{CASE_NAME}}", cleanCaseName)
+    .replaceAll("{{CASE_DISPLAY_NAME}}", caseDisplayName)
     .replaceAll("{{IMAGE_PATH}}", imagePath)
+    .replaceAll("{{IMAGE_ALT}}", `${caseDisplayName} 피해 회복을 위한 법률 정보 이미지`)
+    .replaceAll("{{IMAGE_CAPTION}}", `${caseDisplayName} 피해 사례 및 대응 방법 안내`)
+    .replaceAll(
+      "{{IMAGE_DESCRIPTION}}",
+      `${caseDisplayName} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+    )
     .replaceAll("{{SLUG}}", slug)
+    
+  result = removeDuplicateImpersonationText(result)
+  result = stripVisibleFrontmatterLines(result)
 
   fixedNumbers.forEach((num) => {
     const realExt = imageExtMap[num]
@@ -155,6 +227,8 @@ ${escapeXml(subText)}
       `${slug}-${num}${realExt}`
     )
   })
+
+  result = frontmatter + result.replace(/^---[\s\S]*?---\s*/, "")
 
   fs.writeFileSync(outputPath, result, "utf-8")
 

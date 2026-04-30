@@ -21,8 +21,19 @@ const geistMono = Geist_Mono({
 const siteUrl = "https://daeonlawfintech.com";
 const googleAnalyticsId = "G-RDQJT1FLNT";
 
+const siteName = "대온 법률사무소 핀테크센터";
+const organizationName = "대온 법률사무소";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png" }],
+  },
 
   verification: {
     google: "zY1U8LMHWWtmETEB1JpDKFEBDYPJcPuhBeYv6six-QE",
@@ -33,12 +44,12 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "대온 핀테크센터",
-    template: "%s | 대온 핀테크센터",
+    default: siteName,
+    template: `%s | ${siteName}`,
   },
 
   description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+    "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
 
   alternates: {
     canonical: siteUrl,
@@ -46,7 +57,7 @@ export const metadata: Metadata = {
       "application/rss+xml": [
         {
           url: `${siteUrl}/rss.xml`,
-          title: "대온 핀테크센터 사건 업데이트 RSS",
+          title: `${siteName} 사건 업데이트 RSS`,
         },
       ],
     },
@@ -56,10 +67,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: siteUrl,
-    siteName: "대온 핀테크센터",
-    title: "대온 핀테크센터",
+    siteName,
+    title: siteName,
     description:
-      "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+      "대온 법률사무소 핀테크센터는 금융사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+    images: [
+      {
+        url: `${siteUrl}/images/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: `${siteName} 로고`,
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description:
+      "대온 법률사무소 핀테크센터는 금융사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+    images: [`${siteUrl}/images/logo.png`],
   },
 
   robots: {
@@ -81,77 +108,57 @@ const organizationJsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: " 대온",
-      legalName: " 대온",
+      name: organizationName,
+      legalName: organizationName,
       alternateName: [
+        siteName,
         "대온 핀테크센터",
-        " 대온 핀테크센터",
         "대온 금융사기 대응센터",
       ],
       url: siteUrl,
       logo: `${siteUrl}/images/logo.png`,
       image: `${siteUrl}/images/logo.png`,
       sameAs: ["https://cafe.naver.com/daeonlawfintech"],
+      founder: {
+        "@type": "Person",
+        name: "신동우",
+      },
     },
 
     {
       "@type": "LegalService",
       "@id": `${siteUrl}/#legalservice`,
-      name: "대온 핀테크센터",
-      legalName: " 대온",
-      alternateName: [
-        " 대온 핀테크센터",
-        "대온 금융사기 대응센터",
-      ],
+      name: siteName,
+      legalName: organizationName,
+
       url: siteUrl,
+
       logo: `${siteUrl}/images/logo.png`,
       image: `${siteUrl}/images/logo.png`,
-      description:
-        "대온 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기, 가상자산 사기, 쇼핑몰 사칭 사기, 부업 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
+
+      telephone: "+82-2-6952-3695",
 
       address: {
         "@type": "PostalAddress",
-        streetAddress: "서초대로 250 스타갤러리브릿지빌딩 802호",
+        streetAddress:
+          "서초대로 250 스타갤러리브릿지빌딩 802호",
         addressLocality: "서초구",
         addressRegion: "서울",
         postalCode: "06647",
         addressCountry: "KR",
       },
 
-      telephone: "+82-2-3476-0915",
-
-      priceRange: "$$$",
-
       areaServed: {
         "@type": "Country",
         name: "대한민국",
       },
 
-      knowsAbout: [
-        "투자사기",
-        "리딩방 사기",
-        "주식리딩방 사기",
-        "증권사 사칭 사기",
-        "코인 사기",
-        "가상자산 사기",
-        "해외선물 사기",
-        "금 투자 사기",
-        "주식 어플 사기",
-        "어플 사기",
-        "팀미션 사기",
-        "쇼핑몰 사칭 사기",
-        "부업 사기",
-        "플랫폼 사칭 사기",
-        "여행사 사칭 사기",
-        "가압류",
-        "계좌 동결",
-        "민사 손해배상",
-        "형사 고소",
-      ],
+      priceRange: "$$$",
 
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
+        telephone: "+82-2-6952-3695",
         areaServed: "KR",
         availableLanguage: ["ko-KR"],
       },
@@ -163,44 +170,70 @@ const organizationJsonLd = {
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
+
   "@type": "WebSite",
+
   "@id": `${siteUrl}/#website`,
+
   url: siteUrl,
-  name: "대온 핀테크센터",
-  description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+
+  name: siteName,
+
   publisher: {
     "@id": `${siteUrl}/#organization`,
   },
+
   potentialAction: {
     "@type": "SearchAction",
+
     target: `${siteUrl}/search?q={search_term_string}`,
+
     "query-input": "required name=search_term_string",
   },
+
   inLanguage: "ko-KR",
 };
 
 const homepageJsonLd = {
   "@context": "https://schema.org",
+
   "@type": "WebPage",
+
   "@id": `${siteUrl}/#homepage`,
+
   url: siteUrl,
-  name: "대온 핀테크센터",
-  description:
-    "금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 대온 핀테크센터입니다.",
+
+  name: siteName,
+
   isPartOf: {
     "@id": `${siteUrl}/#website`,
   },
+
   about: {
     "@id": `${siteUrl}/#legalservice`,
   },
+
+  speakable: {
+    "@type": "SpeakableSpecification",
+
+    cssSelector: [
+      "h1",
+      "h2",
+      ".case-summary",
+      ".faq-section",
+    ],
+  },
+
   inLanguage: "ko-KR",
 };
 
 const navigationJsonLd = {
   "@context": "https://schema.org",
+
   "@type": "SiteNavigationElement",
+
   "@id": `${siteUrl}/#navigation`,
+
   name: [
     "홈",
     "주력분야",
@@ -209,6 +242,7 @@ const navigationJsonLd = {
     "상담안내",
     "네이버카페",
   ],
+
   url: [
     siteUrl,
     `${siteUrl}/services`,
@@ -230,7 +264,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Google Analytics */}
+
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
           strategy="afterInteractive"
@@ -238,39 +272,46 @@ export default function RootLayout({
 
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${googleAnalyticsId}');
-          `}
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${googleAnalyticsId}');
+`}
         </Script>
 
-        {/* JSON-LD Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+            __html: JSON.stringify(
+              organizationJsonLd
+            ).replace(/</g, "\\u003c"),
           }}
         />
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
+            __html: JSON.stringify(
+              websiteJsonLd
+            ).replace(/</g, "\\u003c"),
           }}
         />
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(homepageJsonLd).replace(/</g, "\\u003c"),
+            __html: JSON.stringify(
+              homepageJsonLd
+            ).replace(/</g, "\\u003c"),
           }}
         />
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(navigationJsonLd).replace(/</g, "\\u003c"),
+            __html: JSON.stringify(
+              navigationJsonLd
+            ).replace(/</g, "\\u003c"),
           }}
         />
 
@@ -279,12 +320,14 @@ export default function RootLayout({
         {children}
 
         <Footer />
+
         <FloatingContact />
 
         <Script
           src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
           strategy="afterInteractive"
         />
+
       </body>
     </html>
   );
