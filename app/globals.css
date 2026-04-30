@@ -140,7 +140,6 @@ body {
 .case-content figure {
   margin: 30px auto;
   text-align: center;
-  max-width: 100%;
 }
 
 .case-content figcaption {
@@ -179,16 +178,13 @@ body {
 }
 
 .case-content img {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
+  width: 85%;
   margin: 30px auto;
   display: block;
   border-radius: 10px;
   text-align: center;
   margin-left: auto !important;
   margin-right: auto !important;
-  box-sizing: border-box;
 }
 
 .case-content figure img,
@@ -790,32 +786,27 @@ body {
 /* ===== 타이핑 효과 ===== */
 
 .typing-heading {
-  display: inline-block;
+  display: block;
   max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  border-right: 3px solid #2563eb;
-  width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  overflow: visible;
 }
 
-.typing-active {
-  animation:
-    typing 2.2s steps(40, end) forwards,
-    blink 0.7s infinite;
-}
-
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
+.typing-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: #2563eb;
+  animation: blink 0.7s infinite;
 }
 
 @keyframes blink {
   50% {
-    border-color: transparent;
+    opacity: 0;
   }
 }
 
