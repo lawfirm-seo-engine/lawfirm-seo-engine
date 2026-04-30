@@ -17,6 +17,8 @@ const imageVersion = "20260430"
 const casesDir = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 const publicCasesDir = path.join(process.cwd(), "public", "images", "cases")
 
+const imageExtensions = ["png", "jpg", "jpeg", "webp", "avif", "gif"]
+
 const scamTopicKeywords = [
   "팀미션 사기",
   "주식 어플 사기",
@@ -59,6 +61,7 @@ function stripBrokenRelatedGuide(source: string) {
     )
     .replace(/^\s*해당 사건은 아래 대표 사건과 동일 유형입니다\.\s*$/gim, "")
     .replace(/^\s*👉\s*\/cases\/[^\n]+$/gim, "")
+    .replace(/^\s*\/cases\/[^\n]+$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
@@ -110,6 +113,20 @@ function normalizeImpersonationText(text: string) {
     .trim()
 }
 
+function isBadCaseName(value?: string) {
+  if (!value) return true
+
+  const text = value.trim()
+
+  return (
+    text.length < 2 ||
+    text.includes("관련 대표 사건 안내") ||
+    text.includes("해당 사건은 아래 대표 사건") ||
+    text.includes("/cases/") ||
+    text.startsWith("👉")
+  )
+}
+
 function withKeyword(text: string, keyword: string) {
   return text.includes(keyword) ? text : `${text} ${keyword}`
 }
@@ -150,8 +167,12 @@ function getCaseMeta(decodedSlug: string) {
   const rawSource = fs.readFileSync(filePath, "utf-8")
   const frontmatter = parseFrontmatter(rawSource)
 
+  const safeFrontmatterCaseName = !isBadCaseName(frontmatter.caseName)
+    ? frontmatter.caseName
+    : ""
+
   const caseName = normalizeImpersonationText(
-    frontmatter.caseName || normalizeSlugTitle(decodedSlug)
+    safeFrontmatterCaseName || normalizeSlugTitle(decodedSlug)
   )
 
   const searchKeyword = buildSearchKeyword(caseName)
@@ -310,6 +331,7 @@ function getRecentCases(currentSlug: string) {
         slug,
         title: slug,
         mtime: stat.mtime.getTime(),
+        birthtime: stat.birthtime.getTime(),
       }
     })
     .sort((a, b) => b.mtime - a.mtime)
@@ -320,7 +342,7 @@ function detectCaseType(text: string) {
   const value = text.toLowerCase()
 
   if (
-    /대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자/.test(
+    /대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자|fwrd6|daishin/.test(
       value
     )
   ) {
@@ -379,86 +401,12 @@ function getSameTypeCases(currentSlug: string, caseName: string) {
         title: meta.caseName,
         type: detectCaseType(`${slug} ${meta.caseName}`).label,
         mtime: stat.mtime.getTime(),
+        birthtime: stat.birthtime.getTime(),
       }
     })
     .filter((item) => item.type === currentType)
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, 6)
-}
-
-function getRepresentativeCase(currentSlug: string, caseName: string) {
-  const sameTypeCases = getSameTypeCases(currentSlug, caseName)
-
-  if (sameTypeCases.length === 0) {
-    return null
-  }
-
-  return sameTypeCases[0]
-}
-
-function resolveImageSrc(src: string, decodedSlug: string) {
-  if (!src.includes("/images/cases/")) return src
-
-  const cleanSrc = src.split("?")[0]
-  const fileName = path.basename(cleanSrc)
-  const parsed = path.parse(fileName)
-
-  const directCandidates = [
-    `${parsed.name}.png`,
-    `${parsed.name}.jpg`,
-    `${parsed.name}.jpeg`,
-    `${parsed.name}.webp`,
-    `${parsed.name}.avif`,
-    `${parsed.name}.gif`,
-  ]
-
-  for (const candidate of directCandidates) {
-    if (fs.existsSync(path.join(publicCasesDir, candidate))) {
-      return `/images/cases/${candidate}?v=${imageVersion}`
-    }
-  }
-
-  const numberedMatch = parsed.name.match(/-(\d{2})$/)
-
-  if (numberedMatch) {
-    const number = numberedMatch[1]
-    const numberedCandidates = [
-      `${decodedSlug}-${number}.png`,
-      `${decodedSlug}-${number}.jpg`,
-      `${decodedSlug}-${number}.jpeg`,
-      `${decodedSlug}-${number}.webp`,
-      `${decodedSlug}-${number}.avif`,
-      `${decodedSlug}-${number}.gif`,
-      `template-${number}.png`,
-      `template-${number}.jpg`,
-      `template-${number}.jpeg`,
-      `template-${number}.webp`,
-      `template-${number}.avif`,
-      `template-${number}.gif`,
-    ]
-
-    for (const candidate of numberedCandidates) {
-      if (fs.existsSync(path.join(publicCasesDir, candidate))) {
-        return `/images/cases/${candidate}?v=${imageVersion}`
-      }
-    }
-  }
-
-  return `${cleanSrc}?v=${imageVersion}`
-}
-
-function normalizeMdxImagePaths(source: string, decodedSlug: string) {
-  return source.replace(
-    /!\[([^\]]*)\]\((\/images\/cases\/[^)]+)\)/g,
-    (_match, alt, src) => `![${alt}](${resolveImageSrc(src, decodedSlug)})`
-  )
-}
-
-function normalizeHtmlImagePaths(source: string, decodedSlug: string) {
-  return source.replace(
-    /src=["'](\/images\/cases\/[^"']+)["']/g,
-    (_match, src) => `src="${resolveImageSrc(src, decodedSlug)}"`
-  )
 }
 
 function romanizeHangul(input: string) {
@@ -614,14 +562,90 @@ function getDiceSimilarity(a: string, b: string) {
   return (2 * matches) / (aGrams.length + bGrams.length)
 }
 
+function getImportantCaseTokens(text: string) {
+  const lower = text.toLowerCase()
+  const tokens = new Set<string>()
+
+  const directTokens = [
+    "fwrd6",
+    "daishin",
+    "대신증권",
+    "증권사",
+    "증권",
+    "securities",
+  ]
+
+  directTokens.forEach((token) => {
+    if (lower.includes(token.toLowerCase())) {
+      tokens.add(token.toLowerCase())
+    }
+  })
+
+  getClusterTokens(text).forEach((token) => {
+    if (token.length >= 4) {
+      tokens.add(token)
+    }
+  })
+
+  return Array.from(tokens)
+}
+
+function isSameCaseGroup(currentText: string, targetText: string) {
+  const currentType = detectCaseType(currentText).label
+  const targetType = detectCaseType(targetText).label
+
+  if (currentType !== targetType) return false
+
+  const currentLower = currentText.toLowerCase()
+  const targetLower = targetText.toLowerCase()
+
+  const blockedCrossTypes = [
+    "쇼핑몰",
+    "마켓",
+    "mall",
+    "market",
+    "shop",
+    "store",
+    "구매대행",
+    "팀미션",
+    "리뷰",
+    "부업",
+  ]
+
+  if (
+    currentType === "증권사 사칭 사기" &&
+    blockedCrossTypes.some((word) => targetLower.includes(word))
+  ) {
+    return false
+  }
+
+  const currentImportant = getImportantCaseTokens(currentText)
+  const targetImportant = getImportantCaseTokens(targetText)
+
+  const hasStrongToken = currentImportant.some((token) => {
+    if (token.length < 4 && !["fwrd6"].includes(token)) return false
+
+    return targetImportant.some(
+      (target) =>
+        token === target ||
+        token.includes(target) ||
+        target.includes(token)
+    )
+  })
+
+  if (hasStrongToken) return true
+
+  const currentMain = normalizeClusterText(currentText)
+  const targetMain = normalizeClusterText(targetText)
+
+  return getDiceSimilarity(currentMain, targetMain) >= 0.72
+}
+
 function getClusterCases(currentSlug: string) {
   if (!fs.existsSync(casesDir)) return []
 
   const currentMeta = getCaseMeta(currentSlug)
   const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
-  const currentTokens = getClusterTokens(currentText)
-  const currentMain = normalizeClusterText(currentText)
-  const currentType = detectCaseType(currentText).label
 
   return fs
     .readdirSync(casesDir)
@@ -632,38 +656,121 @@ function getClusterCases(currentSlug: string) {
     .map((file) => {
       const slug = file.replace(/\.mdx$/, "")
       const meta = getCaseMeta(slug)
+      const stat = fs.statSync(path.join(casesDir, file))
       const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
-      const tokens = getClusterTokens(text)
-      const main = normalizeClusterText(text)
-      const type = detectCaseType(text).label
 
-      const directMatch =
-        currentType === type &&
-        currentTokens.some((token) =>
-          tokens.some(
-            (target) =>
-              token === target ||
-              token.includes(target) ||
-              target.includes(token)
+      const sameGroup = isSameCaseGroup(currentText, text)
+
+      const similarity = sameGroup
+        ? Math.max(
+            getDiceSimilarity(normalizeClusterText(currentText), normalizeClusterText(text)),
+            ...getImportantCaseTokens(currentText).flatMap((token) =>
+              getImportantCaseTokens(text).map((target) =>
+                getDiceSimilarity(token, target)
+              )
+            )
           )
-        )
-
-      const similarity = Math.max(
-        getDiceSimilarity(currentMain, main),
-        ...currentTokens.flatMap((token) =>
-          tokens.map((target) => getDiceSimilarity(token, target))
-        )
-      )
+        : 0
 
       return {
         slug,
         title: meta.caseName,
-        score: directMatch ? 1 : currentType === type ? similarity : 0,
+        score: sameGroup ? Math.max(similarity, 0.9) : 0,
+        birthtime: stat.birthtime.getTime(),
+        mtime: stat.mtime.getTime(),
       }
     })
-    .filter((item) => item.score >= 0.34)
-    .sort((a, b) => b.score - a.score)
+    .filter((item) => item.score >= 0.72)
+    .sort((a, b) => b.score - a.score || a.birthtime - b.birthtime)
     .slice(0, 6)
+}
+
+function getRepresentativeCase(currentSlug: string) {
+  if (!fs.existsSync(casesDir)) return null
+
+  const currentMeta = getCaseMeta(currentSlug)
+  const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
+
+  const group = fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "")
+      const meta = getCaseMeta(slug)
+      const stat = fs.statSync(path.join(casesDir, file))
+      const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
+
+      return {
+        slug,
+        title: meta.caseName,
+        text,
+        birthtime: stat.birthtime.getTime(),
+        mtime: stat.mtime.getTime(),
+      }
+    })
+    .filter((item) => isSameCaseGroup(currentText, item.text))
+    .sort((a, b) => a.birthtime - b.birthtime)
+
+  if (group.length < 2) return null
+
+  const representative = group[0]
+
+  if (representative.slug === currentSlug && group.length === 1) {
+    return null
+  }
+
+  return representative
+}
+
+function resolveImageSrc(src: string, decodedSlug: string) {
+  if (!src.includes("/images/cases/")) return src
+
+  const cleanSrc = src.split("?")[0]
+  const fileName = path.basename(cleanSrc)
+  const parsed = path.parse(fileName)
+  const numberedMatch = parsed.name.match(/-(\d{2})$/)
+
+  if (numberedMatch) {
+    const number = numberedMatch[1]
+
+    const numberedCandidates = [
+      ...imageExtensions.map((ext) => `template-${number}.${ext}`),
+      ...imageExtensions.map((ext) => `${decodedSlug}-${number}.${ext}`),
+      ...imageExtensions.map((ext) => `${parsed.name}.${ext}`),
+    ]
+
+    for (const candidate of numberedCandidates) {
+      if (fs.existsSync(path.join(publicCasesDir, candidate))) {
+        return `/images/cases/${candidate}?v=${imageVersion}`
+      }
+    }
+  }
+
+  const directCandidates = imageExtensions.map((ext) => `${parsed.name}.${ext}`)
+
+  for (const candidate of directCandidates) {
+    if (fs.existsSync(path.join(publicCasesDir, candidate))) {
+      return `/images/cases/${candidate}?v=${imageVersion}`
+    }
+  }
+
+  return `${cleanSrc}?v=${imageVersion}`
+}
+
+function normalizeMdxImagePaths(source: string, decodedSlug: string) {
+  return source.replace(
+    /!\[([^\]]*)\]\((\/images\/cases\/[^)]+)\)/g,
+    (_match, alt, src) => `![${alt}](${resolveImageSrc(src, decodedSlug)})`
+  )
+}
+
+function normalizeHtmlImagePaths(source: string, decodedSlug: string) {
+  return source.replace(
+    /src=["'](\/images\/cases\/[^"']+)["']/g,
+    (_match, src) => `src="${resolveImageSrc(src, decodedSlug)}"`
+  )
 }
 
 export default async function CasePage({
@@ -751,7 +858,7 @@ export default async function CasePage({
   const recentCases = getRecentCases(decodedSlug)
   const clusterCases = getClusterCases(decodedSlug)
   const sameTypeCases = getSameTypeCases(decodedSlug, caseName)
-  const representativeCase = getRepresentativeCase(decodedSlug, caseName)
+  const representativeCase = getRepresentativeCase(decodedSlug)
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -1289,7 +1396,7 @@ export default async function CasePage({
         </details>
       </section>
 
-      {representativeCase && (
+      {representativeCase && representativeCase.slug !== decodedSlug && (
         <section className="related-cases related-cases-box">
           <h2 className="related-cases-title">관련 대표 사건 안내</h2>
 
