@@ -79,7 +79,12 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
           <div className="daeon-empty">검색 결과가 없습니다.</div>
         ) : (
           <>
-            <div className="daeon-grid">
+            <div
+              className="daeon-grid"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              }}
+            >
               {currentCases.map((name) => {
                 const displayName = getDisplayName(name)
                 const imagePath = `/images/cases/${name}.png`
@@ -90,19 +95,23 @@ export default function CasesClient({ siteName, cases }: CasesClientProps) {
                     href={`/cases/${encodeURIComponent(name)}`}
                     className="daeon-card"
                   >
-                    <span className="daeon-status">접수진행중</span>
-
                     <div
                       className="daeon-card-head"
                       style={{
-                        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.52), rgba(15, 23, 42, 0.52)), url("${imagePath}")`,
+                        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)), url("${imagePath}")`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         backgroundRepeat: "no-repeat",
                       }}
                     >
                       <div className="daeon-card-title">
-                        <span className="daeon-card-title-main">
+                        <span
+                          className="daeon-card-title-main"
+                          style={{
+                            color: "#000000",
+                            textShadow: "0 2px 8px rgba(255,255,255,0.9)",
+                          }}
+                        >
                           {displayName}
                         </span>
                       </div>
