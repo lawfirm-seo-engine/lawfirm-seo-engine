@@ -16,6 +16,9 @@ if (!caseName) {
 }
 
 const cleanCaseName = caseName.trim().replace(/\s+/g, " ")
+const caseDisplayName = cleanCaseName.includes("사칭")
+  ? cleanCaseName
+  : `${cleanCaseName} (사칭)`
 
 /*
 ========================================
@@ -196,7 +199,7 @@ frontmatter 생성
 ========================================
 */
 
-const seoTitle = `${cleanCaseName} 피해회복`
+const seoTitle = `${caseDisplayName} 피해회복`
 
 const seoDescription = `${cleanCaseName} 피해 사례 및 대응 전략 안내`
 
@@ -230,20 +233,24 @@ function buildMdx() {
       cleanCaseName
     )
     .replaceAll(
+      "{{CASE_DISPLAY_NAME}}",
+      caseDisplayName
+    )
+    .replaceAll(
       "{{IMAGE_PATH}}",
       imagePath
     )
     .replaceAll(
       "{{IMAGE_ALT}}",
-      `${cleanCaseName} 피해 회복을 위한 법률 정보 이미지`
+      `${caseDisplayName} 피해 회복을 위한 법률 정보 이미지`
     )
     .replaceAll(
       "{{IMAGE_CAPTION}}",
-      `${cleanCaseName} 피해 사례 및 대응 방법 안내`
+      `${caseDisplayName} 피해 사례 및 대응 방법 안내`
     )
     .replaceAll(
       "{{IMAGE_DESCRIPTION}}",
-      `${cleanCaseName} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
+      `${caseDisplayName} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`
     )
     .replaceAll(
       "{{SLUG}}",

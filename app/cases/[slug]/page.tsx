@@ -52,11 +52,11 @@ function stripLeakedMetaLines(source: string) {
 function stripBrokenRelatedGuide(source: string) {
   return source
     .replace(
-      /(^|\n)#{1,6}\s*관련\s*대표\s*사건\s*안내[\s\S]*?(?=\n#{1,6}\s|\n<img|\n!\[|\n\d+\.\s|\n##|\n###|$)/g,
+      /(^|\r?\n)#{1,6}\s*관련\s*대표\s*사건\s*안내[\s\S]*?(?=\r?\n#{1,6}\s|\r?\n<img|\r?\n!\[|\r?\n\d+\.\s|$)/g,
       "\n"
     )
     .replace(
-      /(^|\n)\s*관련\s*대표\s*사건\s*안내\s*\n[\s\S]*?(?=\n#{1,6}\s|\n<img|\n!\[|\n\d+\.\s|\n##|\n###|$)/g,
+      /(^|\r?\n)\s*관련\s*대표\s*사건\s*안내\s*\r?\n[\s\S]*?(?=\r?\n#{1,6}\s|\r?\n<img|\r?\n!\[|\r?\n\d+\.\s|$)/g,
       "\n"
     )
     .replace(/^\s*해당 사건은 아래 대표 사건과 동일 유형입니다\.\s*$/gim, "")
@@ -69,8 +69,8 @@ function stripBrokenRelatedGuide(source: string) {
 function stripOnlyLeadingAutoHeadings(source: string) {
   let result = source.trimStart()
 
-  result = result.replace(/^#\s+.*\n+/m, "")
-  result = result.replace(/^##\s+.*\n+/m, "")
+  result = result.replace(/^#\s+.*(?:\r?\n)+/, "")
+  result = result.replace(/^##\s+.*(?:\r?\n)+/, "")
 
   return result.replace(/\n{3,}/g, "\n\n").trim()
 }
@@ -113,6 +113,10 @@ function normalizeImpersonationText(text: string) {
     .trim()
 }
 
+function buildCaseDisplayName(caseName: string) {
+  return caseName.includes("사칭") ? caseName : `${caseName} (사칭)`
+}
+
 function isBadCaseName(value?: string) {
   if (!value) return true
 
@@ -136,7 +140,7 @@ function buildSearchKeyword(caseName: string) {
 }
 
 function buildSeoTitle(caseName: string) {
-  return `${buildSearchKeyword(caseName)} 피해회복`
+  return `${buildCaseDisplayName(caseName)} 피해회복`
 }
 
 function buildSeoDescription(caseName: string) {
@@ -174,6 +178,7 @@ function getCaseMeta(decodedSlug: string) {
   const caseName = normalizeImpersonationText(
     safeFrontmatterCaseName || normalizeSlugTitle(decodedSlug)
   )
+  const caseDisplayName = buildCaseDisplayName(caseName)
 
   const searchKeyword = buildSearchKeyword(caseName)
   const seoTitle = buildSeoTitle(caseName)
@@ -201,6 +206,7 @@ function getCaseMeta(decodedSlug: string) {
 
   mdxSource = mdxSource
     .replaceAll("{{CASE_NAME}}", caseName)
+    .replaceAll("{{CASE_DISPLAY_NAME}}", caseDisplayName)
     .replaceAll("{{SEARCH_KEYWORD}}", searchKeyword)
 
   mdxSource = stripLeakedMetaLines(mdxSource)
@@ -856,8 +862,6 @@ export default async function CasePage({
   })
 
   const recentCases = getRecentCases(decodedSlug)
-  const clusterCases = getClusterCases(decodedSlug)
-  const sameTypeCases = getSameTypeCases(decodedSlug, caseName)
   const representativeCase = getRepresentativeCase(decodedSlug)
 
   const organizationJsonLd = {
@@ -1329,7 +1333,6 @@ export default async function CasePage({
 
       <article className="case-content">
         <h1>{seoTitle}</h1>
-        <TypingHeading text={`${searchKeyword} 피해 사례와 대응 방법`} level="h2" />
         {content}
       </article>
 
@@ -1399,45 +1402,16 @@ export default async function CasePage({
       {representativeCase && representativeCase.slug !== decodedSlug && (
         <section className="related-cases related-cases-box">
           <h2 className="related-cases-title">관련 대표 사건 안내</h2>
+          <p className="related-cases-desc">
+            해당 사건은 아래 대표 사건과 동일 유형입니다.
+          </p>
 
           <ul className="related-cases-list">
             <li className="related-cases-item">
               <Link href={`/cases/${representativeCase.slug}`} className="related-cases-link">
-                {representativeCase.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
+                /cases/{representativeCase.slug}
               </Link>
             </li>
-          </ul>
-        </section>
-      )}
-
-      {sameTypeCases.length > 0 && (
-        <section className="related-cases related-cases-box">
-          <h2 className="related-cases-title">같은 유형의 피해 사례 더 보기</h2>
-
-          <ul className="related-cases-list">
-            {sameTypeCases.map((item) => (
-              <li key={item.slug} className="related-cases-item">
-                <Link href={`/cases/${item.slug}`} className="related-cases-link">
-                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {clusterCases.length > 0 && (
-        <section className="related-cases related-cases-box">
-          <h2 className="related-cases-title">관련 사건 안내</h2>
-
-          <ul className="related-cases-list">
-            {clusterCases.map((item) => (
-              <li key={item.slug} className="related-cases-item">
-                <Link href={`/cases/${item.slug}`} className="related-cases-link">
-                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
-                </Link>
-              </li>
-            ))}
           </ul>
         </section>
       )}

@@ -13,9 +13,10 @@ export default function Footer() {
 
         {/* 기본 정보 */}
         <div className="daeon-footer-info">
-          대표변호사 : 신동우 | 주소 : 서울 서초구 서초대로 250
-          스타갤러리브릿지빌딩 802호 | 전화번호 : 02-6952-3695 |
-          이메일 : noleosi@daeonlaw.co.kr
+          <span>대표변호사 : 신동우</span>
+          <span>주소 : 서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호</span>
+          <span>전화번호 : 02-6952-3695</span>
+          <span>이메일 : noleosi@daeonlaw.co.kr</span>
         </div>
 
         {/* 네이버 카페 링크 */}
