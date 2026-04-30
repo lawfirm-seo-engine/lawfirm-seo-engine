@@ -12,7 +12,10 @@ const siteName = "대온 법률사무소 핀테크센터"
 const organizationName = "대온 법률사무소"
 const representativeName = "신동우"
 const phoneNumber = "+82-2-6952-3695"
-const imageVersion = "20260429"
+const imageVersion = "20260430"
+
+const casesDir = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
+const publicCasesDir = path.join(process.cwd(), "public", "images", "cases")
 
 const scamTopicKeywords = [
   "팀미션 사기",
@@ -40,6 +43,26 @@ function stripFrontmatter(source: string) {
 function stripLeakedMetaLines(source: string) {
   return source
     .replace(/^\s*(title|caseName|description|slug)\s*:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+function stripBrokenRelatedGuide(source: string) {
+  return source
+    .replace(
+      /(^|\n)#{1,6}\s*관련\s*대표\s*사건\s*안내[\s\S]*?(?=\n#{1,6}\s|\n---|\n$)/g,
+      "\n"
+    )
+    .replace(/^\s*해당 사건은 아래 대표 사건과 동일 유형입니다\.\s*$/gim, "")
+    .replace(/^\s*👉\s*\/cases\/[^\n]+$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+function stripTopAutoHeadings(source: string) {
+  return source
+    .replace(/^\s*#\s+.*$/gm, "")
+    .replace(/^\s*##\s+.*$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
@@ -99,13 +122,7 @@ function buildSeoDescription(caseName: string) {
 }
 
 function getCaseFilePath(slug: string) {
-  return path.join(
-    process.cwd(),
-    "content",
-    "daeonlawfintech",
-    "cases",
-    `${slug}.mdx`
-  )
+  return path.join(casesDir, `${slug}.mdx`)
 }
 
 function getCaseMeta(decodedSlug: string) {
@@ -138,11 +155,12 @@ function getCaseMeta(decodedSlug: string) {
   const searchKeyword = buildSearchKeyword(caseName)
 
   const seoTitle = frontmatter.title || buildSeoTitle(caseName)
-  const seoDescription =
-    frontmatter.description || buildSeoDescription(caseName)
+  const seoDescription = frontmatter.description || buildSeoDescription(caseName)
 
   let mdxSource = stripFrontmatter(rawSource)
   mdxSource = stripLeakedMetaLines(mdxSource)
+  mdxSource = stripBrokenRelatedGuide(mdxSource)
+  mdxSource = stripTopAutoHeadings(mdxSource)
 
   if (caseName.includes("사칭")) {
     mdxSource = mdxSource
@@ -150,12 +168,14 @@ function getCaseMeta(decodedSlug: string) {
       .replaceAll("{{CASE_NAME}}(사칭)", "{{CASE_NAME}}")
       .replaceAll(`${caseName} (사칭)`, caseName)
       .replaceAll(`${caseName}(사칭)`, caseName)
-      .replaceAll(" (사칭)", "")
-      .replaceAll("(사칭)", "")
       .replaceAll("사칭 사기 공모주 사칭", "사칭 사기 공모주")
       .replaceAll("사칭 사기 사칭", "사칭 사기")
       .replaceAll("사칭 사칭", "사칭")
   }
+
+  mdxSource = mdxSource
+    .replaceAll("{{CASE_NAME}}", caseName)
+    .replaceAll("{{SEARCH_KEYWORD}}", searchKeyword)
 
   mdxSource = stripLeakedMetaLines(mdxSource)
 
@@ -171,13 +191,6 @@ function getCaseMeta(decodedSlug: string) {
 }
 
 export async function generateStaticParams() {
-  const casesDir = path.join(
-    process.cwd(),
-    "content",
-    "daeonlawfintech",
-    "cases"
-  )
-
   if (!fs.existsSync(casesDir)) return []
 
   return fs
@@ -273,7 +286,7 @@ export async function generateMetadata({
   }
 }
 
-function getRecentCases(casesDir: string, currentSlug: string) {
+function getRecentCases(currentSlug: string) {
   if (!fs.existsSync(casesDir)) return []
 
   return fs
@@ -295,6 +308,150 @@ function getRecentCases(casesDir: string, currentSlug: string) {
     })
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, 6)
+}
+
+function detectCaseType(text: string) {
+  const value = text.toLowerCase()
+
+  if (
+    /대신증권|증권|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자/.test(
+      value
+    )
+  ) {
+    return {
+      label: "증권사 사칭 사기",
+      representativeSlug: "증권사-사칭-사기",
+    }
+  }
+
+  if (/쇼핑몰|마켓|mall|market|shop|store|구매대행|팀미션|리뷰|부업/.test(value)) {
+    return {
+      label: "쇼핑몰 사칭 사기",
+      representativeSlug: "쇼핑몰-사칭-사기",
+    }
+  }
+
+  if (/코인|거래소|wallet|지갑|스테이킹|crypto|coin|bit/.test(value)) {
+    return {
+      label: "코인 거래소 사칭 사기",
+      representativeSlug: "코인-거래소-사칭-사기",
+    }
+  }
+
+  if (/해외선물|fx|마진|나스닥|선물/.test(value)) {
+    return {
+      label: "해외선물 사칭 사기",
+      representativeSlug: "해외선물-사칭-사기",
+    }
+  }
+
+  if (/방송|라이브|환전|채팅|만남/.test(value)) {
+    return {
+      label: "방송 환전 사칭 사기",
+      representativeSlug: "방송-환전-사칭-사기",
+    }
+  }
+
+  return {
+    label: "플랫폼 사칭 사기",
+    representativeSlug: "플랫폼-사칭-사기",
+  }
+}
+
+function getRepresentativeCase(currentSlug: string, caseName: string) {
+  const detected = detectCaseType(`${currentSlug} ${caseName}`)
+
+  return {
+    label: detected.label,
+    slug: detected.representativeSlug,
+    exists: fs.existsSync(getCaseFilePath(detected.representativeSlug)),
+  }
+}
+
+function getSameTypeCases(currentSlug: string, caseName: string) {
+  if (!fs.existsSync(casesDir)) return []
+
+  const currentType = detectCaseType(`${currentSlug} ${caseName}`).label
+
+  return fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .filter((file) => file !== `${currentSlug}.mdx`)
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "")
+      const meta = getCaseMeta(slug)
+      const stat = fs.statSync(path.join(casesDir, file))
+
+      return {
+        slug,
+        title: meta.caseName,
+        type: detectCaseType(`${slug} ${meta.caseName}`).label,
+        mtime: stat.mtime.getTime(),
+      }
+    })
+    .filter((item) => item.type === currentType)
+    .sort((a, b) => b.mtime - a.mtime)
+    .slice(0, 6)
+}
+
+function resolveImageSrc(src: string, decodedSlug: string) {
+  if (!src.includes("/images/cases/")) return src
+
+  const cleanSrc = src.split("?")[0]
+  const fileName = path.basename(cleanSrc)
+  const parsed = path.parse(fileName)
+
+  const directCandidates = [
+    `${parsed.name}.png`,
+    `${parsed.name}.jpg`,
+    `${parsed.name}.jpeg`,
+    `${parsed.name}.webp`,
+    `${parsed.name}.avif`,
+    `${parsed.name}.gif`,
+  ]
+
+  for (const candidate of directCandidates) {
+    if (fs.existsSync(path.join(publicCasesDir, candidate))) {
+      return `/images/cases/${candidate}?v=${imageVersion}`
+    }
+  }
+
+  const numberedMatch = parsed.name.match(/-(\d{2})$/)
+
+  if (numberedMatch) {
+    const number = numberedMatch[1]
+    const numberedCandidates = [
+      `${decodedSlug}-${number}.png`,
+      `${decodedSlug}-${number}.jpg`,
+      `${decodedSlug}-${number}.jpeg`,
+      `${decodedSlug}-${number}.webp`,
+      `${decodedSlug}-${number}.avif`,
+      `${decodedSlug}-${number}.gif`,
+      `template-${number}.png`,
+      `template-${number}.jpg`,
+      `template-${number}.jpeg`,
+      `template-${number}.webp`,
+      `template-${number}.avif`,
+      `template-${number}.gif`,
+    ]
+
+    for (const candidate of numberedCandidates) {
+      if (fs.existsSync(path.join(publicCasesDir, candidate))) {
+        return `/images/cases/${candidate}?v=${imageVersion}`
+      }
+    }
+  }
+
+  return `${cleanSrc}?v=${imageVersion}`
+}
+
+function normalizeMdxImagePaths(source: string, decodedSlug: string) {
+  return source.replace(
+    /!\[([^\]]*)\]\((\/images\/cases\/[^)]+)\)/g,
+    (_match, alt, src) => `![${alt}](${resolveImageSrc(src, decodedSlug)})`
+  )
 }
 
 function romanizeHangul(input: string) {
@@ -450,13 +607,14 @@ function getDiceSimilarity(a: string, b: string) {
   return (2 * matches) / (aGrams.length + bGrams.length)
 }
 
-function getClusterCases(casesDir: string, currentSlug: string) {
+function getClusterCases(currentSlug: string) {
   if (!fs.existsSync(casesDir)) return []
 
   const currentMeta = getCaseMeta(currentSlug)
   const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
   const currentTokens = getClusterTokens(currentText)
   const currentMain = normalizeClusterText(currentText)
+  const currentType = detectCaseType(currentText).label
 
   return fs
     .readdirSync(casesDir)
@@ -470,8 +628,10 @@ function getClusterCases(casesDir: string, currentSlug: string) {
       const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
       const tokens = getClusterTokens(text)
       const main = normalizeClusterText(text)
+      const type = detectCaseType(text).label
 
       const directMatch =
+        currentType === type &&
         currentTokens.some((token) =>
           tokens.some(
             (target) =>
@@ -479,9 +639,7 @@ function getClusterCases(casesDir: string, currentSlug: string) {
               token.includes(target) ||
               target.includes(token)
           )
-        ) ||
-        currentMain.includes(main) ||
-        main.includes(currentMain)
+        )
 
       const similarity = Math.max(
         getDiceSimilarity(currentMain, main),
@@ -493,7 +651,7 @@ function getClusterCases(casesDir: string, currentSlug: string) {
       return {
         slug,
         title: meta.caseName,
-        score: directMatch ? 1 : similarity,
+        score: directMatch ? 1 : currentType === type ? similarity : 0,
       }
     })
     .filter((item) => item.score >= 0.34)
@@ -510,13 +668,6 @@ export default async function CasePage({
 
   const decodedSlug = decodeURIComponent(slug)
 
-  const casesDir = path.join(
-    process.cwd(),
-    "content",
-    "daeonlawfintech",
-    "cases"
-  )
-
   const {
     filePath,
     mdxSource,
@@ -530,10 +681,7 @@ export default async function CasePage({
     notFound()
   }
 
-  const source = mdxSource.replace(
-    new RegExp(`/images/cases/${decodedSlug}\\.png`, "g"),
-    `/images/cases/${decodedSlug}.png?v=${imageVersion}`
-  )
+  const source = normalizeMdxImagePaths(mdxSource, decodedSlug)
 
   const stat = fs.statSync(filePath)
 
@@ -566,7 +714,7 @@ export default async function CasePage({
       img: (props) => {
         const src =
           typeof props.src === "string" && props.src.includes("/images/cases/")
-            ? `${props.src}${props.src.includes("?") ? "&" : "?"}v=${imageVersion}`
+            ? resolveImageSrc(props.src, decodedSlug)
             : props.src
 
         return (
@@ -592,8 +740,10 @@ export default async function CasePage({
     },
   })
 
-  const recentCases = getRecentCases(casesDir, decodedSlug)
-  const clusterCases = getClusterCases(casesDir, decodedSlug)
+  const recentCases = getRecentCases(decodedSlug)
+  const clusterCases = getClusterCases(decodedSlug)
+  const sameTypeCases = getSameTypeCases(decodedSlug, caseName)
+  const representativeCase = getRepresentativeCase(decodedSlug, caseName)
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -1051,77 +1201,22 @@ export default async function CasePage({
         }}
       />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(legalServiceJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(authorJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(imageJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(legalServiceJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(authorJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(speakableJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(howToJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(imageJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
-
-      <article className="case-content">{content}</article>
+      <article className="case-content">
+        <h1>{seoTitle}</h1>
+        <TypingHeading text={`${searchKeyword} 피해 사례와 대응 방법`} level="h2" />
+        {content}
+      </article>
 
       <section className="case-faq-box">
         <h2 className="case-faq-title">
@@ -1186,6 +1281,40 @@ export default async function CasePage({
         </details>
       </section>
 
+      <section className="related-cases related-cases-box">
+        <h2 className="related-cases-title">관련 대표 사건 안내</h2>
+
+        <ul className="related-cases-list">
+          <li className="related-cases-item">
+            {representativeCase.exists ? (
+              <Link href={`/cases/${representativeCase.slug}`} className="related-cases-link">
+                {representativeCase.label} 대표 사례 바로가기
+              </Link>
+            ) : (
+              <span className="related-cases-link">
+                {representativeCase.label} 대표 사례
+              </span>
+            )}
+          </li>
+        </ul>
+      </section>
+
+      {sameTypeCases.length > 0 && (
+        <section className="related-cases related-cases-box">
+          <h2 className="related-cases-title">같은 유형의 피해 사례 더 보기</h2>
+
+          <ul className="related-cases-list">
+            {sameTypeCases.map((item) => (
+              <li key={item.slug} className="related-cases-item">
+                <Link href={`/cases/${item.slug}`} className="related-cases-link">
+                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {clusterCases.length > 0 && (
         <section className="related-cases related-cases-box">
           <h2 className="related-cases-title">관련 사건 안내</h2>
@@ -1193,12 +1322,8 @@ export default async function CasePage({
           <ul className="related-cases-list">
             {clusterCases.map((item) => (
               <li key={item.slug} className="related-cases-item">
-                <Link
-                  href={`/cases/${item.slug}`}
-                  className="related-cases-link"
-                >
-                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해
-                  사례
+                <Link href={`/cases/${item.slug}`} className="related-cases-link">
+                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
                 </Link>
               </li>
             ))}
@@ -1215,12 +1340,8 @@ export default async function CasePage({
           <ul className="related-cases-list">
             {recentCases.map((item) => (
               <li key={item.slug} className="related-cases-item">
-                <Link
-                  href={`/cases/${item.slug}`}
-                  className="related-cases-link"
-                >
-                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해
-                  사례
+                <Link href={`/cases/${item.slug}`} className="related-cases-link">
+                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
                 </Link>
               </li>
             ))}
