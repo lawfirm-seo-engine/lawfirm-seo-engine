@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
 import TypingHeading from "@/app/components/TypingHeading"
 
-export const dynamic = "force-static"
+export const dynamic = "force-dynamic"
 
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"
@@ -236,16 +236,7 @@ function getCaseMeta(decodedSlug: string) {
 }
 
 export async function generateStaticParams() {
-  if (!fs.existsSync(casesDir)) return []
-
-  return fs
-    .readdirSync(casesDir)
-    .filter((file) => file.endsWith(".mdx"))
-    .filter((file) => file !== "_template.mdx")
-    .filter((file) => !file.startsWith("_"))
-    .map((file) => ({
-      slug: file.replace(/\.mdx$/, ""),
-    }))
+  return []
 }
 
 export async function generateMetadata({
