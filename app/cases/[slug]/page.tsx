@@ -297,6 +297,210 @@ function getRecentCases(casesDir: string, currentSlug: string) {
     .slice(0, 6)
 }
 
+function romanizeHangul(input: string) {
+  const choseong = [
+    "g",
+    "kk",
+    "n",
+    "d",
+    "tt",
+    "r",
+    "m",
+    "b",
+    "pp",
+    "s",
+    "ss",
+    "",
+    "j",
+    "jj",
+    "ch",
+    "k",
+    "t",
+    "p",
+    "h",
+  ]
+
+  const jungseong = [
+    "a",
+    "ae",
+    "ya",
+    "yae",
+    "eo",
+    "e",
+    "yeo",
+    "ye",
+    "o",
+    "wa",
+    "wae",
+    "oe",
+    "yo",
+    "u",
+    "wo",
+    "we",
+    "wi",
+    "yu",
+    "eu",
+    "ui",
+    "i",
+  ]
+
+  const jongseong = [
+    "",
+    "g",
+    "kk",
+    "gs",
+    "n",
+    "nj",
+    "nh",
+    "d",
+    "l",
+    "lg",
+    "lm",
+    "lb",
+    "ls",
+    "lt",
+    "lp",
+    "lh",
+    "m",
+    "b",
+    "bs",
+    "s",
+    "ss",
+    "ng",
+    "j",
+    "ch",
+    "k",
+    "t",
+    "p",
+    "h",
+  ]
+
+  return input
+    .split("")
+    .map((char) => {
+      const code = char.charCodeAt(0)
+
+      if (code < 0xac00 || code > 0xd7a3) {
+        return char
+      }
+
+      const syllableIndex = code - 0xac00
+      const cho = Math.floor(syllableIndex / 588)
+      const jung = Math.floor((syllableIndex % 588) / 28)
+      const jong = syllableIndex % 28
+
+      return `${choseong[cho]}${jungseong[jung]}${jongseong[jong]}`
+    })
+    .join("")
+}
+
+function normalizeClusterText(text: string) {
+  return romanizeHangul(text)
+    .toLowerCase()
+    .replace(/https?:\/\//g, "")
+    .replace(/www\./g, "")
+    .replace(/\.(com|shop|vip|kr|net|org|co|io|site|store|xyz|cc|app|me|biz)/g, "")
+    .replace(/사기|사칭|피해|사례|대응|피해회복|투자|금투자|골드바|비상장|공모주|쇼핑몰|리딩방|거래소|증권사|부업|체험단|쿠팡체험단|fx마진|해외선물/g, "")
+    .replace(/market|mall|shop|store|company|investment|invest|global|securities|finance|financial|gold|bar|coin|bit|crypto|exchange|trade|trading|stock|group|corp|ltd|inc|co|kr|korea/g, "")
+    .replace(/[0-9]/g, "")
+    .replace(/[^a-z가-힣]/g, "")
+    .trim()
+}
+
+function getClusterTokens(text: string) {
+  const raw = text
+    .toLowerCase()
+    .replace(/https?:\/\//g, "")
+    .replace(/www\./g, "")
+    .split(/[\s\-_.:/|()[\]{}]+/g)
+    .map((token) => normalizeClusterText(token))
+    .filter((token) => token.length >= 3)
+
+  const compact = normalizeClusterText(text)
+
+  return Array.from(new Set([...raw, compact].filter((token) => token.length >= 3)))
+}
+
+function getDiceSimilarity(a: string, b: string) {
+  if (!a || !b) return 0
+  if (a === b) return 1
+  if (a.includes(b) || b.includes(a)) return 0.92
+  if (a.length < 3 || b.length < 3) return 0
+
+  const grams = (value: string) => {
+    const result: string[] = []
+
+    for (let i = 0; i < value.length - 1; i += 1) {
+      result.push(value.slice(i, i + 2))
+    }
+
+    return result
+  }
+
+  const aGrams = grams(a)
+  const bGrams = grams(b)
+  const bSet = new Set(bGrams)
+
+  let matches = 0
+
+  aGrams.forEach((gram) => {
+    if (bSet.has(gram)) matches += 1
+  })
+
+  return (2 * matches) / (aGrams.length + bGrams.length)
+}
+
+function getClusterCases(casesDir: string, currentSlug: string) {
+  if (!fs.existsSync(casesDir)) return []
+
+  const currentMeta = getCaseMeta(currentSlug)
+  const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
+  const currentTokens = getClusterTokens(currentText)
+  const currentMain = normalizeClusterText(currentText)
+
+  return fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .filter((file) => file !== `${currentSlug}.mdx`)
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "")
+      const meta = getCaseMeta(slug)
+      const text = `${slug} ${meta.caseName} ${meta.searchKeyword}`
+      const tokens = getClusterTokens(text)
+      const main = normalizeClusterText(text)
+
+      const directMatch =
+        currentTokens.some((token) =>
+          tokens.some(
+            (target) =>
+              token === target ||
+              token.includes(target) ||
+              target.includes(token)
+          )
+        ) ||
+        currentMain.includes(main) ||
+        main.includes(currentMain)
+
+      const similarity = Math.max(
+        getDiceSimilarity(currentMain, main),
+        ...currentTokens.flatMap((token) =>
+          tokens.map((target) => getDiceSimilarity(token, target))
+        )
+      )
+
+      return {
+        slug,
+        title: meta.caseName,
+        score: directMatch ? 1 : similarity,
+      }
+    })
+    .filter((item) => item.score >= 0.34)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+}
+
 export default async function CasePage({
   params,
 }: {
@@ -389,6 +593,7 @@ export default async function CasePage({
   })
 
   const recentCases = getRecentCases(casesDir, decodedSlug)
+  const clusterCases = getClusterCases(casesDir, decodedSlug)
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -980,6 +1185,26 @@ export default async function CasePage({
           </div>
         </details>
       </section>
+
+      {clusterCases.length > 0 && (
+        <section className="related-cases related-cases-box">
+          <h2 className="related-cases-title">관련 사건 안내</h2>
+
+          <ul className="related-cases-list">
+            {clusterCases.map((item) => (
+              <li key={item.slug} className="related-cases-item">
+                <Link
+                  href={`/cases/${item.slug}`}
+                  className="related-cases-link"
+                >
+                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해
+                  사례
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {recentCases.length > 0 && (
         <section className="related-cases related-cases-box">
