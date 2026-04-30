@@ -1,6 +1,7 @@
 import fs from "fs"
 import path from "path"
 import CasesClient from "./cases/CasesClient"
+import MainHeroSlider from "./components/MainHeroSlider"
 
 export default function HomePage() {
   const casesDir = path.join(
@@ -30,5 +31,14 @@ export default function HomePage() {
       .map((item) => item.name)
   }
 
-  return <CasesClient siteName="대온 법률사무소 핀테크센터" cases={cases} />
+  return (
+    <>
+      <MainHeroSlider />
+
+      <CasesClient
+        siteName="대온 법률사무소 핀테크센터"
+        cases={cases}
+      />
+    </>
+  )
 }
