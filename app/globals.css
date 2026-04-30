@@ -140,7 +140,7 @@ body {
 .case-content figure {
   margin: 30px auto;
   text-align: center;
-  max-width: 760px;
+  max-width: 100%;
 }
 
 .case-content figcaption {
@@ -180,14 +180,11 @@ body {
 
 .case-content img {
   width: 100%;
-  max-width: 760px;
-  height: 520px;
-  object-fit: contain;
-  object-position: center;
+  max-width: 100%;
+  height: auto;
   margin: 30px auto;
   display: block;
   border-radius: 10px;
-  background: #f8fafc;
   text-align: center;
   margin-left: auto !important;
   margin-right: auto !important;
@@ -907,7 +904,7 @@ body {
   .case-content img {
     width: 100%;
     max-width: 100%;
-    height: 320px;
+    height: auto;
   }
 
   .typing-heading {

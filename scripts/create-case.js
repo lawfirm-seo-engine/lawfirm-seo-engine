@@ -179,14 +179,89 @@ const avifPath = path.join(
   `${slug}.avif`
 )
 
+function escapeXml(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;")
+}
+
+function splitTitleLines(text, maxLength = 18) {
+  const words = text.split(" ")
+  const lines = []
+  let current = ""
+
+  words.forEach((word) => {
+    const next = current ? `${current} ${word}` : word
+
+    if (next.length <= maxLength) {
+      current = next
+      return
+    }
+
+    if (current) {
+      lines.push(current)
+    }
+
+    current = word
+  })
+
+  if (current) {
+    lines.push(current)
+  }
+
+  return lines.slice(0, 2)
+}
+
+const titleLines = splitTitleLines(caseDisplayName)
+const titleY = titleLines.length > 1 ? 105 : 130
+const titleTspans = titleLines
+  .map((line, index) => {
+    const dy = index === 0 ? 0 : 72
+    return `<tspan x="600" dy="${dy}">${escapeXml(line)}</tspan>`
+  })
+  .join("")
+
+const svgOverlay = `
+<svg width="1200" height="630">
+  <style>
+    .title {
+      fill: #ffffff;
+      font-size: 58px;
+      font-weight: 900;
+      text-anchor: middle;
+      font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+    }
+
+    .subtitle {
+      fill: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+      text-anchor: middle;
+      font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+    }
+  </style>
+
+  <rect width="1200" height="630" fill="rgba(0,0,0,0.28)" />
+  <text x="600" y="${titleY}" class="title">${titleTspans}</text>
+  <text x="600" y="220" class="subtitle">피해 회복을 위한 법률 정보</text>
+</svg>
+`
+
 async function generateImages() {
+  const overlay = Buffer.from(svgOverlay)
+
   await sharp(templateImagePath)
     .resize(1200, 630)
+    .composite([{ input: overlay }])
     .png({ quality: 90 })
     .toFile(pngPath)
 
   await sharp(templateImagePath)
     .resize(1200, 630)
+    .composite([{ input: overlay }])
     .avif({ quality: 70 })
     .toFile(avifPath)
 
