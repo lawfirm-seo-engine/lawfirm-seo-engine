@@ -52,6 +52,7 @@ const aliasGroups = [
   ["bellaxb", "벨라비"],
   ["deepellie", "디프엘리"],
   ["daishin", "대신증권"],
+  ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
 ]
 
 const domainPattern = /[a-z0-9-]+(?:\.[a-z0-9-]+)+/i
@@ -455,7 +456,7 @@ function detectCaseType(text: string) {
   const value = text.toLowerCase()
 
   if (
-    /대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자|fwrd6|daishin/.test(
+    /대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|투자|fwrd6|daishin|allspring|\uace8\ub4dc\ub4dc\ub9bc|\uc804\ubb38\uac00|\uc138\ub825\ud2b8\ub808\uc774\ub529/.test(
       value
     )
   ) {

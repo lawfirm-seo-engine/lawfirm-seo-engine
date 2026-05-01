@@ -163,6 +163,14 @@ const aliasGroups = [
   ["bellaxb", "벨라비"],
   ["deepellie", "디프엘리"],
   ["daishin", "대신증권"],
+  ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
+]
+
+const representativeRules = [
+  {
+    representativeSlug: "d2-\uace8\ub4dc\ub4dc\ub9bc-\uc0ac\uae30-allspring-min-\uc0ac\uce6d",
+    tokens: ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
+  },
 ]
 
 function hasDomainKeyword(text) {
@@ -180,7 +188,7 @@ function detectCaseType(text) {
     return "쇼핑몰 사칭 사기"
   }
 
-  if (/증권|증권사|securities|stock|fwrd|daishin/.test(value)) {
+  if (/증권|증권사|securities|stock|fwrd|daishin|allspring|\uace8\ub4dc\ub4dc\ub9bc|\ub9ac\ub529\ubc29|\uc804\ubb38\uac00|\uc138\ub825\ud2b8\ub808\uc774\ub529/.test(value)) {
     return "증권사 사칭 사기"
   }
 
@@ -224,6 +232,8 @@ function rewriteGeneratedContextForType(source, type) {
     .replace(/리뷰 업무/g, "리딩방 안내")
     .replace(/상품 주문/g, "거래 신청")
     .replace(/상품 구매/g, "투자 상품 가입")
+    .replace(/투자 상품 가입나/g, "투자 상품 가입이나")
+    .replace(/투자 상품 가입로/g, "투자 상품 가입으로")
     .replace(/상품 처리/g, "거래 처리")
     .replace(/주문 처리/g, "거래 처리")
     .replace(/주문 완료/g, "거래 승인")
@@ -300,6 +310,14 @@ function sharesIdentity(a, b) {
   )
 }
 
+function getRepresentativeRule(text) {
+  const lower = text.toLowerCase()
+
+  return representativeRules.find((rule) =>
+    rule.tokens.some((token) => lower.includes(token.toLowerCase()))
+  )
+}
+
 function getRepresentativePriority(item) {
   let score = 0
 
@@ -352,12 +370,29 @@ function findRepresentativeSlug() {
     birthtime: Date.now(),
   }
 
-  const candidates = fs
+  const existingCases = fs
     .readdirSync(casesDir)
     .filter((file) => file.endsWith(".mdx"))
     .filter((file) => file !== "_template.mdx")
     .map(buildCaseSummary)
     .filter((item) => item.slug !== slug)
+
+  const representativeRule = getRepresentativeRule(current.text)
+
+  if (
+    representativeRule &&
+    representativeRule.representativeSlug !== slug &&
+    existingCases.some((item) => item.slug === representativeRule.representativeSlug)
+  ) {
+    representativeGroup = [
+      ...existingCases.filter((item) => getRepresentativeRule(item.text) === representativeRule),
+      current,
+    ]
+
+    return representativeRule.representativeSlug
+  }
+
+  const candidates = existingCases
     .filter((item) => item.type === current.type)
     .filter((item) => sharesIdentity(current.text, item.text))
 

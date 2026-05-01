@@ -11,6 +11,14 @@ const aliasGroups = [
   ["bellaxb", "벨라비"],
   ["deepellie", "디프엘리"],
   ["daishin", "대신증권"],
+  ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
+]
+
+const representativeRules = [
+  {
+    representativeSlug: "d2-\uace8\ub4dc\ub4dc\ub9bc-\uc0ac\uae30-allspring-min-\uc0ac\uce6d",
+    tokens: ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
+  },
 ]
 
 const genericEnglishTokens = new Set([
@@ -198,7 +206,7 @@ function romanizeHangul(input) {
 function detectCaseType(text) {
   const value = text.toLowerCase()
 
-  if (/대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|fwrd6|daishin/.test(value)) {
+  if (/대신증권|증권|증권사|securities|stock|주식|공모주|비상장|hts|mts|리딩방|애널리스트|fwrd6|daishin|allspring|\uace8\ub4dc\ub4dc\ub9bc|\uc804\ubb38\uac00|\uc138\ub825\ud2b8\ub808\uc774\ub529/.test(value)) {
     return "증권사 사칭 사기"
   }
 
@@ -277,6 +285,19 @@ function sharesIdentity(a, b) {
   )
 }
 
+function getRepresentativeRule(text) {
+  const rawLower = text.toLowerCase()
+  const lower = romanizeHangul(text).toLowerCase()
+
+  return representativeRules.find((rule) =>
+    rule.tokens.some((token) => {
+      const normalizedToken = token.toLowerCase()
+
+      return rawLower.includes(normalizedToken) || lower.includes(normalizedToken)
+    })
+  )
+}
+
 function collectImageSources(source) {
   return Array.from(source.matchAll(/(?:src=["']|!\[[^\]]*]\()([^"')]+)(?:["']|\))/g))
     .map((match) => match[1].split("?")[0])
@@ -306,6 +327,21 @@ function removeRepresentativeMetaAndPreamble(source) {
 
 function removeRepresentativePreamble(source) {
   return source.replace(/^(---[\s\S]*?---)\s*[\s\S]*?(?=^#\s)/m, "$1\n\n")
+}
+
+function setRepresentativeSlug(source, nextRepresentativeSlug) {
+  return removeRepresentativePreamble(source).replace(
+    /^---\s*([\s\S]*?)\s*---/,
+    (match, body) => {
+      const cleaned = body
+        .split(/\r?\n/)
+        .filter((line) => !line.trim().startsWith("representativeSlug:"))
+        .join("\n")
+        .trim()
+
+      return `---\n${cleaned}\nrepresentativeSlug: "${nextRepresentativeSlug}"\n---`
+    }
+  )
 }
 
 const contentMismatchTypes = new Set([
@@ -346,6 +382,8 @@ function rewriteShoppingContextForType(source, type) {
     .replace(/리뷰 업무/g, "리딩방 안내")
     .replace(/상품 주문/g, "거래 신청")
     .replace(/상품 구매/g, "투자 상품 가입")
+    .replace(/투자 상품 가입나/g, "투자 상품 가입이나")
+    .replace(/투자 상품 가입로/g, "투자 상품 가입으로")
     .replace(/상품 처리/g, "거래 처리")
     .replace(/주문 처리/g, "거래 처리")
     .replace(/주문 완료/g, "거래 승인")
@@ -456,6 +494,44 @@ function main() {
       if (nextSource !== item.source) {
         fs.writeFileSync(path.join(casesDir, item.file), nextSource, "utf8")
         fixes.push(item.file)
+      }
+    }
+
+    const representativeRule = getRepresentativeRule(item.text)
+    const expectedRepresentativeSlug = representativeRule?.representativeSlug || ""
+
+    if (expectedRepresentativeSlug && bySlug.has(expectedRepresentativeSlug)) {
+      if (item.slug === expectedRepresentativeSlug && item.representativeSlug) {
+        addIssue(issues, "error", item.file, "representative page should not point to another representative")
+
+        if (shouldFix) {
+          const currentSource = fs.readFileSync(path.join(casesDir, item.file), "utf8")
+          const nextSource = removeRepresentativeMetaAndPreamble(currentSource)
+
+          if (nextSource !== currentSource) {
+            fs.writeFileSync(path.join(casesDir, item.file), nextSource, "utf8")
+            fixes.push(item.file)
+          }
+        }
+      }
+
+      if (item.slug !== expectedRepresentativeSlug && item.representativeSlug !== expectedRepresentativeSlug) {
+        addIssue(
+          issues,
+          "error",
+          item.file,
+          `representativeSlug should be ${expectedRepresentativeSlug}`
+        )
+
+        if (shouldFix) {
+          const currentSource = fs.readFileSync(path.join(casesDir, item.file), "utf8")
+          const nextSource = setRepresentativeSlug(currentSource, expectedRepresentativeSlug)
+
+          if (nextSource !== currentSource) {
+            fs.writeFileSync(path.join(casesDir, item.file), nextSource, "utf8")
+            fixes.push(item.file)
+          }
+        }
       }
     }
 
