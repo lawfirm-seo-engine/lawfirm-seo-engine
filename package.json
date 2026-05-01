@@ -11,7 +11,8 @@
     "indexnow": "node scripts/indexnow-submit.mjs",
     "case-image": "node scripts/generate-case-image.mjs",
     "case-create": "node scripts/create-case.js",
-    "case-cafe": "node scripts/create-cafe-post.mjs"
+    "case-cafe": "node scripts/create-cafe-post.mjs",
+    "case-audit": "node scripts/audit-cases.js"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

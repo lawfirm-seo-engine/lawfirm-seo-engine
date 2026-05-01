@@ -54,6 +54,63 @@ const aliasGroups = [
   ["daishin", "대신증권"],
 ]
 
+const domainPattern = /[a-z0-9-]+(?:\.[a-z0-9-]+)+/i
+
+const genericEnglishTokens = new Set([
+  "app",
+  "bar",
+  "bit",
+  "biz",
+  "co",
+  "coin",
+  "com",
+  "company",
+  "corp",
+  "crypto",
+  "exchange",
+  "finance",
+  "financial",
+  "georaeso",
+  "gongmoju",
+  "global",
+  "gold",
+  "group",
+  "inc",
+  "investment",
+  "invest",
+  "io",
+  "koin",
+  "kr",
+  "korea",
+  "ltd",
+  "mall",
+  "market",
+  "me",
+  "net",
+  "org",
+  "pihae",
+  "pihaehoebog",
+  "pihaehoebok",
+  "saching",
+  "sagi",
+  "salye",
+  "sarye",
+  "securities",
+  "shop",
+  "site",
+  "stock",
+  "store",
+  "syopingmol",
+  "top",
+  "trade",
+  "trading",
+  "tuja",
+  "tujasagi",
+  "vip",
+  "wallet",
+  "xyz",
+])
+
 function stripFrontmatter(source: string) {
   return source.replace(/^---[\s\S]*?---\s*/, "")
 }
@@ -637,11 +694,66 @@ function getImportantCaseTokens(text: string) {
   return Array.from(tokens)
 }
 
+function getIdentityTokens(text: string) {
+  const rawLower = text.toLowerCase()
+  const lower = romanizeHangul(text)
+    .toLowerCase()
+    .replace(/https?:\/\//g, "")
+    .replace(/www\./g, "")
+  const tokens = new Set<string>()
+  const domains = lower.match(new RegExp(domainPattern, "g")) || []
+
+  domains.forEach((domain) => {
+    const compact = domain.replace(/[^a-z0-9]/g, "")
+    const rootToken = domain.split(".")[0]
+
+    if (compact.length >= 4) tokens.add(compact)
+    if (rootToken.length >= 4 && !genericEnglishTokens.has(rootToken)) {
+      tokens.add(rootToken)
+    }
+  })
+
+  lower
+    .split(/[\s\-_.:/|()[\]{}]+/g)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .forEach((token) => {
+      if (/^[a-z0-9]+$/.test(token)) {
+        if (token.length >= 4 && !genericEnglishTokens.has(token)) {
+          tokens.add(token)
+        }
+      }
+    })
+
+  aliasGroups.forEach((group) => {
+    if (group.some((alias) => lower.includes(alias.toLowerCase()) || rawLower.includes(alias.toLowerCase()))) {
+      group.forEach((alias) => tokens.add(alias.toLowerCase()))
+    }
+  })
+
+  return Array.from(tokens)
+}
+
+function sharesIdentity(a: string, b: string) {
+  const aTokens = getIdentityTokens(a)
+  const bTokens = getIdentityTokens(b)
+
+  return aTokens.some((token) =>
+    bTokens.some(
+      (target) =>
+        token === target ||
+        (token.length >= 5 && target.length >= 5 && (token.includes(target) || target.includes(token)))
+    )
+  )
+}
+
 function isSameCaseGroup(currentText: string, targetText: string) {
   const currentType = detectCaseType(currentText).label
   const targetType = detectCaseType(targetText).label
 
   if (currentType !== targetType) return false
+
+  if (!sharesIdentity(currentText, targetText)) return false
 
   const currentLower = currentText.toLowerCase()
   const targetLower = targetText.toLowerCase()
@@ -755,7 +867,7 @@ function getRepresentativeCase(currentSlug: string) {
       (item) => item.slug === current.representativeSlug
     )
 
-    if (explicitRepresentative) {
+    if (explicitRepresentative && isSameCaseGroup(current.text, explicitRepresentative.text)) {
       return explicitRepresentative
     }
   }

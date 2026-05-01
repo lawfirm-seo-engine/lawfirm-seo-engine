@@ -105,24 +105,58 @@ const genericKoreanTokens = new Set([
 ])
 
 const genericEnglishTokens = new Set([
+  "app",
+  "bar",
+  "bit",
+  "biz",
   "com",
-  "net",
-  "org",
-  "kr",
   "co",
-  "shop",
-  "site",
-  "store",
-  "vip",
-  "top",
-  "xyz",
-  "market",
-  "mall",
+  "coin",
   "company",
-  "investment",
+  "corp",
+  "crypto",
+  "exchange",
   "finance",
   "financial",
+  "georaeso",
+  "gongmoju",
+  "global",
+  "gold",
+  "group",
+  "inc",
+  "investment",
+  "invest",
+  "io",
+  "koin",
+  "kr",
+  "korea",
+  "ltd",
+  "mall",
+  "market",
+  "me",
+  "net",
+  "org",
+  "pihae",
+  "pihaehoebog",
+  "pihaehoebok",
+  "saching",
+  "sagi",
+  "salye",
+  "sarye",
   "securities",
+  "shop",
+  "site",
+  "stock",
+  "store",
+  "syopingmol",
+  "top",
+  "trade",
+  "trading",
+  "tuja",
+  "tujasagi",
+  "vip",
+  "wallet",
+  "xyz",
 ])
 
 const aliasGroups = [
@@ -159,6 +193,47 @@ function detectCaseType(text) {
   }
 
   return "기타 사칭 사기"
+}
+
+function getTypeLabel(type) {
+  if (type === "증권사 사칭 사기") return "증권사 사칭"
+  if (type === "가상자산 사칭 사기") return "코인 거래소 사칭"
+  if (type === "기타 사칭 사기") return "플랫폼 사칭"
+  return type.replace(/\s*사기$/, "")
+}
+
+function rewriteGeneratedContextForType(source, type) {
+  if (type === "쇼핑몰 사칭 사기" || type === "부업 사칭 사기") return source
+
+  const label = getTypeLabel(type)
+
+  return source
+    .replace(/쇼핑몰 사칭/g, label)
+    .replace(/해외 쇼핑몰/g, `해외 ${label} 사이트`)
+    .replace(/쇼핑몰 형태의 정산 사이트/g, `${label} 형태의 사칭 사이트`)
+    .replace(/정상 쇼핑몰처럼/g, `정상 ${label} 사이트처럼`)
+    .replace(/도메인형 쇼핑몰/g, `도메인형 ${label}`)
+    .replace(/한글명 쇼핑몰/g, `한글명 ${label}`)
+    .replace(/영문 사이트명 쇼핑몰/g, `영문 사이트명 ${label}`)
+    .replace(/영문명 쇼핑몰/g, `영문명 ${label}`)
+    .replace(/축약명 쇼핑몰/g, `축약명 ${label}`)
+    .replace(/쇼핑몰 운영/g, "투자 상담")
+    .replace(/쇼핑몰 업무/g, "투자 상담")
+    .replace(/구매 대행/g, "투자 대행")
+    .replace(/주문 대행/g, "거래 대행")
+    .replace(/리뷰 업무/g, "리딩방 안내")
+    .replace(/상품 주문/g, "거래 신청")
+    .replace(/상품 구매/g, "투자 상품 가입")
+    .replace(/상품 처리/g, "거래 처리")
+    .replace(/주문 처리/g, "거래 처리")
+    .replace(/주문 완료/g, "거래 승인")
+    .replace(/거래 승인를/g, "거래 승인을")
+    .replace(/주문 금액/g, "거래 금액")
+    .replace(/주문 미완료/g, "거래 미완료")
+    .replace(/정산금/g, "수익금")
+    .replace(/환불 보류/g, "출금 보류")
+    .replace(/환불 지연/g, "출금 지연")
+    .replace(/환불 거부/g, "출금 거부")
 }
 
 function readFrontmatterValue(source, key) {
@@ -284,19 +359,7 @@ function findRepresentativeSlug() {
     .map(buildCaseSummary)
     .filter((item) => item.slug !== slug)
     .filter((item) => item.type === current.type)
-    .filter((item) => {
-      if (sharesIdentity(current.text, item.text)) return true
-
-      const currentNormalized = normalizeCluster(current.text)
-      const targetNormalized = normalizeCluster(item.text)
-
-      return (
-        currentNormalized.length >= 4 &&
-        targetNormalized.length >= 4 &&
-        (currentNormalized.includes(targetNormalized) ||
-          targetNormalized.includes(currentNormalized))
-      )
-    })
+    .filter((item) => sharesIdentity(current.text, item.text))
 
   if (candidates.length === 0) return null
 
@@ -975,6 +1038,11 @@ function buildMdx() {
       /^---[\s\S]*?---\s*/,
       ""
     )
+
+  template = rewriteGeneratedContextForType(
+    template,
+    detectCaseType(cleanCaseName)
+  )
 
   fs.writeFileSync(
     outputPath,
