@@ -557,7 +557,13 @@ function detectKeywordRole(value) {
 }
 
 function imageBlock(number, alt) {
-  const extension = number === "07" ? "gif" : "jpg"
+  const templateImageExtensions = {
+    "03": "png",
+    "05": "png",
+    "07": "gif",
+    "08": "png",
+  }
+  const extension = templateImageExtensions[number] ?? "jpg"
 
   return `<img
   src="/images/cases/template-${number}.${extension}"
