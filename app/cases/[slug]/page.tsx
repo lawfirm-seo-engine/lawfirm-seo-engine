@@ -15,6 +15,8 @@ const phoneNumber = "+82-2-6952-3695"
 const imageVersion = "20260430"
 
 const casesDir = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
+const publicDir = path.join(process.cwd(), "public")
+const fallbackCaseImagePath = "/images/templates/case-template.png"
 
 type CaseSummary = {
   slug: string
@@ -225,6 +227,22 @@ function getCaseFilePath(slug: string) {
   return path.join(casesDir, `${slug}.mdx`)
 }
 
+function publicImageExists(src: string) {
+  const cleanSrc = src.split("?")[0].replace(/^\//, "")
+
+  return fs.existsSync(path.join(publicDir, cleanSrc))
+}
+
+function getVersionedImageUrl(src: string) {
+  return `${siteUrl}${src}?v=${imageVersion}`
+}
+
+function getCaseImageSrc(slug: string, extension: "png" | "avif") {
+  const candidate = `/images/cases/${slug}.${extension}`
+
+  return publicImageExists(candidate) ? candidate : fallbackCaseImagePath
+}
+
 function getCaseMeta(decodedSlug: string) {
   const filePath = getCaseFilePath(decodedSlug)
 
@@ -312,9 +330,34 @@ export async function generateMetadata({
   const { searchKeyword, seoTitle, seoDescription } = getCaseMeta(decodedSlug)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageAvif = `${siteUrl}/images/cases/${decodedSlug}.avif?v=${imageVersion}`
-  const imagePng = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
+  const imageAvifSrc = getCaseImageSrc(decodedSlug, "avif")
+  const imagePngSrc = getCaseImageSrc(decodedSlug, "png")
+  const imageAvif = getVersionedImageUrl(imageAvifSrc)
+  const imagePng = getVersionedImageUrl(imagePngSrc)
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
+
+  const openGraphImages = [
+    {
+      url: imagePng,
+      secureUrl: imagePng,
+      type: "image/png",
+      width: 1200,
+      height: 630,
+      alt: imageAlt,
+    },
+    ...(imageAvifSrc.endsWith(".avif")
+      ? [
+          {
+            url: imageAvif,
+            secureUrl: imageAvif,
+            type: "image/avif",
+            width: 1200,
+            height: 630,
+            alt: imageAlt,
+          },
+        ]
+      : []),
+  ]
 
   return {
     title: seoTitle,
@@ -355,24 +398,7 @@ export async function generateMetadata({
       siteName,
       locale: "ko_KR",
       type: "article",
-      images: [
-        {
-          url: imagePng,
-          secureUrl: imagePng,
-          type: "image/png",
-          width: 1200,
-          height: 630,
-          alt: imageAlt,
-        },
-        {
-          url: imageAvif,
-          secureUrl: imageAvif,
-          type: "image/avif",
-          width: 1200,
-          height: 630,
-          alt: imageAlt,
-        },
-      ],
+      images: openGraphImages,
     },
 
     twitter: {
@@ -899,7 +925,9 @@ function normalizeImageSrc(src: string) {
     return src
   }
 
-  return `${cleanSrc}?v=${imageVersion}`
+  const imageSrc = publicImageExists(cleanSrc) ? cleanSrc : fallbackCaseImagePath
+
+  return `${imageSrc}?v=${imageVersion}`
 }
 
 function normalizeMdxImagePaths(source: string) {
@@ -944,7 +972,7 @@ export default async function CasePage({
   const stat = fs.statSync(filePath)
 
   const pageUrl = `${siteUrl}/cases/${decodedSlug}`
-  const imageUrl = `${siteUrl}/images/cases/${decodedSlug}.png?v=${imageVersion}`
+  const imageUrl = getVersionedImageUrl(getCaseImageSrc(decodedSlug, "png"))
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${searchKeyword} 피해 사례 및 대응 방법 안내`
   const imageDescription = `${searchKeyword} 피해 사례와 대응 방법을 정리한 법률 정보 이미지입니다.`

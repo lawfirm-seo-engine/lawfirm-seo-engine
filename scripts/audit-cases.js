@@ -559,6 +559,15 @@ function main() {
         addIssue(issues, "error", item.file, `missing image: ${src}`)
       }
     })
+
+    ;["png", "avif"].forEach((extension) => {
+      const ogImage = `/images/cases/${item.slug}.${extension}`
+      const ogImagePath = path.join(publicDir, ogImage.replace(/^\//, ""))
+
+      if (!fs.existsSync(ogImagePath)) {
+        addIssue(issues, "error", item.file, `missing case OG image: ${ogImage}`)
+      }
+    })
   })
 
   const errors = issues.filter((issue) => issue.severity === "error")

@@ -12,7 +12,8 @@
     "case-image": "node scripts/generate-case-image.mjs",
     "case-create": "node scripts/create-case.js",
     "case-cafe": "node scripts/create-cafe-post.mjs",
-    "case-audit": "node scripts/audit-cases.js"
+    "case-audit": "node scripts/audit-cases.js",
+    "case-image-clean": "node scripts/cleanup-case-images.js"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
