@@ -1,0 +1,12 @@
+.git
+.next
+.vercel
+node_modules
+backup-broken-mdx
+backup-regenerate-mdx
+lawfirm-seo-engine
+tsconfig.tsbuildinfo
+et --hard 7ca90c4
+
+public/images/cases/*-07.gif
+!public/images/cases/template-07.gif
