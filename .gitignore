@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+backup-regenerate-mdx/
 
 # debug
 npm-debug.log*

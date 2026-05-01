@@ -24,6 +24,7 @@ type CaseSummary = {
   title: string
   caseName: string
   searchKeyword: string
+  representativeSlug: string
   text: string
   birthtime: number
   mtime: number
@@ -50,13 +51,19 @@ const scamTopicKeywords = [
   "금 투자 사기",
 ]
 
+const aliasGroups = [
+  ["bellaxb", "벨라비"],
+  ["deepellie", "디프엘리"],
+  ["daishin", "대신증권"],
+]
+
 function stripFrontmatter(source: string) {
   return source.replace(/^---[\s\S]*?---\s*/, "")
 }
 
 function stripLeakedMetaLines(source: string) {
   return source
-    .replace(/^\s*(title|caseName|description|slug)\s*:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^\s*(title|caseName|description|slug|representativeSlug)\s*:\s*["']?.*?["']?\s*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
@@ -368,6 +375,10 @@ function getCaseSummaries() {
         safeFrontmatterCaseName || normalizeSlugTitle(slug)
       )
       const searchKeyword = buildSearchKeyword(caseName)
+      const representativeSlug =
+        typeof frontmatter.representativeSlug === "string"
+          ? frontmatter.representativeSlug
+          : ""
       const stat = fs.statSync(filePath)
       const text = `${slug} ${caseName} ${searchKeyword}`
 
@@ -376,6 +387,7 @@ function getCaseSummaries() {
         title: caseName,
         caseName,
         searchKeyword,
+        representativeSlug,
         text,
         birthtime: stat.birthtime.getTime(),
         mtime: stat.mtime.getTime(),
@@ -619,6 +631,12 @@ function getImportantCaseTokens(text: string) {
     }
   })
 
+  aliasGroups.forEach((group) => {
+    if (group.some((alias) => lower.includes(alias.toLowerCase()))) {
+      group.forEach((alias) => tokens.add(alias.toLowerCase()))
+    }
+  })
+
   return Array.from(tokens)
 }
 
@@ -706,14 +724,52 @@ function getClusterCases(currentSlug: string) {
     .slice(0, 6)
 }
 
+function hasDomainKeyword(text: string) {
+  return /[a-z0-9-]+(?:\.[a-z0-9-]+)+/i.test(text)
+}
+
+function hasLatinKeyword(text: string) {
+  return /[a-z]/i.test(text)
+}
+
+function getRepresentativePriority(item: CaseSummary) {
+  let score = 0
+
+  if (hasDomainKeyword(item.caseName)) {
+    score += 300
+  } else if (hasLatinKeyword(item.caseName)) {
+    score += 200
+  } else {
+    score += 100
+  }
+
+  score += getImportantCaseTokens(`${item.slug} ${item.caseName}`).length * 10
+
+  return score
+}
+
 function getRepresentativeCase(currentSlug: string) {
   const current = getCaseSummaries().find((item) => item.slug === currentSlug)
   const currentMeta = current || getCaseMeta(currentSlug)
   const currentText = current ? current.text : `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
 
+  if (current?.representativeSlug && current.representativeSlug !== currentSlug) {
+    const explicitRepresentative = getCaseSummaries().find(
+      (item) => item.slug === current.representativeSlug
+    )
+
+    if (explicitRepresentative) {
+      return explicitRepresentative
+    }
+  }
+
   const group = getCaseSummaries()
     .filter((item) => isSameCaseGroup(currentText, item.text))
-    .sort((a, b) => a.birthtime - b.birthtime)
+    .sort(
+      (a, b) =>
+        getRepresentativePriority(b) - getRepresentativePriority(a) ||
+        a.birthtime - b.birthtime
+    )
 
   if (group.length < 2) return null
 
