@@ -31,6 +31,8 @@ module.exports = {
         ],
       },
     ],
+    transformRobotsTxt: async (_, robotsTxt) =>
+      robotsTxt.replace(/\n# Host\nHost: https:\/\/daeonlawfintech\.com\n/g, ""),
   },
 
   additionalPaths: async () => {
@@ -55,7 +57,7 @@ module.exports = {
       const slug = file.replace(/\.mdx$/, "")
 
       return {
-        loc: `/cases/${slug}`,
+        loc: `/cases/${encodeURIComponent(slug)}`,
         changefreq: "daily",
         priority: 0.8,
         lastmod: stat.mtime.toISOString(),

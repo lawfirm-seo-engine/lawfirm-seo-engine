@@ -5,6 +5,11 @@ import type { Metadata } from "next"
 import { getCurrentSite } from "@/lib/site"
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd"
 
+function readFrontmatterValue(source: string, key: string) {
+  const match = source.match(new RegExp(`^${key}:\\s*["']?(.+?)["']?\\s*$`, "m"))
+  return match?.[1]?.trim() || ""
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCurrentSite()
 
@@ -74,9 +79,12 @@ export default async function CasesPage() {
       const filePath = path.join(casesDirectory, filename)
       const stat = fs.statSync(filePath)
       const slug = filename.replace(/\.mdx$/, "")
+      const source = fs.readFileSync(filePath, "utf8")
+      const caseName = readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ")
 
       return {
         slug,
+        caseName,
         mtime: stat.mtime.getTime(),
         imagePath: `/images/cases/${slug}.png`,
       }
@@ -97,8 +105,8 @@ export default async function CasesPage() {
       itemListElement: cases.slice(0, 50).map((item, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        name: `${item.slug} 사기 피해 사례`,
-        url: `${site.baseUrl}/cases/${item.slug}`,
+        name: `${item.caseName} 피해 사례`,
+        url: `${site.baseUrl}/cases/${encodeURIComponent(item.slug)}`,
       })),
     },
   }
@@ -162,7 +170,7 @@ export default async function CasesPage() {
               >
 
                 <h2 className="break-keep text-2xl font-black leading-snug text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.55)] group-hover:text-emerald-100">
-                  {item.slug}
+                  {item.caseName}
                 </h2>
               </div>
 

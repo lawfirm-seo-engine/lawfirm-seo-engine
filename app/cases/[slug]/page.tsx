@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
 import TypingHeading from "@/app/components/TypingHeading"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 3600
 
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"

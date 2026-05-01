@@ -6,8 +6,6 @@ import type { Metadata } from "next";
 const siteUrl = "https://daeonlawfintech.com";
 const siteName = "대온 핀테크센터";
 
-export const dynamic = "force-static";
-
 export const metadata: Metadata = {
   title: `사건 검색 | ${siteName}`,
   description:
@@ -16,7 +14,7 @@ export const metadata: Metadata = {
     canonical: `${siteUrl}/search`,
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
 };
@@ -27,6 +25,11 @@ type CaseItem = {
   href: string;
   mtime: number;
 };
+
+function readFrontmatterValue(source: string, key: string) {
+  const match = source.match(new RegExp(`^${key}:\\s*["']?(.+?)["']?\\s*$`, "m"));
+  return match?.[1]?.trim() || "";
+}
 
 function getCases(): CaseItem[] {
   const casesDir = path.join(
@@ -47,7 +50,8 @@ function getCases(): CaseItem[] {
       const filePath = path.join(casesDir, file);
       const stat = fs.statSync(filePath);
       const slug = file.replace(/\.mdx$/, "");
-      const title = slug.replace(/-/g, " ");
+      const source = fs.readFileSync(filePath, "utf8");
+      const title = readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ");
 
       return {
         slug,

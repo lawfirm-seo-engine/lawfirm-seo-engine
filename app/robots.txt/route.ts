@@ -2,7 +2,6 @@ export const dynamic = "force-static"
 
 export function GET() {
   const robots = `User-agent: *
-Content-Signal: search=yes,ai-input=yes,ai-train=no
 Allow: /
 Disallow: /api/
 Disallow: /admin/
@@ -19,7 +18,6 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Host: https://daeonlawfintech.com
 Sitemap: https://daeonlawfintech.com/sitemap.xml
 `
 

@@ -13,6 +13,11 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;")
 }
 
+function readFrontmatterValue(source: string, key: string) {
+  const match = source.match(new RegExp(`^${key}:\\s*["']?(.+?)["']?\\s*$`, "m"))
+  return match?.[1]?.trim() || ""
+}
+
 export async function GET() {
   const baseUrl = "https://daeonlawfintech.com"
 
@@ -35,21 +40,22 @@ export async function GET() {
         const filePath = path.join(casesPath, file)
         const stat = fs.statSync(filePath)
         const slug = file.replace(/\.mdx$/, "")
+        const source = fs.readFileSync(filePath, "utf8")
+        const caseName = readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ")
 
         return {
           slug,
+          caseName,
           mtime: stat.mtime,
         }
       })
       .sort((a, b) => b.mtime.getTime() - a.mtime.getTime())
-      .slice(0, 50)
 
     items = files
-      .map(({ slug, mtime }) => {
-        const keyword = slug.toUpperCase()
-        const url = `${baseUrl}/cases/${slug}`
-        const title = `${keyword} 사기 피해 대응 정보`
-        const description = `${keyword} 사기 피해 사례와 대응 방법을 정리한 법률 정보입니다.`
+      .map(({ slug, caseName, mtime }) => {
+        const url = `${baseUrl}/cases/${encodeURIComponent(slug)}`
+        const title = `${caseName} 피해 대응 정보`
+        const description = `${caseName} 피해 사례와 대응 방법을 정리한 법률 정보입니다.`
 
         return `
         <item>
