@@ -15,9 +15,6 @@ const phoneNumber = "+82-2-6952-3695"
 const imageVersion = "20260430"
 
 const casesDir = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
-const publicCasesDir = path.join(process.cwd(), "public", "images", "cases")
-
-const imageExtensions = ["png", "jpg", "jpeg", "webp", "avif", "gif"]
 
 type CaseSummary = {
   slug: string
@@ -735,52 +732,27 @@ function getRepresentativeCase(currentSlug: string) {
   return representative
 }
 
-function resolveImageSrc(src: string, decodedSlug: string) {
-  if (!src.includes("/images/cases/")) return src
-
+function normalizeImageSrc(src: string) {
   const cleanSrc = src.split("?")[0]
-  const fileName = path.basename(cleanSrc)
-  const parsed = path.parse(fileName)
-  const numberedMatch = parsed.name.match(/-(\d{2})$/)
 
-  if (numberedMatch) {
-    const number = numberedMatch[1]
-
-    const numberedCandidates = [
-      ...imageExtensions.map((ext) => `template-${number}.${ext}`),
-      ...imageExtensions.map((ext) => `${decodedSlug}-${number}.${ext}`),
-      ...imageExtensions.map((ext) => `${parsed.name}.${ext}`),
-    ]
-
-    for (const candidate of numberedCandidates) {
-      if (fs.existsSync(path.join(publicCasesDir, candidate))) {
-        return `/images/cases/${candidate}?v=${imageVersion}`
-      }
-    }
-  }
-
-  const directCandidates = imageExtensions.map((ext) => `${parsed.name}.${ext}`)
-
-  for (const candidate of directCandidates) {
-    if (fs.existsSync(path.join(publicCasesDir, candidate))) {
-      return `/images/cases/${candidate}?v=${imageVersion}`
-    }
+  if (!cleanSrc.includes("/images/cases/")) {
+    return src
   }
 
   return `${cleanSrc}?v=${imageVersion}`
 }
 
-function normalizeMdxImagePaths(source: string, decodedSlug: string) {
+function normalizeMdxImagePaths(source: string) {
   return source.replace(
     /!\[([^\]]*)\]\((\/images\/cases\/[^)]+)\)/g,
-    (_match, alt, src) => `![${alt}](${resolveImageSrc(src, decodedSlug)})`
+    (_match, alt, src) => `![${alt}](${normalizeImageSrc(src)})`
   )
 }
 
-function normalizeHtmlImagePaths(source: string, decodedSlug: string) {
+function normalizeHtmlImagePaths(source: string) {
   return source.replace(
     /src=["'](\/images\/cases\/[^"']+)["']/g,
-    (_match, src) => `src="${resolveImageSrc(src, decodedSlug)}"`
+    (_match, src) => `src="${normalizeImageSrc(src)}"`
   )
 }
 
@@ -806,8 +778,8 @@ export default async function CasePage({
     notFound()
   }
 
-  let source = normalizeMdxImagePaths(mdxSource, decodedSlug)
-  source = normalizeHtmlImagePaths(source, decodedSlug)
+  let source = normalizeMdxImagePaths(mdxSource)
+  source = normalizeHtmlImagePaths(source)  
 
   const stat = fs.statSync(filePath)
 
@@ -840,7 +812,7 @@ export default async function CasePage({
       img: (props) => {
         const src =
           typeof props.src === "string" && props.src.includes("/images/cases/")
-            ? resolveImageSrc(props.src, decodedSlug)
+            ? normalizeImageSrc(props.src)
             : props.src
 
         return (
