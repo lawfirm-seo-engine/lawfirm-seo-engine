@@ -113,8 +113,8 @@ export default function CasesArchiveClient({
 
   return (
     <>
-      <div className="mb-10 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
-        <div className="text-left">
+      <div className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+        <div className="order-2 text-left lg:order-2">
           <p className="mb-3 text-sm font-bold text-emerald-700">
             DAEON FINTECH CENTER
           </p>
@@ -133,7 +133,7 @@ export default function CasesArchiveClient({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <div className="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:order-1">
           <label
             htmlFor="case-search"
             className="mb-2 block text-sm font-black text-slate-700"
@@ -185,30 +185,33 @@ export default function CasesArchiveClient({
               id={category.id}
               className="scroll-mt-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
             >
-              <div className="border-b border-slate-200 bg-slate-950 px-6 py-6 text-white md:px-8">
-                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="text-sm font-black text-emerald-300">
+              <div className="border-b border-slate-200 bg-white">
+                <div className="grid lg:grid-cols-[minmax(260px,0.34fr)_1fr]">
+                  <div className="bg-emerald-700 px-6 py-6 text-white md:px-8">
+                    <p className="text-sm font-black text-emerald-100">
                       GROUP {index + 1}
                     </p>
                     <h2 className="mt-2 break-keep text-3xl font-black">
                       {category.title}
                     </h2>
-                    <p className="mt-3 max-w-4xl break-keep text-base leading-7 text-slate-200">
-                      {category.description}
-                    </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-950">
-                      {category.cases.length}/{category.totalCases}건 표시
-                    </span>
-                    <a
-                      href="#top"
-                      className="rounded-full border border-white/25 px-4 py-2 text-sm font-black text-white transition hover:border-emerald-300 hover:text-emerald-200"
-                    >
-                      상단으로
-                    </a>
+                  <div className="flex flex-col gap-4 px-6 py-6 md:flex-row md:items-center md:justify-between md:px-8">
+                    <p className="max-w-4xl break-keep text-base font-semibold leading-7 text-slate-700">
+                      {category.description}
+                    </p>
+
+                    <div className="flex shrink-0 flex-wrap items-center gap-3">
+                      <span className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-800">
+                        {category.cases.length}/{category.totalCases}건 표시
+                      </span>
+                      <a
+                        href="#top"
+                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-black text-slate-600 transition hover:border-emerald-500 hover:text-emerald-700"
+                      >
+                        상단으로
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
