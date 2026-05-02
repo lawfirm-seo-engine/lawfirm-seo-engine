@@ -213,25 +213,6 @@ export default async function CasesPage() {
       />
 
       <section className="mx-auto max-w-[1500px]">
-        <div className="mb-10 text-center">
-          <p className="mb-3 text-sm font-bold text-emerald-700">
-            DAEON FINTECH CENTER
-          </p>
-
-          <h1 className="break-keep text-4xl font-black text-slate-900 md:text-5xl">
-            금융사기 피해 사례 유형별 목록
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-4xl break-keep text-base leading-8 text-slate-600 md:text-lg">
-            팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
-            나누어 실제 사칭 사건을 확인할 수 있습니다.
-          </p>
-
-          <p className="mt-3 text-sm font-semibold text-slate-500">
-            총 {cases.length}건의 사건이 등록되어 있습니다.
-          </p>
-        </div>
-
         <CasesArchiveClient
           cases={cases}
           categories={caseCategories.map(({ id, title, description, keywords }) => ({
