@@ -5,7 +5,9 @@ import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
 import TypingHeading from "@/app/components/TypingHeading"
 
-export const revalidate = 3600
+// Vercel/Next cache tags can include decoded Korean slugs for ISR pages.
+// That can produce an invalid x-next-cache-tags header on production.
+export const dynamic = "force-dynamic"
 
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"
@@ -24,6 +26,10 @@ type CaseSummary = {
   caseName: string
   searchKeyword: string
   representativeSlug: string
+  caseGroupId: string
+  groupRole: string
+  groupOrder: number
+  createdAt: string
   text: string
   birthtime: number
   mtime: number
@@ -120,7 +126,7 @@ function stripFrontmatter(source: string) {
 
 function stripLeakedMetaLines(source: string) {
   return source
-    .replace(/^\s*(title|caseName|description|slug|representativeSlug)\s*:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^\s*(title|caseName|description|slug|representativeSlug|createdAt|caseGroupId|groupRole|groupOrder|primaryKeyword|aliases|caseType|publishedAt)\s*:\s*["']?.*?["']?\s*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
@@ -319,10 +325,6 @@ function getCaseMeta(decodedSlug: string) {
   }
 }
 
-export async function generateStaticParams() {
-  return []
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -466,8 +468,18 @@ function getCaseSummaries() {
         typeof frontmatter.representativeSlug === "string"
           ? frontmatter.representativeSlug
           : ""
+      const caseGroupId =
+        typeof frontmatter.caseGroupId === "string" ? frontmatter.caseGroupId : ""
+      const groupRole =
+        typeof frontmatter.groupRole === "string" ? frontmatter.groupRole : ""
+      const groupOrder = Number(frontmatter.groupOrder) || 0
+      const createdAt =
+        typeof frontmatter.createdAt === "string" ? frontmatter.createdAt : ""
       const stat = fs.statSync(filePath)
       const text = `${slug} ${caseName} ${searchKeyword}`
+      const createdTime = createdAt
+        ? Date.parse(createdAt) || stat.birthtime.getTime()
+        : stat.birthtime.getTime()
 
       return {
         slug,
@@ -475,8 +487,12 @@ function getCaseSummaries() {
         caseName,
         searchKeyword,
         representativeSlug,
+        caseGroupId,
+        groupRole,
+        groupOrder,
+        createdAt,
         text,
-        birthtime: stat.birthtime.getTime(),
+        birthtime: createdTime,
         mtime: stat.mtime.getTime(),
       }
     })
@@ -835,15 +851,20 @@ function isSameCaseGroup(currentText: string, targetText: string) {
 
 function getClusterCases(currentSlug: string) {
   const currentMeta = getCaseMeta(currentSlug)
+  const currentSummary = getCaseSummaries().find((item) => item.slug === currentSlug)
   const currentText = `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
 
   return getCaseSummaries()
     .filter((item) => item.slug !== currentSlug)
     .map((item) => {
-      const sameGroup = isSameCaseGroup(currentText, item.text)
+      const sameExplicitGroup =
+        Boolean(currentSummary?.caseGroupId) &&
+        currentSummary?.caseGroupId === item.caseGroupId
+      const sameGroup = sameExplicitGroup || isSameCaseGroup(currentText, item.text)
 
       const similarity = sameGroup
         ? Math.max(
+            sameExplicitGroup ? 1 : 0,
             getDiceSimilarity(normalizeClusterText(currentText), normalizeClusterText(item.text)),
             ...getImportantCaseTokens(currentText).flatMap((token) =>
               getImportantCaseTokens(item.text).map((target) =>
@@ -894,23 +915,47 @@ function getRepresentativeCase(currentSlug: string) {
   const current = getCaseSummaries().find((item) => item.slug === currentSlug)
   const currentMeta = current || getCaseMeta(currentSlug)
   const currentText = current ? current.text : `${currentSlug} ${currentMeta.caseName} ${currentMeta.searchKeyword}`
+  const summaries = getCaseSummaries()
 
   if (current?.representativeSlug && current.representativeSlug !== currentSlug) {
-    const explicitRepresentative = getCaseSummaries().find(
+    const explicitRepresentative = summaries.find(
       (item) => item.slug === current.representativeSlug
     )
 
-    if (explicitRepresentative && isSameCaseGroup(current.text, explicitRepresentative.text)) {
+    const sameExplicitGroup =
+      Boolean(current.caseGroupId) &&
+      current.caseGroupId === explicitRepresentative?.caseGroupId
+
+    if (
+      explicitRepresentative &&
+      (sameExplicitGroup || isSameCaseGroup(current.text, explicitRepresentative.text))
+    ) {
       return explicitRepresentative
     }
   }
 
-  const group = getCaseSummaries()
+  if (current?.caseGroupId) {
+    const explicitGroup = summaries
+      .filter((item) => item.caseGroupId === current.caseGroupId)
+      .sort(
+        (a, b) =>
+          (a.groupRole === "representative" ? -1 : 0) -
+            (b.groupRole === "representative" ? -1 : 0) ||
+          (a.groupOrder || 999999) - (b.groupOrder || 999999) ||
+          a.birthtime - b.birthtime
+      )
+
+    if (explicitGroup.length < 2) return null
+
+    return explicitGroup[0]
+  }
+
+  const group = summaries
     .filter((item) => isSameCaseGroup(currentText, item.text))
     .sort(
       (a, b) =>
-        getRepresentativePriority(b) - getRepresentativePriority(a) ||
-        a.birthtime - b.birthtime
+        a.birthtime - b.birthtime ||
+        getRepresentativePriority(b) - getRepresentativePriority(a)
     )
 
   if (group.length < 2) return null

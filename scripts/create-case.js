@@ -8,8 +8,39 @@ const sharp = require("sharp")
 ========================================
 */
 
-const caseName = process.argv[2]
-const imageOnly = process.argv.includes("--image-only")
+const args = process.argv.slice(2)
+const imageOnly = args.includes("--image-only")
+
+function readOption(name) {
+  const prefix = `${name}=`
+  const inline = args.find((arg) => arg.startsWith(prefix))
+
+  if (inline) return inline.slice(prefix.length).trim()
+
+  const index = args.indexOf(name)
+
+  if (index !== -1 && args[index + 1] && !args[index + 1].startsWith("--")) {
+    return args[index + 1].trim()
+  }
+
+  return ""
+}
+
+const explicitGroupId = readOption("--group")
+const explicitRepresentativeSlug = readOption("--representative")
+const caseName = args
+  .filter((arg, index) => {
+    if (arg === "--image-only") return false
+    if (arg === "--group" || arg === "--representative") return false
+    if (index > 0 && (args[index - 1] === "--group" || args[index - 1] === "--representative")) {
+      return false
+    }
+    if (arg.startsWith("--group=") || arg.startsWith("--representative=")) return false
+
+    return true
+  })
+  .join(" ")
+  .trim()
 
 if (!caseName) {
   console.error("사건명을 입력하세요.")
@@ -310,6 +341,70 @@ function sharesIdentity(a, b) {
   )
 }
 
+function slugifyGroupId(value) {
+  return value
+    .toLowerCase()
+    .replace(/https?:\/\//g, "")
+    .replace(/www\./g, "")
+    .replace(/[^a-z0-9가-힣]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+function deriveGroupIdFromDomain(text) {
+  const domains = text.toLowerCase().match(new RegExp(domainPattern, "g")) || []
+  const genericTlds = new Set([
+    "app",
+    "biz",
+    "cc",
+    "co",
+    "com",
+    "io",
+    "kr",
+    "me",
+    "net",
+    "org",
+    "shop",
+    "site",
+    "store",
+    "top",
+    "vip",
+    "xyz",
+  ])
+
+  for (const domain of domains) {
+    const labels = domain.split(".").filter(Boolean)
+
+    if (labels.length < 2) continue
+
+    const last = labels.at(-1)
+    const rootLabel = genericTlds.has(last) ? labels.at(-2) : labels.at(-1)
+    const groupId = slugifyGroupId(rootLabel || "")
+
+    if (groupId.length >= 3 && !genericEnglishTokens.has(groupId)) {
+      return groupId
+    }
+  }
+
+  return ""
+}
+
+function deriveCaseGroupId(text) {
+  if (explicitGroupId) return slugifyGroupId(explicitGroupId)
+
+  const domainGroupId = deriveGroupIdFromDomain(text)
+  if (domainGroupId) return domainGroupId
+
+  const hyphenName = text.toLowerCase().match(/[a-z0-9]+(?:-[a-z0-9]+)+/)
+  if (hyphenName) return slugifyGroupId(hyphenName[0])
+
+  const tokens = getIdentityTokens(text)
+    .map(slugifyGroupId)
+    .filter((token) => token.length >= 3)
+    .filter((token) => !genericEnglishTokens.has(token))
+
+  return tokens[0] || slugifyGroupId(slug)
+}
+
 function getRepresentativeRule(text) {
   const lower = text.toLowerCase()
 
@@ -340,14 +435,24 @@ function buildCaseSummary(file) {
   const rawSource = fs.readFileSync(filePath, "utf-8")
   const caseNameFromMeta = readFrontmatterValue(rawSource, "caseName")
   const caseName = caseNameFromMeta || existSlug.replace(/-/g, " ")
+  const caseGroupId = readFrontmatterValue(rawSource, "caseGroupId")
+  const groupRole = readFrontmatterValue(rawSource, "groupRole")
+  const groupOrder = Number(readFrontmatterValue(rawSource, "groupOrder")) || 0
+  const representativeSlugFromMeta = readFrontmatterValue(rawSource, "representativeSlug")
+  const createdAt = readFrontmatterValue(rawSource, "createdAt")
   const stat = fs.statSync(filePath)
 
   return {
     slug: existSlug,
     caseName,
+    caseGroupId,
+    groupRole,
+    groupOrder,
+    representativeSlug: representativeSlugFromMeta,
+    createdAt,
     text: `${existSlug} ${caseName}`,
     type: detectCaseType(`${existSlug} ${caseName}`),
-    birthtime: stat.birthtime.getTime(),
+    birthtime: createdAt ? Date.parse(createdAt) || stat.birthtime.getTime() : stat.birthtime.getTime(),
   }
 }
 
@@ -358,6 +463,10 @@ function buildCaseSummary(file) {
 */
 
 let representativeGroup = []
+let caseGroupId = deriveCaseGroupId(cleanCaseName)
+const createdAt = new Date().toISOString()
+let groupOrder = 1
+let groupRole = "representative"
 
 function findRepresentativeSlug() {
   if (!fs.existsSync(casesDir)) return null
@@ -365,9 +474,14 @@ function findRepresentativeSlug() {
   const current = {
     slug,
     caseName: cleanCaseName,
+    caseGroupId,
+    groupRole,
+    groupOrder,
+    representativeSlug: "",
+    createdAt,
     text: `${slug} ${cleanCaseName}`,
     type: detectCaseType(`${slug} ${cleanCaseName}`),
-    birthtime: Date.now(),
+    birthtime: Date.parse(createdAt),
   }
 
   const existingCases = fs
@@ -376,6 +490,79 @@ function findRepresentativeSlug() {
     .filter((file) => file !== "_template.mdx")
     .map(buildCaseSummary)
     .filter((item) => item.slug !== slug)
+
+  const sameExplicitGroup = existingCases.filter(
+    (item) => item.caseGroupId && item.caseGroupId === caseGroupId
+  )
+
+  if (sameExplicitGroup.length > 0) {
+    representativeGroup = [...sameExplicitGroup, current]
+
+    const representative =
+      sameExplicitGroup.find((item) => item.groupRole === "representative") ||
+      sameExplicitGroup.find((item) => !item.representativeSlug) ||
+      sameExplicitGroup
+        .slice()
+        .sort((a, b) => (a.groupOrder || 999999) - (b.groupOrder || 999999) || a.birthtime - b.birthtime)[0]
+
+    groupRole = "variant"
+    groupOrder = Math.max(...sameExplicitGroup.map((item) => item.groupOrder || 0), 0) + 1
+    current.groupRole = groupRole
+    current.groupOrder = groupOrder
+
+    return representative.slug
+  }
+
+  const groupedCandidates = existingCases
+    .filter((item) => item.caseGroupId)
+    .filter((item) => item.type === current.type)
+    .filter((item) => sharesIdentity(current.text, item.text))
+  const matchedGroupIds = Array.from(
+    new Set(groupedCandidates.map((item) => item.caseGroupId))
+  )
+
+  if (matchedGroupIds.length === 1) {
+    caseGroupId = matchedGroupIds[0]
+
+    const matchedGroup = existingCases.filter((item) => item.caseGroupId === caseGroupId)
+    representativeGroup = [...matchedGroup, current]
+
+    const representative =
+      matchedGroup.find((item) => item.groupRole === "representative") ||
+      matchedGroup.find((item) => !item.representativeSlug) ||
+      matchedGroup
+        .slice()
+        .sort((a, b) => (a.groupOrder || 999999) - (b.groupOrder || 999999) || a.birthtime - b.birthtime)[0]
+
+    groupRole = "variant"
+    groupOrder = Math.max(...matchedGroup.map((item) => item.groupOrder || 0), 0) + 1
+    current.caseGroupId = caseGroupId
+    current.groupRole = groupRole
+    current.groupOrder = groupOrder
+
+    return representative.slug
+  }
+
+  if (explicitRepresentativeSlug) {
+    const representative = existingCases.find((item) => item.slug === explicitRepresentativeSlug)
+
+    if (!representative) {
+      console.error(`대표 사건을 찾을 수 없습니다: ${explicitRepresentativeSlug}`)
+      process.exit(1)
+    }
+
+    representativeGroup = [representative, current]
+    if (representative.caseGroupId) {
+      caseGroupId = representative.caseGroupId
+      current.caseGroupId = caseGroupId
+    }
+    groupRole = "variant"
+    groupOrder = Math.max(representative.groupOrder || 1, 1) + 1
+    current.groupRole = groupRole
+    current.groupOrder = groupOrder
+
+    return representative.slug
+  }
 
   const representativeRule = getRepresentativeRule(current.text)
 
@@ -389,22 +576,32 @@ function findRepresentativeSlug() {
       current,
     ]
 
+    groupRole = "variant"
+    groupOrder = representativeGroup.length
+    current.groupRole = groupRole
+    current.groupOrder = groupOrder
+
     return representativeRule.representativeSlug
   }
 
   const candidates = existingCases
     .filter((item) => item.type === current.type)
     .filter((item) => sharesIdentity(current.text, item.text))
+    .filter((item) => !item.caseGroupId)
 
   if (candidates.length === 0) return null
 
   representativeGroup = [...candidates, current]
+  groupRole = "variant"
+  groupOrder = representativeGroup.length
+  current.groupRole = groupRole
+  current.groupOrder = groupOrder
 
   return representativeGroup
     .sort(
       (a, b) =>
-        getRepresentativePriority(b) - getRepresentativePriority(a) ||
-        a.birthtime - b.birthtime
+        a.birthtime - b.birthtime ||
+        getRepresentativePriority(b) - getRepresentativePriority(a)
     )[0].slug
 }
 
@@ -619,12 +816,22 @@ frontmatter 생성
 const seoTitle = `${caseDisplayName} 피해회복`
 
 const seoDescription = `${cleanCaseName} 피해 사례 및 대응 전략 안내`
+const caseType = detectCaseType(`${slug} ${cleanCaseName}`)
+const primaryKeyword = cleanCaseName
+const aliases = getIdentityTokens(`${slug} ${cleanCaseName}`).join(", ")
 
 const frontmatter = `---
 title: "${seoTitle}"
 caseName: "${cleanCaseName}"
 description: "${seoDescription}"
 slug: "${slug}"
+createdAt: "${createdAt}"
+caseGroupId: "${caseGroupId}"
+groupRole: "${groupRole}"
+groupOrder: "${groupOrder}"
+primaryKeyword: "${primaryKeyword}"
+aliases: "${aliases}"
+caseType: "${caseType}"
 ${representativeSlug && representativeSlug !== slug ? `representativeSlug: "${representativeSlug}"` : ""}
 ---
 

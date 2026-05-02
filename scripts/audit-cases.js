@@ -422,6 +422,11 @@ function main() {
       frontmatter,
       caseName,
       representativeSlug: frontmatter.representativeSlug || "",
+      caseGroupId: frontmatter.caseGroupId || "",
+      groupRole: frontmatter.groupRole || "",
+      groupOrder: Number(frontmatter.groupOrder) || 0,
+      createdAt: frontmatter.createdAt || "",
+      caseType: frontmatter.caseType || "",
       type: detectCaseType(text),
       text,
       identityTokens: getIdentityTokens(text),
@@ -429,6 +434,65 @@ function main() {
   })
 
   const bySlug = new Map(cases.map((item) => [item.slug, item]))
+  const casesByGroupId = new Map()
+
+  cases.forEach((item) => {
+    if (!item.caseGroupId) return
+
+    casesByGroupId.set(item.caseGroupId, [
+      ...(casesByGroupId.get(item.caseGroupId) || []),
+      item,
+    ])
+  })
+
+  casesByGroupId.forEach((groupCases, caseGroupId) => {
+    const representatives = groupCases.filter((item) => item.groupRole === "representative")
+    const sortedGroup = groupCases
+      .slice()
+      .sort((a, b) => (a.groupOrder || 999999) - (b.groupOrder || 999999))
+    const representative = representatives[0] || sortedGroup[0]
+
+    if (representatives.length > 1) {
+      representatives.forEach((item) => {
+        addIssue(issues, "error", item.file, `duplicate representative in caseGroupId: ${caseGroupId}`)
+      })
+    }
+
+    groupCases.forEach((item) => {
+      if (!item.createdAt) {
+        addIssue(issues, "error", item.file, "missing createdAt for grouped case")
+      }
+
+      if (!item.groupRole) {
+        addIssue(issues, "error", item.file, "missing groupRole for grouped case")
+      }
+
+      if (!item.groupOrder) {
+        addIssue(issues, "error", item.file, "missing groupOrder for grouped case")
+      }
+
+      if (!item.caseType) {
+        addIssue(issues, "warning", item.file, "missing caseType for grouped case")
+      }
+
+      if (item.caseType && item.caseType !== item.type) {
+        addIssue(issues, "error", item.file, `caseType mismatch: ${item.caseType} -> ${item.type}`)
+      }
+
+      if (item.slug === representative.slug && item.representativeSlug) {
+        addIssue(issues, "error", item.file, "representative page should not point to another representative")
+      }
+
+      if (item.slug !== representative.slug && item.representativeSlug !== representative.slug) {
+        addIssue(
+          issues,
+          "error",
+          item.file,
+          `group representativeSlug should be ${representative.slug}`
+        )
+      }
+    })
+  })
 
   cases.forEach((item) => {
     if (item.frontmatter.slug && item.frontmatter.slug !== item.slug) {
@@ -456,12 +520,16 @@ function main() {
         addIssue(issues, "error", item.file, `representativeSlug does not exist: ${item.representativeSlug}`)
         invalidRepresentative = true
       } else {
+        const sameExplicitGroup =
+          Boolean(item.caseGroupId) &&
+          item.caseGroupId === representative.caseGroupId
+
         if (item.type !== representative.type) {
           addIssue(issues, "error", item.file, `representative type mismatch: ${item.type} -> ${representative.type}`)
           invalidRepresentative = true
         }
 
-        if (!sharesIdentity(item.text, representative.text)) {
+        if (!sameExplicitGroup && !sharesIdentity(item.text, representative.text)) {
           addIssue(
             issues,
             "error",
@@ -500,7 +568,7 @@ function main() {
     const representativeRule = getRepresentativeRule(item.text)
     const expectedRepresentativeSlug = representativeRule?.representativeSlug || ""
 
-    if (expectedRepresentativeSlug && bySlug.has(expectedRepresentativeSlug)) {
+    if (!item.caseGroupId && expectedRepresentativeSlug && bySlug.has(expectedRepresentativeSlug)) {
       if (item.slug === expectedRepresentativeSlug && item.representativeSlug) {
         addIssue(issues, "error", item.file, "representative page should not point to another representative")
 
