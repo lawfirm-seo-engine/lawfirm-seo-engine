@@ -32,6 +32,15 @@ export default function Footer() {
           </a>
         </div>
 
+        {/* 사이트 링크 */}
+        <div className="daeon-footer-links">
+          <a href="/attorney" className="daeon-footer-link">대표변호사 소개</a>
+          <span className="daeon-footer-link-sep">·</span>
+          <a href="/services" className="daeon-footer-link">주력분야</a>
+          <span className="daeon-footer-link-sep">·</span>
+          <a href="/cases" className="daeon-footer-link">진행 사건</a>
+        </div>
+
         {/* 저작권 */}
         <div className="daeon-footer-copy">
           COPYRIGHT © 2024 대온 법률사무소 All rights reserved.
