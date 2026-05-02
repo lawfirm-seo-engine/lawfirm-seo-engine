@@ -113,8 +113,8 @@ export default function CasesArchiveClient({
 
   return (
     <>
-      <div className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-        <div className="order-2 text-left lg:order-2">
+      <div className="mb-10 space-y-6">
+        <div className="text-left">
           <p className="mb-3 text-sm font-bold text-emerald-700">
             DAEON FINTECH CENTER
           </p>
@@ -122,7 +122,44 @@ export default function CasesArchiveClient({
           <h1 className="break-keep text-4xl font-black leading-tight text-slate-900 md:text-5xl">
             금융사기 피해 사례 유형별 목록
           </h1>
+        </div>
 
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <label
+              htmlFor="case-search"
+              className="mb-2 block text-sm font-black text-slate-700"
+            >
+              사건 검색
+            </label>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                id="case-search"
+                type="search"
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                placeholder="업체명, 도메인, 리딩방명, 사건 유형으로 검색"
+                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+              />
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="shrink-0 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700"
+              >
+                초기화
+              </button>
+
+              <p className="shrink-0 text-sm font-bold text-slate-500">
+                {normalizedKeyword
+                  ? `검색 결과 ${filteredCases.length}건`
+                  : `전체 ${cases.length}건`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-center text-left">
           <p className="mt-5 max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
             팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
             나누어 실제 사칭 사건을 확인할 수 있습니다.
@@ -131,39 +168,6 @@ export default function CasesArchiveClient({
           <p className="mt-3 text-sm font-semibold text-slate-500">
             총 {cases.length}건의 사건이 등록되어 있습니다.
           </p>
-        </div>
-
-        <div className="order-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:order-1">
-          <label
-            htmlFor="case-search"
-            className="mb-2 block text-sm font-black text-slate-700"
-          >
-            사건 검색
-          </label>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
-              id="case-search"
-              type="search"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              placeholder="업체명, 도메인, 리딩방명, 사건 유형으로 검색"
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-            />
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="shrink-0 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700"
-            >
-              초기화
-            </button>
-
-            <p className="shrink-0 text-sm font-bold text-slate-500">
-              {normalizedKeyword
-                ? `검색 결과 ${filteredCases.length}건`
-                : `전체 ${cases.length}건`}
-            </p>
           </div>
         </div>
       </div>
