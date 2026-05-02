@@ -304,6 +304,9 @@ function getCaseMeta(decodedSlug: string) {
   mdxSource = stripLeakedMetaLines(mdxSource)
   mdxSource = stripBrokenRelatedGuide(mdxSource)
 
+  // frontmatter publishedAt이 있으면 고정 날짜 사용 (Vercel 배포 시 birthtime 재설정 방지)
+  const publishedAt = frontmatter.publishedAt || null
+
   return {
     filePath,
     rawSource,
@@ -312,6 +315,7 @@ function getCaseMeta(decodedSlug: string) {
     searchKeyword,
     seoTitle,
     seoDescription,
+    publishedAt,
   }
 }
 
@@ -329,7 +333,9 @@ export async function generateMetadata({
   const decodedSlug = decodeURIComponent(slug)
   const { searchKeyword, seoTitle, seoDescription } = getCaseMeta(decodedSlug)
 
-  const pageUrl = `${siteUrl}/cases/${decodedSlug}`
+  // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
+  const encodedSlug = encodeURIComponent(decodedSlug)
+  const pageUrl = `${siteUrl}/cases/${encodedSlug}`
   const imageAvifSrc = getCaseImageSrc(decodedSlug, "avif")
   const imagePngSrc = getCaseImageSrc(decodedSlug, "png")
   const imageAvif = getVersionedImageUrl(imageAvifSrc)
@@ -960,6 +966,7 @@ export default async function CasePage({
     searchKeyword,
     seoTitle,
     seoDescription,
+    publishedAt,
   } = getCaseMeta(decodedSlug)
 
   if (!fs.existsSync(filePath)) {
@@ -967,11 +974,12 @@ export default async function CasePage({
   }
 
   let source = normalizeMdxImagePaths(mdxSource)
-  source = normalizeHtmlImagePaths(source)  
+  source = normalizeHtmlImagePaths(source)
 
   const stat = fs.statSync(filePath)
 
-  const pageUrl = `${siteUrl}/cases/${decodedSlug}`
+  const encodedSlug = encodeURIComponent(decodedSlug)
+  const pageUrl = `${siteUrl}/cases/${encodedSlug}`
   const imageUrl = getVersionedImageUrl(getCaseImageSrc(decodedSlug, "png"))
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${searchKeyword} 피해 사례 및 대응 방법 안내`
@@ -1029,118 +1037,35 @@ export default async function CasePage({
   const recentCases = getRecentCases(decodedSlug)
   const representativeCase = getRepresentativeCase(decodedSlug)
 
-  const organizationJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${siteUrl}/#organization`,
-    name: organizationName,
-    legalName: organizationName,
-    alternateName: [
-      siteName,
-      "대온 핀테크센터",
-      "대온 금융사기 대응센터",
-      "대온 법률사무소 금융사기 대응센터",
-    ],
-    url: siteUrl,
-    logo: `${siteUrl}/images/logo.png`,
-    image: `${siteUrl}/images/logo.png`,
-    telephone: phoneNumber,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
-      addressLocality: "서초구",
-      addressRegion: "서울특별시",
-      postalCode: "06647",
-      addressCountry: "KR",
-    },
-    founder: {
-      "@type": "Person",
-      "@id": `${siteUrl}/#representative`,
-      name: representativeName,
-      jobTitle: "대표변호사",
-      url: siteUrl,
-      worksFor: {
-        "@id": `${siteUrl}/#organization`,
-      },
-    },
-    sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
-  }
+  // datePublished: frontmatter publishedAt 고정값 우선
+  // → Vercel 배포 시 파일 birthtime이 재설정되는 버그 방지
+  const datePublished = publishedAt
+    ? new Date(publishedAt).toISOString()
+    : stat.mtime.toISOString()
+  const dateModified = stat.mtime.toISOString()
 
-  const legalServiceJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "LegalService",
-    "@id": `${siteUrl}/#legalservice`,
-    name: siteName,
-    legalName: organizationName,
-    alternateName: [
-      "대온 핀테크센터",
-      "대온 금융사기 대응센터",
-      "대온 법률사무소 금융사기 대응센터",
-    ],
-    url: siteUrl,
-    logo: `${siteUrl}/images/logo.png`,
-    image: `${siteUrl}/images/logo.png`,
-    telephone: phoneNumber,
-    priceRange: "$$$",
-    description:
-      "대온 법률사무소 핀테크센터는 금융사기, 투자사기, 리딩방 사기, 코인 사기 피해 대응 정보를 제공하는 법률 정보 사이트입니다.",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
-      addressLocality: "서초구",
-      addressRegion: "서울특별시",
-      postalCode: "06647",
-      addressCountry: "KR",
-    },
-    areaServed: {
-      "@type": "Country",
-      name: "대한민국",
-    },
-    knowsAbout: [
-      "금융사기 피해 대응",
-      "투자사기 피해 회복",
-      "리딩방 사기",
-      "코인 사기",
-      "플랫폼 사칭 사기",
-      "계좌 추적",
-      "가압류",
-      "민형사 대응",
-      ...scamTopicKeywords,
-    ],
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer support",
-      areaServed: "KR",
-      availableLanguage: ["ko-KR"],
-      telephone: phoneNumber,
-    },
-    sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
-  }
-
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${siteUrl}/#website`,
-    url: siteUrl,
-    name: siteName,
-    alternateName: ["대온 핀테크센터", "대온 법률사무소"],
-    publisher: {
-      "@id": `${siteUrl}/#organization`,
-    },
-    inLanguage: "ko-KR",
-  }
-
-  const authorJsonLd = {
+  // 10개 개별 JSON-LD → 단일 @graph로 통합 (Google Search Console 파싱 효율 향상)
+  const pageJsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Organization",
-        "@id": `${siteUrl}/#author`,
+        "@id": `${siteUrl}/#organization`,
         name: organizationName,
         legalName: organizationName,
-        alternateName: [siteName, "대온 핀테크센터"],
+        alternateName: [siteName, "대온 핀테크센터", "대온 금융사기 대응센터"],
         url: siteUrl,
         logo: `${siteUrl}/images/logo.png`,
+        image: `${siteUrl}/images/logo.png`,
+        telephone: phoneNumber,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
+          addressLocality: "서초구",
+          addressRegion: "서울특별시",
+          postalCode: "06647",
+          addressCountry: "KR",
+        },
         sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
       },
       {
@@ -1148,220 +1073,131 @@ export default async function CasePage({
         "@id": `${siteUrl}/#representative`,
         name: representativeName,
         jobTitle: "대표변호사",
+        url: `${siteUrl}/attorney`,
+        worksFor: { "@id": `${siteUrl}/#organization` },
+        sameAs: [siteUrl, `${siteUrl}/attorney`],
+      },
+      {
+        "@type": "LegalService",
+        "@id": `${siteUrl}/#legalservice`,
+        name: siteName,
+        legalName: organizationName,
         url: siteUrl,
-        worksFor: {
-          "@id": `${siteUrl}/#organization`,
+        logo: `${siteUrl}/images/logo.png`,
+        telephone: phoneNumber,
+        priceRange: "$$$",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호",
+          addressLocality: "서초구",
+          addressRegion: "서울특별시",
+          postalCode: "06647",
+          addressCountry: "KR",
         },
-        affiliation: {
-          "@id": `${siteUrl}/#organization`,
+        areaServed: { "@type": "Country", name: "대한민국" },
+        knowsAbout: [
+          "금융사기 피해 대응",
+          "투자사기 피해 회복",
+          "리딩방 사기",
+          "코인 사기",
+          "플랫폼 사칭 사기",
+          "계좌 추적",
+          "가압류",
+          "민형사 대응",
+          ...scamTopicKeywords,
+        ],
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          areaServed: "KR",
+          availableLanguage: ["ko-KR"],
+          telephone: phoneNumber,
         },
-        sameAs: [siteUrl],
-      },
-    ],
-  }
-
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "@id": `${pageUrl}#article`,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": pageUrl,
-    },
-    isPartOf: {
-      "@id": `${siteUrl}/#website`,
-    },
-    headline: seoTitle,
-    description: seoDescription,
-    keywords: articleKeywords.join(", "),
-    about: articleAbout,
-    mentions: articleAbout,
-    image: {
-      "@type": "ImageObject",
-      "@id": `${imageUrl}#image`,
-      url: imageUrl,
-      contentUrl: imageUrl,
-      width: 1200,
-      height: 630,
-      caption: imageCaption,
-      description: imageDescription,
-      inLanguage: "ko-KR",
-    },
-    author: [
-      {
-        "@id": `${siteUrl}/#author`,
+        sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
       },
       {
-        "@id": `${siteUrl}/#representative`,
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: siteName,
+        alternateName: ["대온 핀테크센터", "대온 법률사무소"],
+        publisher: { "@id": `${siteUrl}/#organization` },
+        inLanguage: "ko-KR",
       },
-    ],
-    publisher: {
-      "@type": "Organization",
-      "@id": `${siteUrl}/#organization`,
-      name: organizationName,
-      legalName: organizationName,
-      url: siteUrl,
-      logo: {
+      {
         "@type": "ImageObject",
-        url: `${siteUrl}/images/logo.png`,
-        width: 512,
-        height: 512,
-      },
-      sameAs: ["https://cafe.naver.com/daeonlawfintech", siteUrl],
-    },
-    datePublished: stat.birthtime.toISOString(),
-    dateModified: stat.mtime.toISOString(),
-    inLanguage: "ko-KR",
-  }
-
-  const speakableJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SpeakableSpecification",
-    cssSelector: [
-      ".case-content h1",
-      ".case-content h2",
-      ".case-content p",
-      ".case-faq-title",
-    ],
-  }
-
-  const howToJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "HowTo",
-    "@id": `${pageUrl}#howto`,
-    name: `${searchKeyword} 피해 대응 방법`,
-    description: `${searchKeyword} 피해 발생 후 증거 보존, 계좌 확인, 상담 및 민형사 대응을 준비하는 절차입니다.`,
-    image: imageUrl,
-    totalTime: "PT30M",
-    supply: [
-      {
-        "@type": "HowToSupply",
-        name: "입금 내역",
+        "@id": `${imageUrl}#image`,
+        url: imageUrl,
+        contentUrl: imageUrl,
+        width: 1200,
+        height: 630,
+        name: imageAlt,
+        caption: imageCaption,
+        description: imageDescription,
+        representativeOfPage: true,
+        inLanguage: "ko-KR",
       },
       {
-        "@type": "HowToSupply",
-        name: "대화 내역",
-      },
-      {
-        "@type": "HowToSupply",
-        name: "사이트 주소 및 화면 캡처",
-      },
-      {
-        "@type": "HowToSupply",
-        name: "가상자산 지갑주소 또는 계좌정보",
-      },
-    ],
-    step: [
-      {
-        "@type": "HowToStep",
-        position: 1,
-        name: "증거자료 보존",
-        text: "사기 사이트 주소, 대화방, 입금 내역, 계좌번호, 지갑주소, 담당자 프로필 등을 삭제하지 말고 캡처해 보관합니다.",
-      },
-      {
-        "@type": "HowToStep",
-        position: 2,
-        name: "추가 입금 중단",
-        text: "세금, 보증금, 인증비, 출금 수수료 등 추가 입금을 요구받더라도 더 이상 송금하지 않습니다.",
-      },
-      {
-        "@type": "HowToStep",
-        position: 3,
-        name: "자금 흐름 확인",
-        text: "입금 계좌, 가상자산 지갑주소, 송금 시각, 거래소 이용 내역을 정리해 피해금 이동 경로를 확인합니다.",
-      },
-      {
-        "@type": "HowToStep",
-        position: 4,
-        name: "법률 상담 진행",
-        text: "피해 자료를 바탕으로 가압류, 계좌 동결, 민사 손해배상, 형사 고소 등 가능한 대응 방향을 검토합니다.",
-      },
-    ],
-  }
-
-  const imageJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ImageObject",
-    "@id": `${imageUrl}#image`,
-    url: imageUrl,
-    contentUrl: imageUrl,
-    width: 1200,
-    height: 630,
-    name: imageAlt,
-    caption: imageCaption,
-    description: imageDescription,
-    representativeOfPage: true,
-    inLanguage: "ko-KR",
-  }
-
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "홈",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "진행 사건",
-        item: `${siteUrl}/cases`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: seoTitle,
-        item: pageUrl,
-      },
-    ],
-  }
-
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "피해금 회복이 가능한가요?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을 검토할 수 있으며 초기 대응 속도가 중요합니다.",
+        "@type": "Article",
+        "@id": `${pageUrl}#article`,
+        mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+        isPartOf: { "@id": `${siteUrl}/#website` },
+        headline: seoTitle,
+        description: seoDescription,
+        keywords: articleKeywords.join(", "),
+        about: articleAbout,
+        mentions: articleAbout,
+        image: { "@id": `${imageUrl}#image` },
+        author: [
+          { "@id": `${siteUrl}/#organization` },
+          { "@id": `${siteUrl}/#representative` },
+        ],
+        publisher: { "@id": `${siteUrl}/#organization` },
+        datePublished,
+        dateModified,
+        inLanguage: "ko-KR",
+        speakable: {
+          "@type": "SpeakableSpecification",
+          cssSelector: [".case-content h1", ".case-content h2", ".case-content p", ".case-faq-title"],
         },
       },
       {
-        "@type": "Question",
-        name: "경찰 신고만으로 해결되나요?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "경찰 신고는 중요하지만 실제 피해금 회복을 위해서는 민사 대응과 계좌 관련 절차가 함께 검토되어야 합니다.",
-        },
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "홈", item: siteUrl },
+          { "@type": "ListItem", position: 2, name: "진행 사건", item: `${siteUrl}/cases` },
+          { "@type": "ListItem", position: 3, name: seoTitle, item: pageUrl },
+        ],
       },
       {
-        "@type": "Question",
-        name: "대응은 언제 시작해야 하나요?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 대응을 시작하는 것이 중요합니다.",
-        },
+        "@type": "HowTo",
+        "@id": `${pageUrl}#howto`,
+        name: `${searchKeyword} 피해 대응 방법`,
+        description: `${searchKeyword} 피해 발생 후 증거 보존, 계좌 확인, 상담 및 민형사 대응을 준비하는 절차입니다.`,
+        image: imageUrl,
+        totalTime: "PT30M",
+        supply: [
+          { "@type": "HowToSupply", name: "입금 내역" },
+          { "@type": "HowToSupply", name: "대화 내역" },
+          { "@type": "HowToSupply", name: "사이트 주소 및 화면 캡처" },
+          { "@type": "HowToSupply", name: "가상자산 지갑주소 또는 계좌정보" },
+        ],
+        step: [
+          { "@type": "HowToStep", position: 1, name: "증거자료 보존", text: "사기 사이트 주소, 대화방, 입금 내역, 계좌번호, 지갑주소, 담당자 프로필 등을 삭제하지 말고 캡처해 보관합니다." },
+          { "@type": "HowToStep", position: 2, name: "추가 입금 중단", text: "세금, 보증금, 인증비, 출금 수수료 등 추가 입금을 요구받더라도 더 이상 송금하지 않습니다." },
+          { "@type": "HowToStep", position: 3, name: "자금 흐름 확인", text: "입금 계좌, 가상자산 지갑주소, 송금 시각, 거래소 이용 내역을 정리해 피해금 이동 경로를 확인합니다." },
+          { "@type": "HowToStep", position: 4, name: "법률 상담 진행", text: "피해 자료를 바탕으로 가압류, 계좌 동결, 민사 손해배상, 형사 고소 등 가능한 대응 방향을 검토합니다." },
+        ],
       },
       {
-        "@type": "Question",
-        name: "후불제로 사건 진행을 하고 싶은데 가능한가요?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의해야 합니다.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "단체 소송으로 진행하는게 좋은가요?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 의뢰인의 실익이 없기에 대온은 진행하지 않습니다.",
-        },
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "피해금 회복이 가능한가요?", acceptedAnswer: { "@type": "Answer", text: "사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을 검토할 수 있으며 초기 대응 속도가 중요합니다." } },
+          { "@type": "Question", name: "경찰 신고만으로 해결되나요?", acceptedAnswer: { "@type": "Answer", text: "경찰 신고는 중요하지만 실제 피해금 회복을 위해서는 민사 대응과 계좌 관련 절차가 함께 검토되어야 합니다." } },
+          { "@type": "Question", name: "대응은 언제 시작해야 하나요?", acceptedAnswer: { "@type": "Answer", text: "사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 대응을 시작하는 것이 중요합니다." } },
+          { "@type": "Question", name: "후불제로 사건 진행을 하고 싶은데 가능한가요?", acceptedAnswer: { "@type": "Answer", text: "변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의해야 합니다." } },
+          { "@type": "Question", name: "단체 소송으로 진행하는게 좋은가요?", acceptedAnswer: { "@type": "Answer", text: "단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 의뢰인의 실익이 없기에 대온은 진행하지 않습니다." } },
+        ],
       },
     ],
   }
@@ -1485,16 +1321,12 @@ export default async function CasePage({
         }}
       />
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(legalServiceJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(authorJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(imageJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(pageJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
 
       <article className="case-content">
         <h1>{seoTitle}</h1>
@@ -1573,7 +1405,7 @@ export default async function CasePage({
 
           <ul className="related-cases-list">
             <li className="related-cases-item">
-              <Link href={`/cases/${representativeCase.slug}`} className="related-cases-link">
+              <Link href={`/cases/${encodeURIComponent(representativeCase.slug)}`} className="related-cases-link">
                 /cases/{representativeCase.slug}
               </Link>
             </li>
@@ -1590,7 +1422,7 @@ export default async function CasePage({
           <ul className="related-cases-list">
             {recentCases.map((item) => (
               <li key={item.slug} className="related-cases-item">
-                <Link href={`/cases/${item.slug}`} className="related-cases-link">
+                <Link href={`/cases/${encodeURIComponent(item.slug)}`} className="related-cases-link">
                   {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
                 </Link>
               </li>

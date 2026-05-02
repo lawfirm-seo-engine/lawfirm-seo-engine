@@ -15,6 +15,9 @@ module.exports = {
     "/api/*",
     "/admin/*",
     "/private/*",
+    // 검색엔진 설정 파일·피드는 HTML 색인 대상이 아님
+    "/robots.txt",
+    "/rss.xml",
   ],
 
   robotsTxtOptions: {
@@ -51,7 +54,7 @@ module.exports = {
       .filter((file) => file !== "_template.mdx")
       .filter((file) => !file.startsWith("_"))
 
-    return files.map((file) => {
+    const casePaths = files.map((file) => {
       const filePath = path.join(casesPath, file)
       const stat = fs.statSync(filePath)
       const slug = file.replace(/\.mdx$/, "")
@@ -63,5 +66,15 @@ module.exports = {
         lastmod: stat.mtime.toISOString(),
       }
     })
+
+    // /cases 목록 페이지를 sitemap에 명시적으로 포함
+    casePaths.unshift({
+      loc: "/cases",
+      changefreq: "daily",
+      priority: 0.9,
+      lastmod: new Date().toISOString(),
+    })
+
+    return casePaths
   },
 }
