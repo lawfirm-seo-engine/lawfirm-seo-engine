@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# sitemap / robots (Vercel postbuild에서 next-sitemap이 자동 재생성 → 커밋 불필요)
+/public/sitemap*.xml
+/public/robots.txt
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

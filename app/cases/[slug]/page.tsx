@@ -1500,6 +1500,175 @@ export default async function CasePage({
           </ul>
         </section>
       )}
+
+      {/* P3: 사기 유형별 고유 대응 정보 (케이스 페이지 콘텐츠 차별화) */}
+      <CaseTypeInsight caseType={detectCaseType(`${decodedSlug} ${caseName}`).label} caseName={caseName} />
+
+      {/* P4: 네이버 카페 커뮤니티 링크 — 양방향 링크 신호 + E-E-A-T 보강 */}
+      <section
+        style={{
+          maxWidth: "960px",
+          margin: "32px auto 0",
+          padding: "28px 32px",
+          border: "1px solid #d1fae5",
+          borderRadius: "18px",
+          background: "#f0fdf4",
+          display: "flex",
+          alignItems: "center",
+          gap: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ flex: 1, minWidth: "240px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: 800, color: "#065f46" }}>
+            대온 법률사무소 네이버 카페
+          </p>
+          <p style={{ margin: 0, fontSize: "14px", color: "#047857", lineHeight: 1.7 }}>
+            {caseName} 관련 최신 피해 사례와 대응 정보를 카페에서도 확인하실 수 있습니다.
+            동일 피해를 입은 다른 피해자들의 사례가 도움이 될 수 있습니다.
+          </p>
+        </div>
+        <Link
+          href="https://cafe.naver.com/daeonlawfintech"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            height: "44px",
+            padding: "0 20px",
+            borderRadius: "12px",
+            background: "#03c75a",
+            color: "#ffffff",
+            fontSize: "14px",
+            fontWeight: 800,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          네이버 카페 바로가기 →
+        </Link>
+      </section>
     </main>
+  )
+}
+
+// P3: 사기 유형별 고유 인사이트 컴포넌트
+function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: string }) {
+  const insights: Record<string, { title: string; points: string[]; warning: string }> = {
+    "증권사 사칭 사기": {
+      title: "증권사 사칭 사기 피해 특징 및 대응 포인트",
+      points: [
+        "실제 증권사(대신증권·유진투자증권 등)와 동일한 이름·로고를 사용하는 가짜 사이트·앱으로 접근합니다.",
+        "HTS·MTS를 모방한 화면에서 수익이 쌓이는 것처럼 보이다가 출금 시 세금·보증금을 요구합니다.",
+        "공모주·비상장주식 투자를 미끼로 추가 입금을 유도하는 패턴이 많습니다.",
+        "계좌 추적 시 대포통장이 연결된 경우가 많아 초기 가압류 타이밍이 중요합니다.",
+      ],
+      warning: "증권사 사칭 피해는 입금 계좌와 담당자 대화 캡처를 즉시 보존하고 추가 입금을 중단하는 것이 최우선입니다.",
+    },
+    "쇼핑몰 사칭 사기": {
+      title: "쇼핑몰·팀미션 사기 피해 특징 및 대응 포인트",
+      points: [
+        "쿠팡·마켓컬리 등 정상 플랫폼을 사칭해 구매대행·리뷰알바·팀미션 참여를 유도합니다.",
+        "초반 소액 정산 후 점점 큰 금액의 상품 구매를 요구하다가 출금을 차단하는 구조입니다.",
+        "정산 완료를 미끼로 세금·보증금·잔액 충전을 반복 요구하는 패턴이 전형적입니다.",
+        "사이트 화면과 정산 내역 캡처, 담당자 연락처가 회수 가능성 검토의 핵심 자료입니다.",
+      ],
+      warning: "추가 입금 요구를 받는 단계라면 즉시 중단해야 합니다. 이미 입금한 금액에 대한 회수 가능성을 별도로 검토합니다.",
+    },
+    "코인 거래소 사칭 사기": {
+      title: "코인·가상자산 사기 피해 특징 및 대응 포인트",
+      points: [
+        "실제 거래소와 동일한 UI·도메인을 모방한 가짜 거래소 앱을 통해 입금을 유도합니다.",
+        "스테이킹·에어드랍 명목으로 지갑 연결을 유도하거나 추가 코인 전송을 요구합니다.",
+        "출금 신청 시 추가 세금·수수료·인증비를 요구하는 패턴이 전형적입니다.",
+        "가상자산 지갑주소와 트랜잭션 해시가 있으면 블록체인 추적이 가능합니다.",
+      ],
+      warning: "코인 출금 제한 후 추가 코인 전송을 요구받은 경우 절대 응하지 마세요. 지갑주소와 거래 내역을 즉시 보존하세요.",
+    },
+    "해외선물 사칭 사기": {
+      title: "해외선물 사기 피해 특징 및 대응 포인트",
+      points: [
+        "나스닥·금·원유·항셍 등 해외선물 거래를 미끼로 가짜 플랫폼 가입을 유도합니다.",
+        "MT5·전용 앱 화면에서 수익이 표시되다가 출금 요청 시 추가 증거금을 요구합니다.",
+        "리딩방 전문가를 통해 접근하며 단기 수익 보장을 강조하는 방식이 많습니다.",
+        "입금 계좌, 플랫폼 URL, 리딩방 초대 경로가 핵심 증거 자료입니다.",
+      ],
+      warning: "해외선물 거래 플랫폼은 금융위원회 등록 여부를 먼저 확인해야 합니다. 미등록 해외선물 플랫폼은 사기 가능성이 높습니다.",
+    },
+    "방송 환전 사칭 사기": {
+      title: "방송·포인트 환전 사기 피해 특징 및 대응 포인트",
+      points: [
+        "라이브 방송 후원, 채팅 알바, 포인트 적립 명목으로 접근합니다.",
+        "적립된 포인트·수익 환전을 위해 개인정보·계좌번호·추가 입금을 요구합니다.",
+        "만남·채팅 유도 후 특정 플랫폼 가입과 결제를 강요하는 패턴도 있습니다.",
+        "담당자와의 대화방 캡처와 플랫폼 URL이 중요한 증거입니다.",
+      ],
+      warning: "방송 플랫폼에서 외부 계좌 입금을 유도하거나 개인정보를 요구하면 즉시 중단하세요.",
+    },
+    "플랫폼 사칭 사기": {
+      title: "플랫폼 사칭 사기 피해 특징 및 대응 포인트",
+      points: [
+        "정상 플랫폼의 이름·로고·UI를 모방한 사이트나 앱을 통해 입금을 유도합니다.",
+        "정상적인 서비스처럼 포장하다가 출금 단계에서 각종 수수료·인증비를 요구합니다.",
+        "사이트 도메인, 담당자 연락처, 입금 계좌번호를 즉시 보존해야 합니다.",
+        "동일 사이트명을 사용하는 다른 피해자와 정보를 공유하면 대응에 도움이 됩니다.",
+      ],
+      warning: "추가 입금 요구 단계라면 즉시 중단하고 이미 입금한 내역을 기준으로 대응 방향을 검토해야 합니다.",
+    },
+  }
+
+  const insight = insights[caseType] ?? insights["플랫폼 사칭 사기"]
+
+  return (
+    <section
+      style={{
+        maxWidth: "960px",
+        margin: "44px auto 0",
+        padding: "32px 34px",
+        border: "1px solid #e5e7eb",
+        borderRadius: "20px",
+        background: "#ffffff",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.06)",
+      }}
+    >
+      <h2
+        style={{
+          margin: "0 0 20px",
+          paddingBottom: "14px",
+          borderBottom: "3px solid #111827",
+          fontSize: "22px",
+          fontWeight: 900,
+          color: "#111827",
+        }}
+      >
+        {insight.title}
+      </h2>
+
+      <ul style={{ margin: "0 0 20px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+        {insight.points.map((point, i) => (
+          <li key={i} style={{ display: "flex", gap: "10px", fontSize: "15px", lineHeight: 1.75, color: "#374151" }}>
+            <span style={{ flexShrink: 0, fontWeight: 900, color: "#111827" }}>✔</span>
+            <span>{point}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div
+        style={{
+          padding: "16px 20px",
+          borderRadius: "12px",
+          background: "#fffbeb",
+          border: "1px solid #fbbf24",
+          fontSize: "14px",
+          lineHeight: 1.8,
+          color: "#92400e",
+        }}
+      >
+        <strong style={{ display: "block", marginBottom: "4px", fontWeight: 800, color: "#78350f" }}>⚠ 주의</strong>
+        {insight.warning}
+      </div>
+    </section>
   )
 }
