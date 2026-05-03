@@ -6,41 +6,55 @@ import { getPublicCaseCategories } from "@/lib/caseCategories"
 const siteUrl = "https://daeonlawfintech.com"
 const pageUrl = `${siteUrl}/services`
 
+const publicCategories = getPublicCaseCategories()
+
 const serviceCategories = [
   {
-    ...getPublicCaseCategories()[0],
+    ...publicCategories[0],
     serviceTitle: "팀미션·부업 사기 대응",
-    serviceDescription: "쇼핑몰, 여행사, 체험단, 리뷰·주문대행 사칭 구조를 확인합니다.",
+    serviceDescription:
+      "쇼핑몰, 여행사, 체험단, 리뷰·주문대행 사칭 구조를 확인합니다.",
   },
   {
-    ...getPublicCaseCategories()[1],
+    ...publicCategories[1],
     serviceTitle: "주식리딩방·투자 사기 대응",
-    serviceDescription: "공모주·비상장, 전문가·증권사 사칭, 해외선물 피해를 분류합니다.",
+    serviceDescription:
+      "공모주·비상장, 전문가·증권사 사칭, 해외선물 피해를 분류합니다.",
   },
   {
-    ...getPublicCaseCategories()[2],
+    ...publicCategories[2],
     serviceTitle: "코인리딩방·가상자산 사기 대응",
-    serviceDescription: "코인, 월렛, 거래소 사칭, 스테이킹 유도 사례를 살펴봅니다.",
+    serviceDescription:
+      "코인, 월렛, 거래소 사칭, 스테이킹 유도 사례를 살펴봅니다.",
   },
   {
-    ...getPublicCaseCategories()[3],
+    ...publicCategories[3],
     serviceTitle: "방송환전·포인트 사기 대응",
-    serviceDescription: "라이브 방송, 포인트 환전, 채팅·만남 유도 흐름을 정리합니다.",
+    serviceDescription:
+      "라이브 방송, 포인트 환전, 채팅·만남 유도 흐름을 정리합니다.",
   },
 ]
 
 const faqItems = [
   {
-    q: "피해금을 돌려받을 수 있나요?",
-    a: "사건 유형과 입금 시점에 따라 다릅니다. 계좌 추적, 가압류, 지급정지 요청 등을 통해 회수 가능성을 검토합니다.",
+    q: "피해금 회복이 가능한가요?",
+    a: "사건 유형, 입금 시점, 계좌나 지갑주소 확보 여부에 따라 달라집니다. 계좌 추적, 지급정지, 가압류 등 가능한 절차를 먼저 검토합니다.",
   },
   {
-    q: "경찰 신고만으로 충분한가요?",
-    a: "형사 신고와 함께 민사 보전 조치를 병행해야 실질적인 피해 회복 가능성이 높아질 수 있습니다.",
+    q: "후불제로 사건 진행을 하고 싶은데 가능한가요?",
+    a: "사건의 자료, 상대방 특정 가능성, 회수 가능성 등을 검토한 뒤 진행 방식과 비용 구조를 안내합니다. 상담 단계에서 현재 보유 자료를 기준으로 확인합니다.",
   },
   {
-    q: "증거가 부족해도 상담이 가능한가요?",
-    a: "입금 내역이나 대화 캡처 중 하나라도 있으면 1차 검토가 가능합니다.",
+    q: "경찰 신고만으로 해결되나요?",
+    a: "경찰 신고는 필요하지만 피해금 회복까지 자동으로 이어지지는 않습니다. 민사 보전, 계좌 추적, 플랫폼 신고 등 별도 조치가 함께 검토되어야 합니다.",
+  },
+  {
+    q: "대응과 상담은 언제 시작해야 하나요?",
+    a: "사이트, 대화방, 계좌, 앱 화면은 빠르게 사라질 수 있으므로 입금 직후나 추가 입금 요구를 받은 시점에 바로 자료를 보존하고 상담을 시작하는 것이 좋습니다.",
+  },
+  {
+    q: "단체 소송으로 진행하는게 좋은가요?",
+    a: "피해 구조가 같고 입금 경로가 유사한 경우 단체 대응이 도움이 될 수 있습니다. 다만 개인별 입금 내역과 증거가 달라 개별 검토가 필요합니다.",
   },
 ]
 
@@ -140,28 +154,31 @@ export default function ServicesPage() {
               <Link
                 key={service.id}
                 href={service.href}
-                className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
+                className="group min-h-[300px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <h2 className="break-keep text-2xl font-black text-slate-950 group-hover:text-emerald-700">
+                <div className="flex min-h-[105px] items-center justify-between gap-4 bg-emerald-700 px-7 py-6 text-white">
+                  <h2 className="break-keep text-2xl font-black">
                     {service.serviceTitle}
                   </h2>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-800">
+                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-black text-emerald-800">
                     사례 보기
                   </span>
                 </div>
-                <p className="mt-4 break-keep text-base font-semibold leading-8 text-slate-600">
-                  {service.serviceDescription}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {service.keywords.map((keyword) => (
-                    <span
-                      key={keyword}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
+
+                <div className="p-7">
+                  <p className="break-keep text-base font-semibold leading-8 text-slate-600">
+                    {service.serviceDescription}
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {service.keywords.map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -187,15 +204,17 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section className="mx-auto mt-12 max-w-3xl rounded-3xl bg-slate-950 px-7 py-8 text-center text-white">
-          <p className="text-sm font-black text-emerald-300">
+        <section className="mx-auto mt-12 max-w-3xl rounded-3xl bg-emerald-700 px-7 py-8 text-center text-white">
+          <p className="text-sm font-black text-emerald-100">
             DAEON FINTECH CENTER
           </p>
-          <p className="mt-2 text-2xl font-black">대온 법률사무소 · 02-6952-3695</p>
+          <p className="mt-2 text-2xl font-black">
+            대온 법률사무소 · 02-6952-3695
+          </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="tel:0269523695"
-              className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-sm font-black text-slate-950"
+              className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-sm font-black text-emerald-800"
             >
               전화 상담
             </Link>
@@ -208,7 +227,7 @@ export default function ServicesPage() {
               카카오톡 상담
             </Link>
           </div>
-          <p className="mt-4 text-sm text-slate-400">평일 09:00 - 18:00</p>
+          <p className="mt-4 text-sm text-emerald-100">평일 09:00 - 18:00</p>
         </section>
       </main>
     </>

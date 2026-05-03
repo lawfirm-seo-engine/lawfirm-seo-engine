@@ -115,7 +115,7 @@ export default function CasesArchiveClient({
 
   return (
     <>
-      <div className="mb-10 space-y-6">
+      <div className="mb-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div className="text-left">
           <p className="mb-3 text-sm font-bold text-emerald-700">
             DAEON FINTECH CENTER
@@ -124,10 +124,8 @@ export default function CasesArchiveClient({
           <h1 className="break-keep text-4xl font-black leading-tight text-slate-900 md:text-5xl">
             금융사기 피해 사례 유형별 목록
           </h1>
-        </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
             <label
               htmlFor="case-search"
               className="mb-2 block text-sm font-black text-slate-700"
@@ -142,13 +140,13 @@ export default function CasesArchiveClient({
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="업체명, 도메인, 리딩방명, 사건 유형으로 검색"
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-base font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100"
               />
 
               <button
                 type="button"
                 onClick={handleReset}
-                className="shrink-0 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700"
+                className="shrink-0 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-black text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700"
               >
                 초기화
               </button>
@@ -160,29 +158,29 @@ export default function CasesArchiveClient({
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-col justify-center text-left">
-            <p className="max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
-              팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
-              나누어 실제 사칭 사건을 확인할 수 있습니다.
-            </p>
+        <div className="pt-2 text-left lg:pt-3">
+          <p className="max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
+            팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
+            나누어 실제 사칭 사건을 확인할 수 있습니다.
+          </p>
 
-            <div className="mt-6 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-2 text-xl font-black text-slate-950 md:text-2xl">
-              {categories.map((category) => (
-                <Link
-                  key={category.id}
-                  href={category.href}
-                  className="break-keep hover:text-emerald-700"
-                >
-                  [{category.title}]
-                </Link>
-              ))}
-            </div>
-
-            <p className="mt-6 text-sm font-semibold text-slate-500">
-              총 {cases.length}건의 사건이 등록되어 있습니다.
-            </p>
+          <div className="mt-6 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-2 text-xl font-black text-slate-950 md:text-2xl">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={category.href}
+                className="break-keep hover:text-emerald-700"
+              >
+                [{category.title}]
+              </Link>
+            ))}
           </div>
+
+          <p className="mt-6 text-sm font-semibold text-slate-500">
+            총 {cases.length}건의 사건이 등록되어 있습니다.
+          </p>
         </div>
       </div>
 
