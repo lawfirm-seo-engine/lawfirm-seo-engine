@@ -178,7 +178,8 @@ export default async function CasesPage() {
     })),
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: cases.slice(0, 50).map((item, index) => ({
+      // JSON-LD는 전체 323개 포함 (Google/Naver 구조화 데이터 파싱용)
+      itemListElement: cases.map((item, index) => ({
         "@type": "ListItem",
         position: index + 1,
         name: `${item.caseName} 피해 사례`,
@@ -223,6 +224,45 @@ export default async function CasesPage() {
           }))}
         />
       </section>
+
+      {/*
+        서버 사이드 전체 사건 색인 — 크롤러용
+        - JS 실행 없이도 전체 323개 링크를 HTML에서 읽을 수 있도록 서버 렌더링
+        - 네이버 Yeti·Googlebot의 내부 링크 발견율 개선
+        - 시각적으로는 접혀 있지만 DOM에 존재 → 크롤러·스크린리더 접근 가능
+      */}
+      <nav
+        aria-label="전체 금융사기 피해 사건 목록"
+        className="mx-auto mt-16 max-w-[1500px]"
+      >
+        <details>
+          <summary className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-6 py-4 text-base font-black text-slate-700 shadow-sm hover:border-emerald-500 hover:text-emerald-700">
+            전체 사건 목록 ({cases.length}건) — 유형별 전체 보기
+          </summary>
+
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {categoryBuckets.map((category) => (
+              <section key={category.id} className="mb-8 last:mb-0">
+                <h2 className="mb-3 text-base font-black text-emerald-800">
+                  {category.title} ({category.cases.length}건)
+                </h2>
+                <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {category.cases.map((item) => (
+                    <li key={item.slug}>
+                      <a
+                        href={`/cases/${encodeURIComponent(item.slug)}`}
+                        className="block truncate rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                      >
+                        {item.caseName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </details>
+      </nav>
     </main>
   )
 }

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 
-const CASES_PER_GROUP = 25
+const CASES_PER_GROUP = 50
 
 type CaseItem = {
   slug: string
