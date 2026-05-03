@@ -115,24 +115,29 @@ export default function CasesArchiveClient({
 
   return (
     <>
-      <div className="mb-10 grid gap-x-6 gap-y-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+      <div className="mb-10 space-y-4">
         <div className="text-left">
           <p className="mb-3 text-sm font-bold text-emerald-700">
             DAEON FINTECH CENTER
           </p>
+        </div>
 
+        <div className="grid gap-x-6 gap-y-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="text-left">
           <h1 className="break-keep text-4xl font-black leading-tight text-slate-900 md:text-5xl">
             금융사기 피해 사례 유형별 목록
           </h1>
         </div>
 
-        <div className="pt-2 text-left lg:pt-3">
+        <div className="flex h-full items-center text-left">
           <p className="max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
             팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을 나누어
             실제 사칭 사건을 확인할 수 있습니다.
           </p>
         </div>
+        </div>
 
+        <div className="grid gap-x-6 gap-y-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
             <label
@@ -185,6 +190,7 @@ export default function CasesArchiveClient({
           <p className="mt-6 text-sm font-semibold text-slate-500">
             총 {cases.length}건의 사건이 등록되어 있습니다.
           </p>
+        </div>
         </div>
       </div>
 
