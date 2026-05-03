@@ -71,6 +71,16 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/cases/여행사-사칭",
+        destination: "/cases/여행사-사칭-사기",
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withMDX(nextConfig)
