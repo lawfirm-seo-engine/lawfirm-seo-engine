@@ -16,6 +16,8 @@ type CaseItem = {
 type CaseCategory = {
   id: string
   title: string
+  shortTitle: string
+  href: string
   description: string
   keywords: string[]
 }
@@ -160,14 +162,26 @@ export default function CasesArchiveClient({
           </div>
 
           <div className="flex flex-col justify-center text-left">
-          <p className="mt-5 max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
-            팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
-            나누어 실제 사칭 사건을 확인할 수 있습니다.
-          </p>
+            <p className="max-w-3xl break-keep text-base leading-8 text-slate-600 md:text-lg">
+              팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 피해 유형을
+              나누어 실제 사칭 사건을 확인할 수 있습니다.
+            </p>
 
-          <p className="mt-3 text-sm font-semibold text-slate-500">
-            총 {cases.length}건의 사건이 등록되어 있습니다.
-          </p>
+            <div className="mt-6 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-2 text-xl font-black text-slate-950 md:text-2xl">
+              {categories.map((category) => (
+                <Link
+                  key={category.id}
+                  href={category.href}
+                  className="break-keep hover:text-emerald-700"
+                >
+                  [{category.title}]
+                </Link>
+              ))}
+            </div>
+
+            <p className="mt-6 text-sm font-semibold text-slate-500">
+              총 {cases.length}건의 사건이 등록되어 있습니다.
+            </p>
           </div>
         </div>
       </div>

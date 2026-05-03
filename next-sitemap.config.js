@@ -75,6 +75,33 @@ module.exports = {
       lastmod: new Date().toISOString(),
     })
 
+    casePaths.unshift(
+      {
+        loc: "/cases/teammission",
+        changefreq: "daily",
+        priority: 0.9,
+        lastmod: new Date().toISOString(),
+      },
+      {
+        loc: "/cases/stock-room",
+        changefreq: "daily",
+        priority: 0.9,
+        lastmod: new Date().toISOString(),
+      },
+      {
+        loc: "/cases/crypto-room",
+        changefreq: "daily",
+        priority: 0.9,
+        lastmod: new Date().toISOString(),
+      },
+      {
+        loc: "/cases/broadcast-exchange",
+        changefreq: "daily",
+        priority: 0.9,
+        lastmod: new Date().toISOString(),
+      }
+    )
+
     return casePaths
   },
 }
