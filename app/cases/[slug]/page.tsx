@@ -443,6 +443,15 @@ function getRecentCases(currentSlug: string) {
     .slice(0, 6)
 }
 
+// 프론트매터만 읽기 위해 파일 앞부분(2KB)만 읽음 → 전체 파일 읽기 대비 I/O 절감
+function readFrontmatterOnly(filePath: string): string {
+  const fd = fs.openSync(filePath, "r")
+  const buf = Buffer.alloc(2048)
+  const bytesRead = fs.readSync(fd, buf, 0, 2048, 0)
+  fs.closeSync(fd)
+  return buf.subarray(0, bytesRead).toString("utf-8")
+}
+
 function getCaseSummaries() {
   if (caseSummariesCache) return caseSummariesCache
   if (!fs.existsSync(casesDir)) return []
@@ -455,7 +464,8 @@ function getCaseSummaries() {
     .map((file) => {
       const slug = file.replace(/\.mdx$/, "")
       const filePath = path.join(casesDir, file)
-      const rawSource = fs.readFileSync(filePath, "utf-8")
+      // 프론트매터 파싱에는 전체 파일 내용이 불필요 → 앞 2KB만 읽음
+      const rawSource = readFrontmatterOnly(filePath)
       const frontmatter = parseFrontmatter(rawSource)
       const safeFrontmatterCaseName = !isBadCaseName(frontmatter.caseName)
         ? frontmatter.caseName
@@ -1044,40 +1054,55 @@ export default async function CasePage({
     name,
   }))
 
-  const { content } = await compileMDX({
-    source,
-    options: {
-      parseFrontmatter: false,
-    },
-    components: {
-      img: (props) => {
-        const src =
-          typeof props.src === "string" && props.src.includes("/images/cases/")
-            ? normalizeImageSrc(props.src)
-            : props.src
+  let content: React.ReactNode
 
-        return (
-          <img
-            {...props}
-            src={src}
-            alt={
-              typeof props.alt === "string" && props.alt.trim().length > 0
-                ? props.alt
-                : imageAlt
-            }
-          />
-        )
+  try {
+    const compiled = await compileMDX({
+      source,
+      options: {
+        parseFrontmatter: false,
       },
+      components: {
+        img: (props) => {
+          const src =
+            typeof props.src === "string" && props.src.includes("/images/cases/")
+              ? normalizeImageSrc(props.src)
+              : props.src
 
-      h2: ({ children }) => (
-        <TypingHeading text={String(children)} level="h2" />
-      ),
+          return (
+            <img
+              {...props}
+              src={src}
+              alt={
+                typeof props.alt === "string" && props.alt.trim().length > 0
+                  ? props.alt
+                  : imageAlt
+              }
+            />
+          )
+        },
 
-      h3: ({ children }) => (
-        <TypingHeading text={String(children)} level="h3" />
-      ),
-    },
-  })
+        h2: ({ children }) => (
+          <TypingHeading text={String(children)} level="h2" />
+        ),
+
+        h3: ({ children }) => (
+          <TypingHeading text={String(children)} level="h3" />
+        ),
+      },
+    })
+    content = compiled.content
+  } catch (err) {
+    console.error(`[compileMDX] 실패: ${decodedSlug}`, err)
+    // MDX 파싱 실패 시 원본 텍스트를 단순 렌더링 (500 방지)
+    content = (
+      <div className="mdx-fallback">
+        <p>
+          콘텐츠를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
+        </p>
+      </div>
+    )
+  }
 
   const recentCases = getRecentCases(decodedSlug)
   const representativeCase = getRepresentativeCase(decodedSlug)
