@@ -227,7 +227,7 @@ export default function ServicesPage() {
               카카오톡 상담
             </Link>
           </div>
-          <p className="mt-4 text-sm text-emerald-100">평일 09:00 - 18:00</p>
+          <p className="mt-4 text-sm text-emerald-100">24시간 긴급 상담 대응</p>
         </section>
       </main>
     </>
