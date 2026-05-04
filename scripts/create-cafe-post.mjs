@@ -31,7 +31,7 @@ const imageUrl = `https://daeonlawfintech.com/images/cases/${slug}.png`
 console.log(`
 제목:
 
-${keyword} 피해 사례 총정리 | 대응 방법·증거 보전·법적 절차 안내
+${keyword} 피해 사례 총정리
 
 
 본문:
@@ -202,7 +202,7 @@ A. 직접 신고도 가능하지만, 증거 정리·고소장 작성·수사 대
 👉 ${keyword} 피해 사례 및 대응 정보 확인
 ${url}
 
-👉 최신 피해 사례·대응 업데이트)
+👉 최신 피해 사례·대응 업데이트
 https://daeonlawfintech.com
 
 상담은 24시간 접수 가능하며, 초기 상담은 무료입니다.
