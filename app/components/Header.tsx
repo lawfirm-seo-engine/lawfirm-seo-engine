@@ -13,7 +13,7 @@ const caseHubLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [servicesOpen, setServicesOpen] = useState(false)
+  const [casesOpen, setCasesOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -95,23 +95,24 @@ export default function Header() {
             className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-[12px] font-semibold text-gray-800"
             aria-label="모바일 주요 메뉴"
           >
+            <Link href="/services" onClick={() => setMenuOpen(false)}>
+              주력분야
+            </Link>
             <button
               type="button"
-              onClick={() => setServicesOpen(!servicesOpen)}
+              onClick={() => setCasesOpen(!casesOpen)}
               className="inline-flex items-center gap-0.5"
             >
-              주력분야
-              <span className={`transition-transform duration-200 ${servicesOpen ? "rotate-180" : ""}`}>▾</span>
-            </button>
-            <Link href="/cases" onClick={() => setMenuOpen(false)}>
               진행사건
-            </Link>
+              <span className={`transition-transform duration-200 ${casesOpen ? "rotate-180" : ""}`}>▾</span>
+            </button>
 
-            {servicesOpen && (
+            {casesOpen && (
               <>
                 <div className="basis-full" />
                 <div className="flex flex-col items-start gap-1 border-l-2 border-slate-200 pl-3 text-left">
-                  {caseHubLinks.map((item) => (
+                  <Link href="/cases" onClick={() => setMenuOpen(false)}>• 전체 사건 목록</Link>
+                  {caseHubLinks.slice(1).map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
