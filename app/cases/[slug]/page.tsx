@@ -333,39 +333,24 @@ export async function generateMetadata({
   const { slug } = await params
 
   const decodedSlug = decodeURIComponent(slug)
-  const { searchKeyword, seoTitle, seoDescription } = getCaseMeta(decodedSlug)
+  const { searchKeyword, seoTitle, seoDescription, publishedAt } = getCaseMeta(decodedSlug)
 
   // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
   const encodedSlug = encodeURIComponent(decodedSlug)
   const pageUrl = `${siteUrl}/cases/${encodedSlug}`
-  const imageAvifSrc = getCaseImageSrc(decodedSlug, "avif")
+
+  // PNG만 OG 이미지로 사용 (AVIF는 Naver Yeti 미지원 → 중복 og:image 시 썸네일 오작동)
   const imagePngSrc = getCaseImageSrc(decodedSlug, "png")
-  const imageAvif = getVersionedImageUrl(imageAvifSrc)
   const imagePng = getVersionedImageUrl(imagePngSrc)
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
 
-  const openGraphImages = [
-    {
-      url: imagePng,
-      secureUrl: imagePng,
-      type: "image/png",
-      width: 1200,
-      height: 630,
-      alt: imageAlt,
-    },
-    ...(imageAvifSrc.endsWith(".avif")
-      ? [
-          {
-            url: imageAvif,
-            secureUrl: imageAvif,
-            type: "image/avif",
-            width: 1200,
-            height: 630,
-            alt: imageAlt,
-          },
-        ]
-      : []),
-  ]
+  // 발행일: frontmatter publishedAt → 파일 mtime 순으로 fallback
+  const filePath = getCaseFilePath(decodedSlug)
+  const stat = fs.existsSync(filePath) ? fs.statSync(filePath) : null
+  const datePublished = publishedAt
+    ? new Date(publishedAt).toISOString()
+    : stat?.mtime.toISOString() ?? new Date().toISOString()
+  const dateModified = stat?.mtime.toISOString() ?? new Date().toISOString()
 
   return {
     title: seoTitle,
@@ -390,13 +375,9 @@ export async function generateMetadata({
       },
     },
 
+    // Naver 전용 썸네일 힌트 (og:image 중복 없이 단일 PNG 지정)
     other: {
-      "og:image": imagePng,
-      "og:image:secure_url": imagePng,
-      "og:image:type": "image/png",
-      "og:image:width": "1200",
-      "og:image:height": "630",
-      "og:image:alt": imageAlt,
+      "thumbnail": imagePng,
     },
 
     openGraph: {
@@ -406,7 +387,25 @@ export async function generateMetadata({
       siteName,
       locale: "ko_KR",
       type: "article",
-      images: openGraphImages,
+      // article.publishedTime → <meta property="article:published_time"> 출력
+      // Naver Yeti가 이 태그를 우선 사용하므로 발행일 오인식 방지
+      article: {
+        publishedTime: datePublished,
+        modifiedTime: dateModified,
+        authors: [`${siteUrl}/attorney`],
+        section: "금융사기 피해 사례",
+        tags: [searchKeyword, "금융사기", "피해회복", "대온 법률사무소"],
+      },
+      images: [
+        {
+          url: imagePng,
+          secureUrl: imagePng,
+          type: "image/png",
+          width: 1200,
+          height: 630,
+          alt: imageAlt,
+        },
+      ],
     },
 
     twitter: {
@@ -1064,11 +1063,17 @@ export default async function CasePage({
       },
       components: {
         img: (props) => {
-          const src =
-            typeof props.src === "string" && props.src.includes("/images/cases/")
-              ? normalizeImageSrc(props.src)
-              : props.src
+          const rawSrc = typeof props.src === "string" ? props.src : ""
+          const isCaseHero =
+            rawSrc.includes("/images/cases/") &&
+            !rawSrc.includes("template-") &&
+            rawSrc.replace(/\?.*$/, "").endsWith(".png")
 
+          const src = rawSrc.includes("/images/cases/")
+            ? normalizeImageSrc(rawSrc)
+            : rawSrc
+
+          // 케이스 대표 이미지(첫 번째 PNG)는 width/height 명시 → Naver Yeti 썸네일 인식 개선
           return (
             <img
               {...props}
@@ -1078,6 +1083,7 @@ export default async function CasePage({
                   ? props.alt
                   : imageAlt
               }
+              {...(isCaseHero ? { width: 1200, height: 630 } : {})}
             />
           )
         },
