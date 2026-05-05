@@ -28,11 +28,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   icons: {
+    // rel="shortcut icon" + type="image/x-icon" → Naver Yeti 파비콘 인식 표준 형식
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
     ],
-    apple: [{ url: "/apple-icon.png" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
   },
 
   verification: {
@@ -41,6 +43,15 @@ export const metadata: Metadata = {
       "naver-site-verification":
         "bd3e64eb58fefb8b0ddce38226625e283a662dc9",
     },
+  },
+
+  // Naver 사이트명 표시 핵심 태그
+  // application-name → Naver가 도메인 대신 사이트명을 표시할 때 최우선 참조
+  // og:site_name·JSON-LD name 단독으로는 부족 → 세 가지 신호를 일치시켜야 함
+  other: {
+    "application-name": organizationName,
+    "msapplication-TileColor": "#111827",
+    "theme-color": "#111827",
   },
 
   title: {
@@ -178,6 +189,8 @@ const websiteJsonLd = {
   url: siteUrl,
 
   name: siteName,
+  // alternateName에 단축 사이트명 명시 → Naver가 사이트명 후보로 참조
+  alternateName: [organizationName, "대온 핀테크센터"],
 
   publisher: {
     "@id": `${siteUrl}/#organization`,
