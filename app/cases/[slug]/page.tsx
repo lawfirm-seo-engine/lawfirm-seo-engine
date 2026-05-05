@@ -978,6 +978,32 @@ function getRepresentativeCase(currentSlug: string) {
   return representative
 }
 
+// ─── .keywords 파일 읽기 ────────────────────────────────────────────────────
+// 형식: 줄 당 키워드 1개 (content/daeonlawfintech/cases/{slug}.keywords)
+function readCaseKeywords(slug: string): string[] {
+  const filePath = path.join(casesDir, `${slug}.keywords`)
+  if (!fs.existsSync(filePath)) return []
+  return fs.readFileSync(filePath, "utf8")
+    .split("\n")
+    .map((k) => k.trim())
+    .filter(Boolean)
+}
+
+// ─── .memo 파일 읽기 ─────────────────────────────────────────────────────────
+// 형식: [YYYY-MM-DD] 내용 (content/daeonlawfintech/cases/{slug}.memo)
+function readCaseMemos(slug: string): { date: string; text: string }[] {
+  const filePath = path.join(casesDir, `${slug}.memo`)
+  if (!fs.existsSync(filePath)) return []
+  return fs.readFileSync(filePath, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^\[(\d{4}-\d{2}-\d{2})\]\s+(.+)$/)
+      return match ? { date: match[1], text: match[2].trim() } : null
+    })
+    .filter((item): item is { date: string; text: string } => item !== null)
+}
+
 function normalizeImageSrc(src: string) {
   const cleanSrc = src.split("?")[0]
 
@@ -1032,6 +1058,10 @@ export default async function CasePage({
 
   const stat = fs.statSync(filePath)
 
+  // .keywords / .memo 파일 로드
+  const extraKeywords = readCaseKeywords(decodedSlug)
+  const caseMemos = readCaseMemos(decodedSlug)
+
   const encodedSlug = encodeURIComponent(decodedSlug)
   const pageUrl = `${siteUrl}/cases/${encodedSlug}`
   const imageUrl = getVersionedImageUrl(getCaseImageSrc(decodedSlug, "png"))
@@ -1045,6 +1075,8 @@ export default async function CasePage({
     `${caseName} 피해회복`,
     `${caseName} 피해 사례`,
     `${caseName} 대응 방법`,
+    // .keywords 파일의 추가 키워드 → JSON-LD 및 메타에 자동 반영
+    ...extraKeywords,
     ...scamTopicKeywords,
   ]
 
@@ -1556,6 +1588,120 @@ export default async function CasePage({
           네이버 카페 바로가기 →
         </Link>
       </section>
+
+      {/* 추가 키워드 섹션 — .keywords 파일이 있을 때만 렌더링 */}
+      {extraKeywords.length > 0 && (
+        <section
+          style={{
+            maxWidth: "960px",
+            margin: "28px auto 0",
+            padding: "26px 32px",
+            border: "1px solid #e5e7eb",
+            borderRadius: "18px",
+            background: "#f9fafb",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 12px",
+              fontSize: "16px",
+              fontWeight: 900,
+              color: "#374151",
+            }}
+          >
+            관련 유사 업체명 및 검색어
+          </h2>
+          <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#6b7280", lineHeight: 1.7 }}>
+            {caseName}와 동일하거나 유사한 수법으로 운영된 업체명·도메인·검색어입니다.
+            아래 명칭으로 검색하셨다면 동일한 사기 피해일 가능성이 있습니다.
+          </p>
+          <ul
+            style={{
+              margin: 0,
+              padding: 0,
+              listStyle: "none",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            {extraKeywords.map((kw) => (
+              <li
+                key={kw}
+                style={{
+                  padding: "5px 14px",
+                  borderRadius: "999px",
+                  border: "1px solid #d1d5db",
+                  background: "#ffffff",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#374151",
+                }}
+              >
+                {kw}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* 운영자 업데이트 섹션 — .memo 파일이 있을 때만 렌더링 */}
+      {caseMemos.length > 0 && (
+        <section
+          style={{
+            maxWidth: "960px",
+            margin: "28px auto 32px",
+            padding: "26px 32px",
+            border: "1px solid #e0e7ff",
+            borderRadius: "18px",
+            background: "#f5f3ff",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 16px",
+              fontSize: "16px",
+              fontWeight: 900,
+              color: "#3730a3",
+            }}
+          >
+            운영자 업데이트
+          </h2>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {caseMemos.map((memo, i) => (
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  gap: "14px",
+                  alignItems: "flex-start",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                  border: "1px solid #e0e7ff",
+                }}
+              >
+                <time
+                  dateTime={memo.date}
+                  style={{
+                    flexShrink: 0,
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    color: "#6366f1",
+                    paddingTop: "2px",
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {memo.date}
+                </time>
+                <span style={{ fontSize: "14px", lineHeight: 1.75, color: "#374151" }}>
+                  {memo.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   )
 }
