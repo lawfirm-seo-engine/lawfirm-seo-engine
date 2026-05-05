@@ -375,9 +375,13 @@ export async function generateMetadata({
       },
     },
 
-    // Naver 전용 썸네일 힌트 (og:image 중복 없이 단일 PNG 지정)
+    // Naver 전용 메타 힌트
+    // - thumbnail: Naver 썸네일 명시
+    // - date / DC.date.issued: 발행일 보조 신호 (article:published_time 미지원 크롤러 대비)
     other: {
-      "thumbnail": imagePng,
+      thumbnail: imagePng,
+      date: datePublished.slice(0, 10),
+      "DC.date.issued": datePublished.slice(0, 10),
     },
 
     openGraph: {
@@ -387,15 +391,14 @@ export async function generateMetadata({
       siteName,
       locale: "ko_KR",
       type: "article",
-      // article.publishedTime → <meta property="article:published_time"> 출력
-      // Naver Yeti가 이 태그를 우선 사용하므로 발행일 오인식 방지
-      article: {
-        publishedTime: datePublished,
-        modifiedTime: dateModified,
-        authors: [`${siteUrl}/attorney`],
-        section: "금융사기 피해 사례",
-        tags: [searchKeyword, "금융사기", "피해회복", "대온 법률사무소"],
-      },
+      // Next.js App Router: publishedTime은 openGraph 최상위에 위치해야
+      // <meta property="article:published_time"> 태그가 출력됨
+      // (article: { publishedTime } 중첩 구조는 Next.js가 인식하지 않음)
+      publishedTime: datePublished,
+      modifiedTime: dateModified,
+      authors: [`${siteUrl}/attorney`],
+      section: "금융사기 피해 사례",
+      tags: [searchKeyword, "금융사기", "피해회복", "대온 법률사무소"],
       images: [
         {
           url: imagePng,
@@ -1004,6 +1007,16 @@ function readCaseMemos(slug: string): { date: string; text: string }[] {
     .filter((item): item is { date: string; text: string } => item !== null)
 }
 
+// MDX 첫 번째 <figure> 블록 제거
+// → page.tsx가 직접 hero <img>를 DOM 최상단에 렌더링하므로 중복 방지
+// → Naver Yeti가 figure 밖 첫 번째 <img>를 썸네일로 인식하도록 구조 개선
+function stripLeadingFigure(source: string): string {
+  return source
+    .trimStart()
+    .replace(/^<figure[\s\S]*?<\/figure>\s*/i, "")
+    .trimStart()
+}
+
 function normalizeImageSrc(src: string) {
   const cleanSrc = src.split("?")[0]
 
@@ -1053,7 +1066,9 @@ export default async function CasePage({
     notFound()
   }
 
-  let source = normalizeMdxImagePaths(mdxSource)
+  // MDX 첫 <figure>(hero 이미지 블록) 제거 → page.tsx에서 직접 렌더링
+  let source = stripLeadingFigure(mdxSource)
+  source = normalizeMdxImagePaths(source)
   source = normalizeHtmlImagePaths(source)
 
   const stat = fs.statSync(filePath)
@@ -1096,16 +1111,10 @@ export default async function CasePage({
       components: {
         img: (props) => {
           const rawSrc = typeof props.src === "string" ? props.src : ""
-          const isCaseHero =
-            rawSrc.includes("/images/cases/") &&
-            !rawSrc.includes("template-") &&
-            rawSrc.replace(/\?.*$/, "").endsWith(".png")
-
           const src = rawSrc.includes("/images/cases/")
             ? normalizeImageSrc(rawSrc)
             : rawSrc
 
-          // 케이스 대표 이미지(첫 번째 PNG)는 width/height 명시 → Naver Yeti 썸네일 인식 개선
           return (
             <img
               {...props}
@@ -1115,7 +1124,6 @@ export default async function CasePage({
                   ? props.alt
                   : imageAlt
               }
-              {...(isCaseHero ? { width: 1200, height: 630 } : {})}
             />
           )
         },
@@ -1438,6 +1446,27 @@ export default async function CasePage({
 
       <article className="case-content">
         <h1>{seoTitle}</h1>
+
+        {/*
+          케이스 대표 이미지 — page.tsx에서 직접 렌더링 (MDX figure 제거 후 이 위치가 DOM 첫 번째 <img>)
+          - Naver Yeti: DOM에서 첫 번째 <img>를 썸네일로 우선 선택
+          - width/height 명시 → 크롤러가 이미지 크기 사전 인식 (1200×630 = 대형 이미지 신호)
+          - fetchPriority="high" → 브라우저/크롤러 최우선 로드
+          - itemProp="image" → schema.org Article 이미지 속성 명시
+        */}
+        <figure style={{ margin: "0 0 2rem" }}>
+          <img
+            src={getVersionedImageUrl(getCaseImageSrc(decodedSlug, "png"))}
+            alt={imageAlt}
+            width={1200}
+            height={630}
+            fetchPriority="high"
+            itemProp="image"
+            style={{ width: "100%", height: "auto", borderRadius: "12px", display: "block" }}
+          />
+          <figcaption className="seo-hidden">{imageCaption}</figcaption>
+        </figure>
+
         {content}
       </article>
 
