@@ -994,7 +994,6 @@ function phoneImageBlock(alt) {
 }
 
 function buildRoleBody() {
-  const role = detectKeywordRole(cleanCaseName)
   const name = caseDisplayName
   const plainName = cleanCaseName
 
@@ -1010,19 +1009,9 @@ function buildRoleBody() {
 
 특히 변호사의 후불제 수임은 법적으로 허용되지 않는 방식이므로, 후불제를 언급하는 경우 또 다른 사기 가능성을 반드시 의심해야 합니다.`
 
-  const roleIntro = {
-    domain: `${plainName}은 실제 접속 주소(도메인)를 기준으로 피해 여부를 확인해야 하는 ${td.label} 사칭 의심 사례입니다. 도메인이 남아 있을 때는 메인 화면, 로그인 화면, 주문 또는 정산 화면을 빠르게 확보하는 것이 중요합니다. 도메인형 사칭 사이트는 폐쇄되거나 다른 주소로 이동되는 경우가 많으므로 주소 전체와 접속 경로를 함께 정리해야 합니다.`,
-    "english-full": `${plainName}은 영문 사이트명 또는 서비스명으로 검색되는 ${td.label} 사칭 의심 사례입니다. 피해자는 정확한 도메인을 기억하지 못하더라도 영문 표기만으로 검색하는 경우가 많아 영문명 자체의 기록이 중요합니다. 같은 이름을 사용하는 도메인, 앱, 고객센터 계정, 오픈채팅방 이름이 함께 존재하는지 확인하세요.`,
-    "english-short": `${plainName}은 짧은 영문명으로 기억되거나 검색되는 ${td.label} 사칭 의심 사례입니다. 축약명은 도메인, 앱 이름, 채팅방 이름, 담당자 프로필에 일부만 노출되는 경우가 많습니다. ${plainName}만 보고 판단하기보다 함께 안내받은 전체 사이트 주소와 입금 계좌를 같이 확인해야 합니다.`,
-    "korean-full": `${plainName}은 한글 상호명으로 검색되는 ${td.label} 사칭 의심 사례입니다. 한글 상호명이 실제 등록 법인과 일치하는지 여부를 먼저 확인해야 합니다. 안내받은 이름, 담당자 대화, 사이트 화면에 표기된 이름이 일치하지 않는다면 특히 주의가 필요합니다.`,
-    "korean-short": `${plainName}은 축약 한글명으로 기억되거나 검색되는 ${td.label} 사칭 의심 사례입니다. 짧은 한글명은 같은 이름을 사용하는 여러 사이트가 존재할 수 있으며, 함께 안내받은 주소와 계좌 정보를 중심으로 사건을 정리해야 합니다.`,
-  }
-
-  const intro = roleIntro[role] || roleIntro["korean-short"]
-
   return `## 1. ${name} 피해 개요
 
-${intro}
+${plainName}은 ${td.label} 사칭 피해 신고가 접수된 사례입니다. ${td.approach} 방식으로 피해자에게 접근하며, ${td.victimAction}을 요청한 뒤 ${td.mechanism} 명목으로 금전을 요구합니다. 피해 발생 후에는 ${td.delayType}를 이유로 추가 입금을 반복 요구하는 패턴이 확인됩니다.
 
 ${imageBlock("02", `${plainName} ${td.label} 사칭 피해 구조 안내 이미지`)}
 
@@ -1126,11 +1115,6 @@ function buildMdx() {
       /^---[\s\S]*?---\s*/,
       ""
     )
-
-  template = rewriteGeneratedContextForType(
-    template,
-    detectCaseType(cleanCaseName)
-  )
 
   fs.writeFileSync(
     outputPath,
