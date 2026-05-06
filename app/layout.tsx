@@ -22,7 +22,7 @@ const siteUrl = "https://daeonlawfintech.com";
 const googleAnalyticsId = "G-RDQJT1FLNT";
 // Naver Analytics 계정 ID — analytics.naver.com 에서 발급 (예: "s_xxxxxxxxxx")
 // 발급 후 아래 값을 교체하면 자동 활성화됩니다.
-const naverAnalyticsId = "";
+const naverAnalyticsId = "	567e1b004e9fac";
 
 const siteName = "대온 법률사무소 핀테크센터";
 const organizationName = "대온 법률사무소";
