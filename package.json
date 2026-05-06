@@ -15,7 +15,8 @@
     "case-audit": "node scripts/audit-cases.js",
     "case-image-clean": "node scripts/cleanup-case-images.js",
     "case-keyword": "node scripts/add-case-keyword.mjs",
-    "case-memo": "node scripts/add-case-memo.mjs"
+    "case-memo": "node scripts/add-case-memo.mjs",
+    "case-watchlist": "node scripts/create-watchlist-case.mjs"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
