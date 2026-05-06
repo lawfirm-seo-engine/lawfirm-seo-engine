@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 
 const siteUrl = "https://daeonlawfintech.com";
 const googleAnalyticsId = "G-RDQJT1FLNT";
+// Naver Analytics 계정 ID — analytics.naver.com 에서 발급 (예: "s_xxxxxxxxxx")
+// 발급 후 아래 값을 교체하면 자동 활성화됩니다.
+const naverAnalyticsId = "";
 
 const siteName = "대온 법률사무소 핀테크센터";
 const organizationName = "대온 법률사무소";
@@ -335,6 +338,23 @@ gtag('config', '${googleAnalyticsId}');
         <Footer />
 
         <FloatingContact />
+
+        {/* Naver Analytics — Naver 행동 신호 수집 → 검색 랭킹 직접 영향 */}
+        {naverAnalyticsId && (
+          <>
+            <Script
+              src="//wcs.naver.net/wcslog.js"
+              strategy="afterInteractive"
+            />
+            <Script id="naver-analytics" strategy="afterInteractive">
+              {`
+if(!wcs_add) var wcs_add = {};
+wcs_add["wa"] = "${naverAnalyticsId}";
+if(window.wcs) wcs_do();
+`}
+            </Script>
+          </>
+        )}
 
         <Script
           src="https://logs.ai.kr/logs_init.php?sid=h5y08t"
