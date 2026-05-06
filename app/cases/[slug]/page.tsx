@@ -118,6 +118,17 @@ const genericEnglishTokens = new Set([
   "vip",
   "wallet",
   "xyz",
+  // 로마자 변환된 한글 일반 업종·범주어 (식별 토큰으로 사용 불가)
+  "yeohangsa",   // 여행사
+  "yeohang",     // 여행
+  "hangongsa",   // 항공사
+  "hangong",     // 항공
+  "jeungwonsa",  // 증권사
+  "boheomsa",    // 보험사
+  "eunhaeng",    // 은행
+  "ridingbang",  // 리딩방 (영문 표기)
+  "syoping",     // 쇼핑
+  "syopingmall", // 쇼핑몰
 ])
 
 function stripFrontmatter(source: string) {
@@ -666,12 +677,18 @@ function romanizeHangul(input: string) {
 }
 
 function normalizeClusterText(text: string) {
-  return romanizeHangul(text)
+  // 한글 일반 업종·범주어를 로마자 변환 전에 먼저 제거
+  // (로마자 변환 후 한글 패턴을 적용하면 이미 변환된 상태라 매칭되지 않음)
+  const preStripped = text.replace(
+    /사기|사칭|피해|사례|대응|피해회복|투자|금투자|골드바|비상장|공모주|쇼핑몰|리딩방|거래소|증권사|부업|체험단|쿠팡체험단|fx마진|해외선물|여행사|여행|항공사|항공|보험사|보험|은행|숙박/g,
+    ""
+  )
+
+  return romanizeHangul(preStripped)
     .toLowerCase()
     .replace(/https?:\/\//g, "")
     .replace(/www\./g, "")
     .replace(/\.(com|shop|vip|kr|net|org|co|io|site|store|xyz|cc|app|me|biz)/g, "")
-    .replace(/사기|사칭|피해|사례|대응|피해회복|투자|금투자|골드바|비상장|공모주|쇼핑몰|리딩방|거래소|증권사|부업|체험단|쿠팡체험단|fx마진|해외선물/g, "")
     .replace(/market|mall|shop|store|company|investment|invest|global|securities|finance|financial|gold|bar|coin|bit|crypto|exchange|trade|trading|stock|group|corp|ltd|inc|co|kr|korea/g, "")
     .replace(/[0-9]/g, "")
     .replace(/[^a-z가-힣]/g, "")
@@ -907,15 +924,29 @@ function hasLatinKeyword(text: string) {
   return /[a-z]/i.test(text)
 }
 
+function hasDomainUrl(text: string) {
+  return /https?:\/\//i.test(text)
+}
+
 function getRepresentativePriority(item: CaseSummary) {
   let score = 0
+  const name = item.caseName
 
-  if (hasDomainKeyword(item.caseName)) {
-    score += 300
-  } else if (hasLatinKeyword(item.caseName)) {
-    score += 200
-  } else {
+  if (hasDomainUrl(name)) {
+    // 5순위: 도메인 주소 전체 (https://example.com)
     score += 100
+  } else if (hasDomainKeyword(name)) {
+    // 4순위: 도메인명 (example.com)
+    score += 200
+  } else if (/리딩방/.test(name)) {
+    // 3순위: 리딩방 명칭
+    score += 300
+  } else if (hasLatinKeyword(name)) {
+    // 1순위: 영문 상호명 (도메인·URL 아닌 순수 영문)
+    score += 500
+  } else {
+    // 2순위: 한글 상호명
+    score += 400
   }
 
   score += getImportantCaseTokens(`${item.slug} ${item.caseName}`).length * 10
