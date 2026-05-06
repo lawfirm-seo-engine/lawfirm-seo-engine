@@ -110,11 +110,36 @@ const itemSections = items
 
 ${korName}${engLabel}${domainLabel}은 피해 상담을 통해 신규로 접수된 **${type}** 의심 업체입니다.
 
-| 항목 | 내용 |
-|------|------|
-| 한글 상호명 | ${korName} |${engName ? `\n| 영문 상호명 | ${engName} |` : ""}
-| 사이트 주소 | ${domainUrl || "미확인"} |
-| 사기 유형 | ${type} |
+<table className="case-scam-table">
+  <colgroup>
+    <col style={{ width: "120px" }} />
+    <col />
+  </colgroup>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>한글 상호명</td>
+      <td>${korName}</td>
+    </tr>${engName ? `
+    <tr>
+      <td>영문 상호명</td>
+      <td>${engName}</td>
+    </tr>` : ""}
+    <tr>
+      <td>사이트 주소</td>
+      <td>${domainUrl || "미확인"}</td>
+    </tr>
+    <tr>
+      <td>사기 유형</td>
+      <td>${type}</td>
+    </tr>
+  </tbody>
+</table>
 
 **피해 특징:**
 - 정상 플랫폼을 사칭하거나 실제로 존재하지 않는 수익 구조를 내세워 입금을 유도합니다.
