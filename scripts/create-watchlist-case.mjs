@@ -2,13 +2,19 @@
  * 신규 사기 의심 업체 일괄 감시 목록 MDX 생성기
  *
  * 사용법:
- *   npm run case-watchlist "리스트명" "한글명,도메인,영문명,사기유형" "한글명2,도메인2,영문명2,사기유형2" ...
+ *   npm run case-watchlist "리스트명" "한글명,도메인,영문명,사기유형,리딩방명칭" ...
  *
  * 예시:
- *   npm run case-watchlist "신규 사기 의심 업체 리스트-5월6일" \
- *     "퍼스트몰,fistmall.com,fistmal,쇼핑몰 사칭" \
- *     "루너마켓,runemarkets.shop,runemarkets,쇼핑몰 사칭" \
- *     "전l9,jeanl9.com,jeanl9,쇼핑몰 사칭"
+ *   npm run case-watchlist "신규 사기 의심 업체 리스트-5월6일" `
+ *     "퍼스트몰,fistmall.com,fistmal,쇼핑몰 사칭," `
+ *     "AllSpring리딩방,,allspring,리딩방 사기,AllSpring 전문가방"
+ *
+ * 항목 형식 (쉼표 구분, 5번째 자리까지):
+ *   1. 한글명    : 업체 한글 상호명          (필수)
+ *   2. 도메인    : 사이트 주소 (없으면 빈칸 → 확인 중)
+ *   3. 영문명    : 영문 상호명/슬러그         (선택)
+ *   4. 사기유형  : 쇼핑몰 사칭 / 리딩방 사기 등 (선택, 기본값: 사칭 사기)
+ *   5. 리딩방명칭: 카카오톡·텔레그램 방 이름   (선택, 없으면 빈칸 → 확인 중)
  *
  * 생성 파일:
  *   content/daeonlawfintech/cases/{slug}.mdx     (케이스 본문)
@@ -61,6 +67,7 @@ const items = itemArgs.map((arg, i) => {
     domain: parts[1] || "",
     engName: parts[2] || "",
     type: parts[3] || "사칭 사기",
+    ridingbang: parts[4] || "",
   }
 })
 
@@ -83,7 +90,7 @@ if (fs.existsSync(mdxPath)) {
 
 // ── 키워드 목록 생성 ─────────────────────────────────────────────────────────
 const keywords = []
-items.forEach(({ korName, domain, engName, type }) => {
+items.forEach(({ korName, domain, engName, type, ridingbang }) => {
   keywords.push(korName)
   if (engName) keywords.push(engName)
   if (domain) {
@@ -95,6 +102,7 @@ items.forEach(({ korName, domain, engName, type }) => {
   keywords.push(`${korName} 사기`)
   keywords.push(`${korName} 사칭`)
   if (engName) keywords.push(`${engName} 사기`)
+  if (ridingbang) keywords.push(ridingbang)
   keywords.push(`${type}`)
 })
 
@@ -104,7 +112,7 @@ const caseName = listName
 
 const itemSections = items
   .map(
-    ({ korName, domain, engName, type }, i) => {
+    ({ korName, domain, engName, type, ridingbang }, i) => {
       const num = i + 1
       const domainUrl = domain ? `https://${domain}` : ""
       const engLabel = engName ? ` / ${engName}` : ""
@@ -137,7 +145,11 @@ ${korName}${engLabel}${domainLabel}은 피해 상담을 통해 신규로 접수�
     </tr>` : ""}
     <tr>
       <td>사이트 주소</td>
-      <td>${domainUrl || "미확인"}</td>
+      <td>${domainUrl || "확인 중"}</td>
+    </tr>
+    <tr>
+      <td>리딩방 명칭</td>
+      <td>${ridingbang || "확인 중"}</td>
     </tr>
     <tr>
       <td>사기 유형</td>
@@ -299,7 +311,7 @@ ${imageStatus}
 🔗 URL  : https://daeonlawfintech.com/cases/${encodeURIComponent(slug)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 등록 업체 (${items.length}개):
-${items.map((it, i) => `  ${i + 1}. ${it.korName}${it.engName ? ` / ${it.engName}` : ""}  [${it.domain || "도메인 미입력"}]  — ${it.type}`).join("\n")}
+${items.map((it, i) => `  ${i + 1}. ${it.korName}${it.engName ? ` / ${it.engName}` : ""}  [${it.domain || "도메인 미입력"}]${it.ridingbang ? `  (${it.ridingbang})` : ""}  — ${it.type}`).join("\n")}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️  그룹핑 없음 (caseGroupId / representativeSlug 미설정)
 `)
