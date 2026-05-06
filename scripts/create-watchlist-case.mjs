@@ -12,16 +12,21 @@
  *
  * 생성 파일:
  *   content/daeonlawfintech/cases/{slug}.mdx     (케이스 본문)
- *   content/daeonlawfintech/cases/{slug}.keywords (키워드 목록)
+ *   content/daeonlawfintech/cases/{slug}.mdx      (케이스 본문)
+ *   content/daeonlawfintech/cases/{slug}.keywords  (키워드 목록)
+ *   public/images/cases/{slug}.png                 (OG 썸네일)
+ *   public/images/cases/{slug}.avif                (페이지 대표 이미지)
  *
  * 특징:
  *   - caseGroupId / representativeSlug 없음 (그룹핑 없음)
  *   - 여러 업체를 1개 MDX에 통합 → 키워드 밀도 확보
+ *   - 이미지 자동 생성 (sharp 사용)
  */
 
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import sharp from "sharp"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const casesDir = path.join(__dirname, "..", "content", "daeonlawfintech", "cases")
@@ -202,11 +207,95 @@ if (!fs.existsSync(casesDir)) {
 fs.writeFileSync(mdxPath, mdxContent, "utf-8")
 fs.writeFileSync(keywordsPath, [...new Set(keywords)].join("\n"), "utf-8")
 
+// ── 이미지 생성 ───────────────────────────────────────────────────────────────
+const templatePath = path.join(__dirname, "..", "public", "images", "templates", "case-template.png")
+const imageDir = path.join(__dirname, "..", "public", "images", "cases")
+const imagePngPath = path.join(imageDir, `${slug}.png`)
+const imageAvifPath = path.join(imageDir, `${slug}.avif`)
+
+if (!fs.existsSync(imageDir)) {
+  fs.mkdirSync(imageDir, { recursive: true })
+}
+
+const escapeXml = (text) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+
+// 긴 제목은 두 줄로 분할 (24자 기준)
+const MAX_LINE = 24
+let titleLine1 = listName
+let titleLine2 = ""
+if (listName.length > MAX_LINE) {
+  const breakAt = listName.lastIndexOf(" ", MAX_LINE) > 0
+    ? listName.lastIndexOf(" ", MAX_LINE)
+    : MAX_LINE
+  titleLine1 = listName.slice(0, breakAt)
+  titleLine2 = listName.slice(breakAt).trim()
+}
+
+const titleY1 = titleLine2 ? "110" : "135"
+const titleY2 = "168"
+const subtitleY = titleLine2 ? "210" : "188"
+
+const svgOverlay = `
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .title {
+      fill: #ffffff;
+      font-size: 54px;
+      font-weight: 900;
+      font-family: "Arial", sans-serif;
+      letter-spacing: -2px;
+    }
+    .subtitle {
+      fill: #ffffff;
+      font-size: 26px;
+      font-weight: 700;
+      font-family: "Arial", sans-serif;
+      letter-spacing: -1px;
+    }
+  </style>
+  <rect x="0" y="0" width="1200" height="630" fill="rgba(0,0,0,0.28)" />
+  <text x="600" y="${titleY1}" text-anchor="middle" class="title">${escapeXml(titleLine1)}</text>
+  ${titleLine2 ? `<text x="600" y="${titleY2}" text-anchor="middle" class="title">${escapeXml(titleLine2)}</text>` : ""}
+  <text x="600" y="${subtitleY}" text-anchor="middle" class="subtitle">피해 회복을 위한 법률 정보</text>
+</svg>`
+
+let imageStatus = ""
+if (fs.existsSync(templatePath)) {
+  try {
+    const svgBuf = Buffer.from(svgOverlay)
+
+    await sharp(templatePath)
+      .resize(1200, 630, { fit: "cover", position: "center" })
+      .composite([{ input: svgBuf, top: 0, left: 0 }])
+      .png({ quality: 90 })
+      .toFile(imagePngPath)
+
+    await sharp(templatePath)
+      .resize(1200, 630, { fit: "cover", position: "center" })
+      .composite([{ input: svgBuf, top: 0, left: 0 }])
+      .avif({ quality: 72, effort: 6 })
+      .toFile(imageAvifPath)
+
+    imageStatus = `🖼️  PNG  : ${imagePngPath}\n🖼️  AVIF : ${imageAvifPath}`
+  } catch (err) {
+    imageStatus = `⚠️  이미지 생성 실패: ${err.message}`
+  }
+} else {
+  imageStatus = `⚠️  템플릿 없음 (${templatePath}) — 이미지 미생성`
+}
+
 console.log(`
 ✅ 감시 목록 케이스 생성 완료
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📄 MDX  : ${mdxPath}
 🔑 키워드: ${keywordsPath}
+${imageStatus}
 🔗 URL  : https://daeonlawfintech.com/cases/${encodeURIComponent(slug)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 등록 업체 (${items.length}개):
