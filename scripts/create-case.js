@@ -509,12 +509,13 @@ function getRepresentativeRule(text) {
 function getRepresentativePriority(item) {
   let score = 0
 
+  // 영문 상호명 > 한글 상호명 > 도메인 URL 순
   if (hasDomainKeyword(item.caseName)) {
-    score += 300
+    score += 100  // 도메인은 최저 우선순위
   } else if (hasLatinKeyword(item.caseName)) {
-    score += 200
+    score += 300  // 영문 상호명 최우선
   } else {
-    score += 100
+    score += 200  // 한글 상호명 차선
   }
 
   score += getIdentityTokens(`${item.slug} ${item.caseName}`).length * 10
@@ -1056,7 +1057,7 @@ ${plainName} 피해는 초기 대응 속도가 피해 회복률에 직접적인 
 
 **② 추가 입금 즉시 중단**
 
-어떠한 명목으로든 추가 입금 요청이 오면 응하지 마세요. "입금하면 기존 금액도 같이 돌려준다"는 말은 전형적인 2차 편취 수법입니다. 금융감독원(1332) 또는 거래 은행을 통해 해당 계좌의 지급정지도 즉시 신청하세요.
+어떠한 명목으로든 추가 입금 요청이 오면 응하지 마세요. "입금하면 기존 금액도 같이 돌려준다"는 말은 전형적인 2차 편취 수법입니다.
 
 **③ 법률 전문가 상담**
 
