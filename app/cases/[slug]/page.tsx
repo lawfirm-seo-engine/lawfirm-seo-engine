@@ -355,13 +355,15 @@ export async function generateMetadata({
   const imagePng = getVersionedImageUrl(imagePngSrc)
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
 
-  // 발행일: frontmatter publishedAt → 파일 mtime 순으로 fallback
+  // 발행일: frontmatter publishedAt 고정값 사용
+  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프로 초기화되어 신뢰 불가
   const filePath = getCaseFilePath(decodedSlug)
   const stat = fs.existsSync(filePath) ? fs.statSync(filePath) : null
   const datePublished = publishedAt
     ? new Date(publishedAt).toISOString()
-    : stat?.mtime.toISOString() ?? new Date().toISOString()
-  const dateModified = stat?.mtime.toISOString() ?? new Date().toISOString()
+    : new Date().toISOString()
+  // dateModified = datePublished (mtime 사용 시 2018년 등 git 타임스탬프가 노출되는 버그)
+  const dateModified = datePublished
 
   return {
     title: seoTitle,
@@ -1185,11 +1187,12 @@ export default async function CasePage({
   const representativeCase = getRepresentativeCase(decodedSlug)
 
   // datePublished: frontmatter publishedAt 고정값 우선
-  // → Vercel 배포 시 파일 birthtime이 재설정되는 버그 방지
+  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프로 초기화 → 2018년 등 잘못된 날짜 노출
   const datePublished = publishedAt
     ? new Date(publishedAt).toISOString()
-    : stat.mtime.toISOString()
-  const dateModified = stat.mtime.toISOString()
+    : new Date().toISOString()
+  // dateModified = datePublished (mtime 사용 금지)
+  const dateModified = datePublished
 
   // 10개 개별 JSON-LD → 단일 @graph로 통합 (Google Search Console 파싱 효율 향상)
   const pageJsonLd = {
