@@ -69,6 +69,26 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      {
+        // 케이스 이미지: 교체 가능한 template 파일은 1일 캐시 + stale-while-revalidate
+        source: "/images/cases/template-:name",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=3600, must-revalidate",
+          },
+        ],
+      },
+      {
+        // 그 외 정적 이미지: 7일 캐시
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
     ]
   },
 
