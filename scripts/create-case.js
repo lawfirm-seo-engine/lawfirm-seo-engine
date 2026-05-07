@@ -1022,7 +1022,7 @@ ${td.label} 사기는 ${td.approach} 방식을 통해 피해자를 끌어들입�
 
 처음에는 소액으로 시작해 실제로 수익이 발생하는 것처럼 보이도록 유도하며, 출금이나 환불을 요청하면 ${td.delayType}을 이유로 추가 입금을 요구하는 구조가 반복됩니다.
 
-${imageBlock("03", `${plainName} ${td.label} 접근 방식과 금전 요구 구조 이미지`)}
+${imageBlock("03", `${plainName} 피해 대온 법률사무소 주력분야 안내 이미지`)}
 
 ## 3. ${name} 피해 사례
 
@@ -1075,7 +1075,7 @@ ${imageBlock("08", `${plainName} ${td.label} 2차 피해 주의 안내 이미지
 
 ${plainName} 피해와 관련한 상담은 아래 방법으로 접수할 수 있습니다. 입금 규모와 무관하게 초기 자료만 있으면 상담이 가능합니다.
 
-${phoneImageBlock(`${plainName} 피해 신고 및 상담 연결 이미지`)}
+${phoneImageBlock(`${plainName} 사기 피해 복구 골든타임 법률 상담 이미지`)}
 `
 }
 
