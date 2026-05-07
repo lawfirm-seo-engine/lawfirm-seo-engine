@@ -2,22 +2,22 @@
  * 신규 사기 의심 업체 일괄 감시 목록 MDX 생성기
  *
  * 사용법:
- *   npm run case-watchlist "리스트명" "한글명,도메인,영문명,사기유형,리딩방명칭" ...
+ *   npm run case-watchlist "리스트명" "한글 상호명,영문 상호명,사이트명,사기유형,사이트주소,리딩방명칭" ...
  *
- * 예시:
- *   npm run case-watchlist "신규 사기 의심 업체 리스트-5월6일" `
- *     "퍼스트몰,fistmall.com,fistmal,쇼핑몰 사칭," `
- *     "AllSpring리딩방,,allspring,리딩방 사기,AllSpring 전문가방"
+ * 항목 형식 (쉼표 구분, 순서 엄수):
+ *   1. 한글 상호명 : 업체 한글 상호명             (없으면 빈칸 → -)
+ *   2. 영문 상호명 : 업체 영문 상호명             (없으면 빈칸 → -)
+ *   3. 사이트명    : 사이트 이름/슬러그           (없으면 빈칸 → -)
+ *   4. 사기유형    : 쇼핑몰 사칭 / 리딩방 사기 등 (기본값: 사칭 사기)
+ *   5. 사이트주소  : 도메인 (예: site.com)        (없으면 빈칸 → -)
+ *   6. 리딩방명칭  : 카카오톡·텔레그램 방 이름    (없으면 빈칸 → -)
  *
- * 항목 형식 (쉼표 구분, 5번째 자리까지):
- *   1. 한글명    : 업체 한글 상호명          (필수)
- *   2. 도메인    : 사이트 주소 (없으면 빈칸 → 확인 중)
- *   3. 영문명    : 영문 상호명/슬러그         (선택)
- *   4. 사기유형  : 쇼핑몰 사칭 / 리딩방 사기 등 (선택, 기본값: 사칭 사기)
- *   5. 리딩방명칭: 카카오톡·텔레그램 방 이름   (선택, 없으면 빈칸 → 확인 중)
+ * 예시 (PowerShell — 줄 이음에 백틱 사용):
+ *   npm run case-watchlist "신규 사기 의심 업체 리스트-5월7일" `
+ *     "퍼스트몰,fistmal,,쇼핑몰 사칭,fistmall.com," `
+ *     "올스프링,AllSpring,allspring,리딩방 사기,allspring.kr,AllSpring 전문가방"
  *
  * 생성 파일:
- *   content/daeonlawfintech/cases/{slug}.mdx     (케이스 본문)
  *   content/daeonlawfintech/cases/{slug}.mdx      (케이스 본문)
  *   content/daeonlawfintech/cases/{slug}.keywords  (키워드 목록)
  *   public/images/cases/{slug}.png                 (OG 썸네일)
@@ -43,31 +43,37 @@ const [listName, ...itemArgs] = process.argv.slice(2)
 if (!listName || itemArgs.length === 0) {
   console.error(`
 사용법:
-  npm run case-watchlist "리스트명" "한글명,도메인,영문명,사기유형" ...
+  npm run case-watchlist "리스트명" "한글 상호명,영문 상호명,사이트명,사기유형,사이트주소,리딩방명칭" ...
 
-항목 형식 (쉼표 구분):
-  한글명  : 업체 한글 상호명     (필수)
-  도메인  : 사이트 주소          (필수)
-  영문명  : 영문 상호명 또는 슬러그 (선택)
-  사기유형: 쇼핑몰 사칭 / 코인 투자 / 가짜 거래소 등 (선택, 기본값: 사칭 사기)
+항목 형식 (쉼표 구분, 순서 엄수):
+  1. 한글 상호명 : 업체 한글 상호명             (없으면 빈칸 → -)
+  2. 영문 상호명 : 업체 영문 상호명             (없으면 빈칸 → -)
+  3. 사이트명    : 사이트 이름/슬러그           (없으면 빈칸 → -)
+  4. 사기유형    : 쇼핑몰 사칭 / 리딩방 사기 등 (기본값: 사칭 사기)
+  5. 사이트주소  : 도메인 (예: site.com)        (없으면 빈칸 → -)
+  6. 리딩방명칭  : 카카오톡·텔레그램 방 이름    (없으면 빈칸 → -)
 
-예시:
-  npm run case-watchlist "신규 사기 의심 업체 리스트-5월6일" \\
-    "퍼스트몰,fistmall.com,fistmal,쇼핑몰 사칭" \\
-    "루너마켓,runemarkets.shop,runemarkets,쇼핑몰 사칭"
+예시 (PowerShell):
+  npm run case-watchlist "신규 사기 의심 업체 리스트-5월7일" \`
+    "퍼스트몰,fistmal,,쇼핑몰 사칭,fistmall.com," \`
+    "올스프링,AllSpring,allspring,리딩방 사기,allspring.kr,AllSpring 전문가방"
 `)
   process.exit(1)
 }
+
+// ── 도메인 유효성 검사 (TLD 포함 여부 확인) ──────────────────────────────────
+const isValidDomain = (s) => /\.[a-zA-Z]{2,}$/.test(s)
 
 // ── 항목 파싱 ────────────────────────────────────────────────────────────────
 const items = itemArgs.map((arg, i) => {
   const parts = arg.split(",").map((s) => s.trim())
   return {
-    korName: parts[0] || `업체${i + 1}`,
-    domain: parts[1] || "",
-    engName: parts[2] || "",
-    type: parts[3] || "사칭 사기",
-    ridingbang: parts[4] || "",
+    korName:    parts[0] || "",          // 1. 한글 상호명
+    engName:    parts[1] || "",          // 2. 영문 상호명
+    siteName:   parts[2] || "",          // 3. 사이트명
+    type:       parts[3] || "사칭 사기", // 4. 사기유형
+    siteUrl:    parts[4] || "",          // 5. 사이트주소 (도메인)
+    ridingbang: parts[5] || "",          // 6. 리딩방명칭
   }
 })
 
@@ -90,20 +96,23 @@ if (fs.existsSync(mdxPath)) {
 
 // ── 키워드 목록 생성 ─────────────────────────────────────────────────────────
 const keywords = []
-items.forEach(({ korName, domain, engName, type, ridingbang }) => {
-  keywords.push(korName)
-  if (engName) keywords.push(engName)
-  if (domain) {
-    keywords.push(domain)
-    // 도메인에서 루트만 추출 (예: fistmall.com → fistmall)
-    const root = domain.split(".")[0]
-    if (root && root !== engName) keywords.push(root)
+items.forEach(({ korName, engName, siteName, type, siteUrl, ridingbang }) => {
+  if (korName)   keywords.push(korName)
+  if (engName)   keywords.push(engName)
+  if (siteName)  keywords.push(siteName)
+  if (siteUrl && isValidDomain(siteUrl)) {
+    keywords.push(siteUrl)
+    const root = siteUrl.split(".")[0]
+    if (root && root !== siteName && root !== engName && root !== korName) keywords.push(root)
   }
-  keywords.push(`${korName} 사기`)
-  keywords.push(`${korName} 사칭`)
-  if (engName) keywords.push(`${engName} 사기`)
+  const primaryName = korName || engName || siteName
+  if (primaryName) {
+    keywords.push(`${primaryName} 사기`)
+    keywords.push(`${primaryName} 사칭`)
+  }
+  if (engName && engName !== primaryName) keywords.push(`${engName} 사기`)
   if (ridingbang) keywords.push(ridingbang)
-  keywords.push(`${type}`)
+  keywords.push(type)
 })
 
 // ── MDX 본문 생성 ─────────────────────────────────────────────────────────────
@@ -111,21 +120,28 @@ const seoTitle = `${listName} | 사기 의심 업체 경보`
 const caseName = listName
 
 const itemSections = items
-  .map(
-    ({ korName, domain, engName, type, ridingbang }, i) => {
-      const num = i + 1
-      const domainUrl = domain ? `https://${domain}` : ""
-      const engLabel = engName ? ` / ${engName}` : ""
-      const domainLabel = domain ? ` / ${domain}` : ""
+  .map(({ korName, engName, siteName, type, siteUrl, ridingbang }, i) => {
+    const num = i + 1
+    const fullSiteUrl = siteUrl && isValidDomain(siteUrl) ? `https://${siteUrl}` : ""
 
-      return `
-## ${num}. ${korName}${engLabel} — ${type}
+    const displayKor     = korName    || "-"
+    const displayEng     = engName    || "-"
+    const displaySite    = siteName   || "-"
+    const displayUrl     = fullSiteUrl || "-"
+    const displayRiding  = ridingbang || "-"
 
-${korName}${engLabel}${domainLabel}은 피해 상담을 통해 신규로 접수된 **${type}** 의심 업체입니다.
+    // 섹션 제목: 한글 상호명 우선, 없으면 영문, 없으면 사이트명
+    const titleName = korName || engName || siteName || `업체${num}`
+    const subLabel  = engName && engName !== titleName ? ` / ${engName}` : ""
 
-<table className="case-scam-table">
+    return `
+## ${num}. ${titleName}${subLabel} — ${type}
+
+${titleName}${subLabel}은 피해 상담을 통해 신규로 접수된 **${type}** 의심 업체입니다.
+
+<table className="case-scam-table case-watchlist-table">
   <colgroup>
-    <col style={{ width: "120px" }} />
+    <col style={{ width: "110px" }} />
     <col />
   </colgroup>
   <thead>
@@ -137,19 +153,23 @@ ${korName}${engLabel}${domainLabel}은 피해 상담을 통해 신규로 접수�
   <tbody>
     <tr>
       <td>한글 상호명</td>
-      <td>${korName}</td>
-    </tr>${engName ? `
+      <td>${displayKor}</td>
+    </tr>
     <tr>
       <td>영문 상호명</td>
-      <td>${engName}</td>
-    </tr>` : ""}
+      <td>${displayEng}</td>
+    </tr>
+    <tr>
+      <td>사이트명</td>
+      <td>${displaySite}</td>
+    </tr>
     <tr>
       <td>사이트 주소</td>
-      <td>${domainUrl || "확인 중"}</td>
+      <td>${displayUrl}</td>
     </tr>
     <tr>
       <td>리딩방 명칭</td>
-      <td>${ridingbang || "확인 중"}</td>
+      <td>${displayRiding}</td>
     </tr>
     <tr>
       <td>사기 유형</td>
@@ -161,22 +181,19 @@ ${korName}${engLabel}${domainLabel}은 피해 상담을 통해 신규로 접수�
 **피해 특징:**
 - 정상 플랫폼을 사칭하거나 실제로 존재하지 않는 수익 구조를 내세워 입금을 유도합니다.
 - 출금 요청 시 세금·보증금·수수료 등을 명목으로 추가 입금을 요구합니다.
-- ${korName}${engLabel} 명칭으로 접근을 받았다면 추가 입금 전에 반드시 피해 여부를 확인하세요.
+- ${titleName}${subLabel} 명칭으로 접근을 받았다면 추가 입금 전에 반드시 피해 여부를 확인하세요.
 `
-    }
-  )
+  })
   .join("\n---\n")
 
-const korNames = items.map((i) => i.korName).join(", ")
-const domainList = items
-  .filter((i) => i.domain)
-  .map((i) => i.domain)
-  .join(", ")
+const primaryNames = items.map((it) => it.korName || it.engName || it.siteName).filter(Boolean).join(", ")
+// 유효한 도메인만 주의 도메인 목록에 포함
+const validDomains = items.filter((it) => it.siteUrl && isValidDomain(it.siteUrl)).map((it) => it.siteUrl).join(", ")
 
 const mdxContent = `---
 title: "${seoTitle}"
 caseName: "${caseName}"
-description: "${korNames} 등 신규 사기 의심 업체 경보 및 피해 대응 안내"
+description: "${primaryNames} 등 신규 사기 의심 업체 경보 및 피해 대응 안내"
 slug: "${slug}"
 publishedAt: "${today}"
 ---
@@ -188,9 +205,9 @@ publishedAt: "${today}"
 
 아래 업체명 또는 사이트 주소로 접근을 받으셨다면 **추가 입금 전에 반드시 상담**을 받으시기 바랍니다.
 
-> **주의 업체:** ${korNames}
+> **주의 업체:** ${primaryNames}
 >
-> **주의 도메인:** ${domainList || "목록 참고"}
+> **주의 도메인:** ${validDomains || "목록 참고"}
 
 ---
 ${itemSections}
@@ -311,7 +328,14 @@ ${imageStatus}
 🔗 URL  : https://daeonlawfintech.com/cases/${encodeURIComponent(slug)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 등록 업체 (${items.length}개):
-${items.map((it, i) => `  ${i + 1}. ${it.korName}${it.engName ? ` / ${it.engName}` : ""}  [${it.domain || "도메인 미입력"}]${it.ridingbang ? `  (${it.ridingbang})` : ""}  — ${it.type}`).join("\n")}
+${items.map((it, i) => {
+  const name = it.korName || it.engName || it.siteName || `업체${i+1}`
+  const eng  = it.engName && it.engName !== name ? ` / ${it.engName}` : ""
+  const site = it.siteName ? ` [사이트명: ${it.siteName}]` : ""
+  const url  = it.siteUrl  ? ` [${it.siteUrl}]` : ""
+  const rb   = it.ridingbang ? ` (리딩방: ${it.ridingbang})` : ""
+  return `  ${i + 1}. ${name}${eng}${site}${url}${rb}  — ${it.type}`
+}).join("\n")}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️  그룹핑 없음 (caseGroupId / representativeSlug 미설정)
 `)

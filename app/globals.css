@@ -227,6 +227,15 @@ body {
   vertical-align: middle;
 }
 
+/* 감시 목록(watchlist) 표: 행 높이 축소 */
+.case-watchlist-table th {
+  padding: 8px 14px !important;
+}
+
+.case-watchlist-table td {
+  padding: 8px 14px !important;
+}
+
 .case-content th:first-child,
 .case-content td:first-child,
 .case-scam-table th:first-child,
