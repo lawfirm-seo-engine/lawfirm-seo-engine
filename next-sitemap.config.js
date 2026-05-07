@@ -1,6 +1,16 @@
 const fs = require("fs")
 const path = require("path")
 
+// MDX frontmatter에서 publishedAt 파싱 (Vercel 배포 시 mtime 초기화 방지)
+function getPublishedAt(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, "utf8")
+    const m = raw.match(/^publishedAt:\s*"?([0-9]{4}-[0-9]{2}-[0-9]{2})"?/m)
+    if (m) return new Date(m[1]).toISOString()
+  } catch {}
+  return null
+}
+
 module.exports = {
   siteUrl: "https://daeonlawfintech.com",
   generateRobotsTxt: true,
@@ -58,12 +68,14 @@ module.exports = {
       const filePath = path.join(casesPath, file)
       const stat = fs.statSync(filePath)
       const slug = file.replace(/\.mdx$/, "")
+      // publishedAt 우선 → Vercel 재배포 시 mtime 초기화 방지
+      const lastmod = getPublishedAt(filePath) || stat.mtime.toISOString()
 
       return {
         loc: `/cases/${encodeURIComponent(slug)}`,
         changefreq: "daily",
         priority: 0.8,
-        lastmod: stat.mtime.toISOString(),
+        lastmod,
       }
     })
 
