@@ -1,12 +1,15 @@
 const fs = require("fs")
 const path = require("path")
 
-// MDX frontmatter에서 publishedAt 파싱 (Vercel 배포 시 mtime 초기화 방지)
-function getPublishedAt(filePath) {
+// MDX frontmatter에서 lastmod 파싱
+// modifiedAt 우선 → publishedAt fallback (stat.mtime은 Vercel 빌드 시 2018년 등 git 타임스탬프로 초기화되므로 절대 사용 금지)
+function getLastmod(filePath) {
   try {
     const raw = fs.readFileSync(filePath, "utf8")
-    const m = raw.match(/^publishedAt:\s*"?([0-9]{4}-[0-9]{2}-[0-9]{2})"?/m)
-    if (m) return new Date(m[1]).toISOString()
+    const modM = raw.match(/^modifiedAt:\s*"?([0-9]{4}-[0-9]{2}-[0-9]{2})"?/m)
+    if (modM) return new Date(modM[1]).toISOString()
+    const pubM = raw.match(/^publishedAt:\s*"?([0-9]{4}-[0-9]{2}-[0-9]{2})"?/m)
+    if (pubM) return new Date(pubM[1]).toISOString()
   } catch {}
   return null
 }
@@ -66,10 +69,10 @@ module.exports = {
 
     const casePaths = files.map((file) => {
       const filePath = path.join(casesPath, file)
-      const stat = fs.statSync(filePath)
       const slug = file.replace(/\.mdx$/, "")
-      // publishedAt 우선 → Vercel 재배포 시 mtime 초기화 방지
-      const lastmod = getPublishedAt(filePath) || stat.mtime.toISOString()
+      // modifiedAt 우선 → publishedAt fallback → 빌드 시각 최후 fallback
+      // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프로 초기화되므로 절대 사용하지 않음
+      const lastmod = getLastmod(filePath) ?? new Date().toISOString()
 
       return {
         loc: `/cases/${encodeURIComponent(slug)}`,

@@ -137,7 +137,7 @@ function stripFrontmatter(source: string) {
 
 function stripLeakedMetaLines(source: string) {
   return source
-    .replace(/^\s*(title|caseName|description|slug|representativeSlug|createdAt|caseGroupId|groupRole|groupOrder|primaryKeyword|aliases|caseType|publishedAt)\s*:\s*["']?.*?["']?\s*$/gim, "")
+    .replace(/^\s*(title|caseName|description|slug|representativeSlug|createdAt|caseGroupId|groupRole|groupOrder|primaryKeyword|aliases|caseType|publishedAt|modifiedAt)\s*:\s*["']?.*?["']?\s*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
@@ -321,8 +321,10 @@ function getCaseMeta(decodedSlug: string) {
   mdxSource = stripLeakedMetaLines(mdxSource)
   mdxSource = stripBrokenRelatedGuide(mdxSource)
 
-  // frontmatter publishedAt이 있으면 고정 날짜 사용 (Vercel 배포 시 birthtime 재설정 방지)
+  // frontmatter publishedAt / modifiedAt 고정값 사용
+  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프(2018년 등)로 초기화되므로 절대 사용하지 않음
   const publishedAt = frontmatter.publishedAt || null
+  const modifiedAt = frontmatter.modifiedAt || null
 
   return {
     filePath,
@@ -333,6 +335,7 @@ function getCaseMeta(decodedSlug: string) {
     seoTitle,
     seoDescription,
     publishedAt,
+    modifiedAt,
   }
 }
 
@@ -344,7 +347,7 @@ export async function generateMetadata({
   const { slug } = await params
 
   const decodedSlug = decodeURIComponent(slug)
-  const { searchKeyword, seoTitle, seoDescription, publishedAt } = getCaseMeta(decodedSlug)
+  const { searchKeyword, seoTitle, seoDescription, publishedAt, modifiedAt } = getCaseMeta(decodedSlug)
 
   // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
   const encodedSlug = encodeURIComponent(decodedSlug)
@@ -355,15 +358,15 @@ export async function generateMetadata({
   const imagePng = getVersionedImageUrl(imagePngSrc)
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
 
-  // 발행일: frontmatter publishedAt 고정값 사용
-  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프로 초기화되어 신뢰 불가
-  const filePath = getCaseFilePath(decodedSlug)
-  const stat = fs.existsSync(filePath) ? fs.statSync(filePath) : null
+  // 발행일/수정일: frontmatter 고정값만 사용
+  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프(2018년 등)로 초기화되어 신뢰 불가 → 절대 사용 금지
   const datePublished = publishedAt
     ? new Date(publishedAt).toISOString()
     : new Date().toISOString()
-  // dateModified = datePublished (mtime 사용 시 2018년 등 git 타임스탬프가 노출되는 버그)
-  const dateModified = datePublished
+  // dateModified: case-keyword/case-memo 실행 시 갱신되는 modifiedAt 우선, fallback publishedAt
+  const dateModified = modifiedAt
+    ? new Date(modifiedAt).toISOString()
+    : datePublished
 
   return {
     title: seoTitle,
@@ -1093,6 +1096,7 @@ export default async function CasePage({
     seoTitle,
     seoDescription,
     publishedAt,
+    modifiedAt,
   } = getCaseMeta(decodedSlug)
 
   if (!fs.existsSync(filePath)) {
@@ -1186,13 +1190,15 @@ export default async function CasePage({
   const recentCases = getRecentCases(decodedSlug)
   const representativeCase = getRepresentativeCase(decodedSlug)
 
-  // datePublished: frontmatter publishedAt 고정값 우선
-  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프로 초기화 → 2018년 등 잘못된 날짜 노출
+  // datePublished / dateModified: frontmatter 고정값만 사용
+  // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프(2018년 등)로 초기화 → 절대 사용 금지
   const datePublished = publishedAt
     ? new Date(publishedAt).toISOString()
     : new Date().toISOString()
-  // dateModified = datePublished (mtime 사용 금지)
-  const dateModified = datePublished
+  // dateModified: case-keyword/case-memo 실행 시 갱신되는 modifiedAt 우선, fallback publishedAt
+  const dateModified = modifiedAt
+    ? new Date(modifiedAt).toISOString()
+    : datePublished
 
   // 10개 개별 JSON-LD → 단일 @graph로 통합 (Google Search Console 파싱 효율 향상)
   const pageJsonLd = {
