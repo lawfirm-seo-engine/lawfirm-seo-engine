@@ -1043,6 +1043,22 @@ function readCaseMemos(slug: string): { date: string; text: string }[] {
     .filter((item): item is { date: string; text: string } => item !== null)
 }
 
+// ─── .comments 파일 읽기 ──────────────────────────────────────────────────────
+// 형식: [YYYY-MM-DD][작성자명] 내용 (content/daeonlawfintech/cases/{slug}.comments)
+// 관리자가 직접 작성하거나 승인한 댓글만 저장 (case-comment 스크립트로 추가)
+function readCaseComments(slug: string): { date: string; author: string; text: string }[] {
+  const filePath = path.join(casesDir, `${slug}.comments`)
+  if (!fs.existsSync(filePath)) return []
+  return fs.readFileSync(filePath, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^\[(\d{4}-\d{2}-\d{2})\]\[([^\]]+)\]\s+(.+)$/)
+      return match ? { date: match[1], author: match[2].trim(), text: match[3].trim() } : null
+    })
+    .filter((item): item is { date: string; author: string; text: string } => item !== null)
+}
+
 // MDX 첫 번째 <figure> 블록 제거
 // → page.tsx가 직접 hero <img>를 DOM 최상단에 렌더링하므로 중복 방지
 // → Naver Yeti가 figure 밖 첫 번째 <img>를 썸네일로 인식하도록 구조 개선
@@ -1110,9 +1126,10 @@ export default async function CasePage({
 
   const stat = fs.statSync(filePath)
 
-  // .keywords / .memo 파일 로드
+  // .keywords / .memo / .comments 파일 로드
   const extraKeywords = readCaseKeywords(decodedSlug)
   const caseMemos = readCaseMemos(decodedSlug)
+  const caseComments = readCaseComments(decodedSlug)
 
   const encodedSlug = encodeURIComponent(decodedSlug)
   const pageUrl = `${siteUrl}/cases/${encodedSlug}`
@@ -1708,6 +1725,72 @@ export default async function CasePage({
                 }}
               >
                 {kw}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* 댓글 섹션 — .comments 파일이 있을 때만 렌더링 (관리자 승인 댓글) */}
+      {caseComments.length > 0 && (
+        <section
+          style={{
+            maxWidth: "960px",
+            margin: "28px auto 0",
+            padding: "26px 32px",
+            border: "1px solid #d1fae5",
+            borderRadius: "18px",
+            background: "#f0fdf4",
+          }}
+        >
+          <h2
+            style={{
+              margin: "0 0 16px",
+              fontSize: "16px",
+              fontWeight: 900,
+              color: "#065f46",
+            }}
+          >
+            피해자 제보 ({caseComments.length})
+          </h2>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {caseComments.map((comment, i) => (
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                  border: "1px solid #d1fae5",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#065f46",
+                    }}
+                  >
+                    {comment.author}
+                  </span>
+                  <time
+                    dateTime={comment.date}
+                    style={{
+                      fontSize: "12px",
+                      color: "#6b7280",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    {comment.date}
+                  </time>
+                </div>
+                <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.75, color: "#374151" }}>
+                  {comment.text}
+                </p>
               </li>
             ))}
           </ul>
