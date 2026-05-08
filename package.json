@@ -19,6 +19,7 @@
     "case-link": "node scripts/case-link.mjs",
     "case-comment": "node scripts/add-case-comment.mjs",
     "case-comment-delete": "node scripts/delete-case-comment.mjs",
+    "case-comment-edit": "node scripts/edit-case-comment.mjs",
     "case-watchlist": "node scripts/create-watchlist-case.mjs"
   },
   "dependencies": {
