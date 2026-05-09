@@ -71,7 +71,7 @@ const faqItems = [
   },
   {
     q: "상담 가능 시간은 언제인가요?",
-    a: "평일 09:00 – 18:00이며, 전화(02-6952-3695) 또는 카카오톡 채널(대온 법률사무소)을 통해 상담하실 수 있습니다.",
+    a: "24시간 긴급 상담 대응이며, 전화(02-6952-3695) 또는 카카오톡 채널(대온 법률사무소)을 통해 상담하실 수 있습니다.",
   },
   {
     q: "피해 사실을 증명해야 상담이 가능한가요?",
@@ -174,7 +174,7 @@ export default function ConsultingPage() {
         <section style={{ maxWidth: "720px", margin: "48px auto 80px", padding: "32px 28px", background: "#111827", borderRadius: "20px", color: "#ffffff", textAlign: "center" }}>
           <p style={{ margin: "0 0 8px", fontSize: "13px", fontWeight: 800, letterSpacing: "0.08em", color: "#a7f3d0", textTransform: "uppercase" }}>DAEON FINTECH CENTER</p>
           <p style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 900 }}>대표변호사 신동우</p>
-          <p style={{ margin: "0 0 20px", fontSize: "18px", fontWeight: 700, color: "#d1d5db" }}>02-6952-3695 · 평일 09:00 – 18:00</p>
+          <p style={{ margin: "0 0 20px", fontSize: "18px", fontWeight: 700, color: "#d1d5db" }}>02-6952-3695 · 24시간 긴급 상담 대응</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="tel:0269523695" style={{ display: "inline-flex", alignItems: "center", height: "48px", padding: "0 24px", borderRadius: "12px", background: "#ffffff", color: "#111827", fontSize: "15px", fontWeight: 800, textDecoration: "none" }}>
               📞 전화 상담
