@@ -129,7 +129,7 @@ body {
 }
 
 .case-content h3 {
-  text-align: center !important;
+  text-align: left !important;
 }
 
 .case-content p {
@@ -261,6 +261,60 @@ body {
 .case-scam-table td:nth-child(3) {
   width: 50% !important;
   text-align: center !important;
+}
+
+/* ===== 진행 과정 분석 표 (4컬럼) ===== */
+.case-process-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.case-process-table th {
+  background: #f3f4f6 !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+  font-weight: 800;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.case-process-table td {
+  background: #ffffff !important;
+  padding: 8px 10px !important;
+  text-align: left !important;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  vertical-align: top;
+  word-break: keep-all;
+}
+
+.case-process-table th:first-child,
+.case-process-table td:first-child {
+  width: 56px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.case-process-table th:nth-child(2),
+.case-process-table td:nth-child(2) {
+  width: 110px !important;
+  text-align: center !important;
+}
+
+.case-process-table th:nth-child(3),
+.case-process-table td:nth-child(3) {
+  width: 45% !important;
+}
+
+.case-process-table th:nth-child(4),
+.case-process-table td:nth-child(4) {
+  width: 30% !important;
 }
 
 /* ===== 관련 사건 내부 링크 ===== */

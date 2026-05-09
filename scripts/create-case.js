@@ -1084,7 +1084,7 @@ function buildTypeTable() {
       <td>${row.analysis}</td>
     </tr>`).join("\n")
 
-  return `<table>
+  return `<table className="case-process-table">
   <thead>
     <tr>
       <th>구분</th>
@@ -1214,7 +1214,7 @@ ${phoneImageBlock(`${plainName} 사기 피해 복구 골든타임 법률 상담 
 
 ## 8. 진행 과정과 상황 분석에 필요한 정보
 
-지금 본인이 어떤 단계에 있는지 과정과 상황을 분석하고 사기를 인지하였다면 즉시 멈추고 법률 상담을 받아야 합니다.
+지금 어느 단계에 진입했는지 상황을 분석하고 사기를 인지하였다면 즉시 추가 입금을 멈추셔야 합니다.
 
 ${table}
 `

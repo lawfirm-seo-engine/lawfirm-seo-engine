@@ -233,7 +233,7 @@ function buildSearchKeyword(caseName: string) {
 }
 
 function buildSeoTitle(caseName: string) {
-  return `${buildCaseDisplayName(caseName)} 피해회복`
+  return `${buildCaseDisplayName(caseName)} 특징과 환불 가능성`
 }
 
 function buildSeoDescription(caseName: string) {
@@ -1187,7 +1187,7 @@ export default async function CasePage({
         ),
 
         h3: ({ children }) => (
-          <TypingHeading text={String(children)} level="h3" />
+          <h3>{children}</h3>
         ),
       },
     })
