@@ -59,6 +59,30 @@ function getUrlList() {
   return Array.from(new Set(urls)).slice(0, MAX_URLS_PER_REQUEST)
 }
 
+const INDEXNOW_ENDPOINTS = [
+  "https://api.indexnow.org/indexnow",
+  "https://searchadvisor.naver.com/indexnow",
+]
+
+async function submitToEndpoint(endpoint, payload) {
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify(payload),
+    })
+    const text = await response.text()
+    console.log(`[${endpoint}] status: ${response.status}`)
+    console.log(text || "submitted successfully")
+    return response.ok
+  } catch (err) {
+    console.error(`[${endpoint}] 요청 실패:`, err.message)
+    return false
+  }
+}
+
 async function submitIndexNow() {
   const key = ensureIndexNowKey()
   const urlList = getUrlList()
@@ -75,22 +99,15 @@ async function submitIndexNow() {
     urlList,
   }
 
-  const response = await fetch("https://api.indexnow.org/indexnow", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify(payload),
-  })
+  console.log(`제출 URL 수: ${urlList.length}`)
 
-  const text = await response.text()
+  const results = await Promise.all(
+    INDEXNOW_ENDPOINTS.map((endpoint) => submitToEndpoint(endpoint, payload))
+  )
 
-  console.log("IndexNow status:", response.status)
-  console.log("Submitted URLs:", urlList.length)
-  console.log(text || "IndexNow submitted successfully")
-
-  if (!response.ok) {
-    throw new Error(`IndexNow submit failed with status ${response.status}`)
+  const failedCount = results.filter((ok) => !ok).length
+  if (failedCount === INDEXNOW_ENDPOINTS.length) {
+    throw new Error("모든 IndexNow 엔드포인트 제출 실패")
   }
 }
 
