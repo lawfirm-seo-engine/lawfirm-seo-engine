@@ -130,6 +130,7 @@ body {
 
 .case-content h3 {
   text-align: left !important;
+  font-weight: 800 !important;
 }
 
 .case-content p {
