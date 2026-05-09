@@ -6,6 +6,7 @@ export type CaseItem = {
   slug: string
   caseName: string
   mtime: number
+  publishedAt: string
   imagePath: string
   categoryId: string
 }
@@ -35,15 +36,24 @@ export function readCaseItems(contentKey = "daeonlawfintech"): CaseItem[] {
         readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ")
       const category = getCaseCategoryForText(`${slug} ${caseName}`)
 
+      const publishedAt = readFrontmatterValue(source, "publishedAt") || ""
+
       return {
         slug,
         caseName,
         mtime: stat.mtime.getTime(),
+        publishedAt,
         imagePath: `/images/cases/${slug}.png`,
         categoryId: category.id,
       }
     })
-    .sort((a, b) => b.mtime - a.mtime)
+    // publishedAt 내림차순 (최신 생성순) — stat.mtime은 Vercel에서 git 커밋 시점으로 초기화되어 신뢰 불가
+    .sort((a, b) => {
+      if (a.publishedAt && b.publishedAt) return b.publishedAt.localeCompare(a.publishedAt)
+      if (a.publishedAt) return -1
+      if (b.publishedAt) return 1
+      return b.mtime - a.mtime
+    })
 }
 
 export function groupCasesByCategory(cases: CaseItem[]) {
