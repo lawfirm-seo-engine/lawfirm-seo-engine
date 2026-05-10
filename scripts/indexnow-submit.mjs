@@ -112,7 +112,6 @@ async function submitIndexNow() {
 }
 
 submitIndexNow().catch((error) => {
-  console.error("IndexNow submit failed")
-  console.error(error)
-  process.exit(1)
+  console.error("IndexNow submit failed (non-fatal):", error.message)
+  // IndexNow 실패는 빌드 실패로 이어지지 않도록 처리
 })
