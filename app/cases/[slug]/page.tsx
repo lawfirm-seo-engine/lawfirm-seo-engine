@@ -5,9 +5,21 @@ import { notFound } from "next/navigation"
 import { compileMDX } from "next-mdx-remote/rsc"
 import TypingHeading from "@/app/components/TypingHeading"
 
-// Vercel/Next cache tags can include decoded Korean slugs for ISR pages.
-// That can produce an invalid x-next-cache-tags header on production.
-export const dynamic = "force-dynamic"
+// 정적 생성(generateStaticParams)으로 함수 번들 크기 초과 문제 해결.
+// force-dynamic → ISR 캐시 태그에 한국어 slug가 포함되면 헤더 오류 발생하는 버그가 있었으나
+// 순수 정적 생성(revalidate 없음)에는 캐시 태그가 적용되지 않으므로 안전함.
+// dynamicParams = false: generateStaticParams에 없는 slug는 404 반환 (동적 함수 크기 초과 방지).
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  if (!fs.existsSync(casesDir)) return []
+  return fs
+    .readdirSync(casesDir)
+    .filter((file) => file.endsWith(".mdx"))
+    .filter((file) => file !== "_template.mdx")
+    .filter((file) => !file.startsWith("_"))
+    .map((file) => ({ slug: file.replace(/\.mdx$/, "") }))
+}
 
 const siteUrl = "https://daeonlawfintech.com"
 const siteName = "대온 법률사무소 핀테크센터"
