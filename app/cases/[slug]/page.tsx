@@ -29,7 +29,6 @@ const phoneNumber = "+82-2-6952-3695"
 const imageVersion = "20260430"
 
 const casesDir = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
-const publicDir = path.join(process.cwd(), "public")
 const fallbackCaseImagePath = "/images/templates/case-template.png"
 
 type CaseSummary = {
@@ -256,20 +255,12 @@ function getCaseFilePath(slug: string) {
   return path.join(casesDir, `${slug}.mdx`)
 }
 
-function publicImageExists(src: string) {
-  const cleanSrc = src.split("?")[0].replace(/^\//, "")
-
-  return fs.existsSync(path.join(publicDir, cleanSrc))
-}
-
 function getVersionedImageUrl(src: string) {
   return `${siteUrl}${src}?v=${imageVersion}`
 }
 
 function getCaseImageSrc(slug: string, extension: "png" | "avif") {
-  const candidate = `/images/cases/${slug}.${extension}`
-
-  return publicImageExists(candidate) ? candidate : fallbackCaseImagePath
+  return `/images/cases/${slug}.${extension}`
 }
 
 function getCaseMeta(decodedSlug: string) {
@@ -1088,7 +1079,7 @@ function normalizeImageSrc(src: string) {
     return src
   }
 
-  const imageSrc = publicImageExists(cleanSrc) ? cleanSrc : fallbackCaseImagePath
+  const imageSrc = cleanSrc
 
   return `${imageSrc}?v=${imageVersion}`
 }
