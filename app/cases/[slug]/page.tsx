@@ -1072,6 +1072,28 @@ function stripLeadingFigure(source: string): string {
     .trimStart()
 }
 
+// 템플릿 이미지 → 사건명 기반 파일명으로 치환 (SEO 개선)
+// next.config.ts의 rewrites가 실제 template 파일을 서빙함
+const TEMPLATE_IMAGE_SUFFIX: Record<string, string> = {
+  "template-02.jpg": "--02.jpg",
+  "template-03.png": "--03.png",
+  "template-04.jpg": "--04.jpg",
+  "template-05.png": "--05.png",
+  "template-06.jpg": "--06.jpg",
+  "template-07.gif": "--07.gif",
+  "template-08.png": "--08.png",
+}
+
+function replaceTemplateImages(source: string, slug: string): string {
+  return source.replace(
+    /\/images\/cases\/(template-\d{2}\.\w+)/g,
+    (_match, filename) => {
+      const suffix = TEMPLATE_IMAGE_SUFFIX[filename]
+      return suffix ? `/images/cases/${slug}${suffix}` : _match
+    }
+  )
+}
+
 function normalizeImageSrc(src: string) {
   const cleanSrc = src.split("?")[0]
 
@@ -1124,6 +1146,7 @@ export default async function CasePage({
 
   // MDX 첫 <figure>(hero 이미지 블록) 제거 → page.tsx에서 직접 렌더링
   let source = stripLeadingFigure(mdxSource)
+  source = replaceTemplateImages(source, decodedSlug)
   source = normalizeMdxImagePaths(source)
   source = normalizeHtmlImagePaths(source)
 

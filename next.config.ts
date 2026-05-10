@@ -118,6 +118,20 @@ const nextConfig: NextConfig = {
     ]
   },
 
+  // 사건명 기반 템플릿 이미지 URL → 실제 template 파일로 rewrite (파일 복사 없이 SEO 개선)
+  // 예: /images/cases/코인-사기--02.jpg → /images/cases/template-02.jpg
+  async rewrites() {
+    return [
+      { source: "/images/cases/:slug--02.jpg", destination: "/images/cases/template-02.jpg" },
+      { source: "/images/cases/:slug--03.png", destination: "/images/cases/template-03.png" },
+      { source: "/images/cases/:slug--04.jpg", destination: "/images/cases/template-04.jpg" },
+      { source: "/images/cases/:slug--05.png", destination: "/images/cases/template-05.png" },
+      { source: "/images/cases/:slug--06.jpg", destination: "/images/cases/template-06.jpg" },
+      { source: "/images/cases/:slug--07.gif", destination: "/images/cases/template-07.gif" },
+      { source: "/images/cases/:slug--08.png", destination: "/images/cases/template-08.png" },
+    ]
+  },
+
   async redirects() {
     return [
       {
