@@ -56,6 +56,32 @@ const nextConfig: NextConfig = {
 
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
+  // cases/[slug]는 generateStaticParams + dynamicParams=false로 완전 정적 생성됨.
+  // 서버리스 함수는 런타임에 절대 호출되지 않으므로
+  // 이미지(public/images)·MDX 콘텐츠·MDX 컴파일러를 번들에서 제외 → function_size_exceeded 해결.
+  outputFileTracingExcludes: {
+    "/cases/[slug]": [
+      "public/images/**",
+      "content/**",
+      "node_modules/@mdx-js/**",
+      "node_modules/next-mdx-remote/**",
+      "node_modules/unified/**",
+      "node_modules/remark-*/**",
+      "node_modules/rehype-*/**",
+      "node_modules/micromark/**",
+      "node_modules/micromark-*/**",
+      "node_modules/mdast-*/**",
+      "node_modules/hast-*/**",
+      "node_modules/vfile/**",
+      "node_modules/vfile-*/**",
+      "node_modules/acorn/**",
+      "node_modules/acorn-*/**",
+      "node_modules/estree-*/**",
+      "node_modules/periscopic/**",
+      "node_modules/astring/**",
+    ],
+  },
+
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 31536000,
