@@ -367,6 +367,8 @@ export async function generateMetadata({
   const fm = parseFrontmatter(rawSource)
   const isVariant = fm.groupRole === "variant" && typeof fm.representativeSlug === "string" && fm.representativeSlug.trim() !== "" && fm.representativeSlug.trim() !== decodedSlug
   const canonicalSlug = isVariant ? fm.representativeSlug.trim() : decodedSlug
+  // case-noindex 명령으로 수동 지정된 noindex 페이지
+  const isManualNoindex = fm.noindex === true || fm.noindex === "true"
 
   // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
   const encodedSlug = encodeURIComponent(decodedSlug)
@@ -393,10 +395,12 @@ export async function generateMetadata({
     description: seoDescription,
 
     robots: {
-      index: true,
+      // case-noindex 명령으로 noindex: true가 설정된 페이지는 색인 제외
+      // groupRole과 무관하게 독립적으로 동작 — 그룹 재편 시 색인 상태 흔들림 없음
+      index: !isManualNoindex,
       follow: true,
       googleBot: {
-        index: true,
+        index: !isManualNoindex,
         follow: true,
         "max-image-preview": "large",
         "max-snippet": -1,

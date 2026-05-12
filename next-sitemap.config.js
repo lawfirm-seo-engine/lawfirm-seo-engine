@@ -1,6 +1,15 @@
 const fs = require("fs")
 const path = require("path")
 
+// case-noindex 명령으로 noindex: true 설정된 페이지 → sitemap 제외
+function isManualNoindex(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, "utf8")
+    return /^noindex:\s*true/m.test(raw)
+  } catch {}
+  return false
+}
+
 // MDX frontmatter에서 lastmod 파싱
 // modifiedAt 우선 → publishedAt fallback (stat.mtime은 Vercel 빌드 시 2018년 등 git 타임스탬프로 초기화되므로 절대 사용 금지)
 function getLastmod(filePath) {
@@ -67,6 +76,7 @@ module.exports = {
       .filter((file) => file.endsWith(".mdx"))
       .filter((file) => file !== "_template.mdx")
       .filter((file) => !file.startsWith("_"))
+      .filter((file) => !isManualNoindex(path.join(casesPath, file)))
 
     const casePaths = files.map((file) => {
       const filePath = path.join(casesPath, file)
