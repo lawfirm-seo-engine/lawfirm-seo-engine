@@ -17,6 +17,7 @@
     "case-keyword": "node scripts/add-case-keyword.mjs",
     "case-memo": "node scripts/add-case-memo.mjs",
     "case-link": "node scripts/case-link.mjs",
+    "case-unlink": "node scripts/case-unlink.mjs",
     "case-comment": "node scripts/add-case-comment.mjs",
     "case-comment-delete": "node scripts/delete-case-comment.mjs",
     "case-comment-edit": "node scripts/edit-case-comment.mjs",
