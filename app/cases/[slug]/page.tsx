@@ -979,6 +979,23 @@ function getRepresentativePriority(item: CaseSummary) {
   return score
 }
 
+// 현재 페이지를 대표로 가리키는 variant 목록 반환
+// 대표 페이지에서 variant들을 내부링크로 노출 → 내부링크 망 강화
+function getVariantCases(currentSlug: string): CaseSummary[] {
+  return getCaseSummaries()
+    .filter((item) => {
+      if (item.slug === currentSlug) return false
+      // representativeSlug가 현재 페이지를 가리키는 경우
+      if (item.representativeSlug === currentSlug) return true
+      // caseGroupId가 같고 현재 페이지가 그룹 내 representative인 경우
+      const current = getCaseSummaries().find((s) => s.slug === currentSlug)
+      if (current?.caseGroupId && item.caseGroupId === current.caseGroupId && current.groupRole === "representative") return true
+      return false
+    })
+    .sort((a, b) => (a.groupOrder || 999) - (b.groupOrder || 999))
+    .slice(0, 20) // 최대 20개
+}
+
 function getRepresentativeCase(currentSlug: string) {
   const current = getCaseSummaries().find((item) => item.slug === currentSlug)
   const currentMeta = current || getCaseMeta(currentSlug)
@@ -1079,6 +1096,26 @@ function readCaseComments(slug: string): { date: string; author: string; text: s
     .filter((item): item is { date: string; author: string; text: string } => item !== null)
 }
 
+// H2~H4 헤딩에서 caseName 반복 제거 (키워드 밀도 과잉 방지, H1은 유지)
+// "## 1. {caseName} 피해 개요" → "## 1. 피해 개요"
+// "## {caseName} 상담..." → "## 상담..."
+// H1은 첫 번째 키워드 등장이므로 제거하지 않음
+function stripCaseNameFromHeadings(source: string, caseName: string): string {
+  if (!caseName) return source
+  const escaped = caseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  // 번호 있는 패턴: "## N. caseName rest"
+  source = source.replace(
+    new RegExp(`^(#{2,4}\\s+\\d+\\.\\s*)${escaped}\\s+`, "gm"),
+    "$1"
+  )
+  // 번호 없는 패턴: "## caseName rest" (번호 없이 caseName으로 시작)
+  source = source.replace(
+    new RegExp(`^(#{2,4}\\s+)${escaped}\\s+`, "gm"),
+    "$1"
+  )
+  return source
+}
+
 // MDX 첫 번째 <figure> 블록 제거
 // → page.tsx가 직접 hero <img>를 DOM 최상단에 렌더링하므로 중복 방지
 // → Naver Yeti가 figure 밖 첫 번째 <img>를 썸네일로 인식하도록 구조 개선
@@ -1166,6 +1203,10 @@ export default async function CasePage({
   source = replaceTemplateImages(source, decodedSlug)
   source = normalizeMdxImagePaths(source)
   source = normalizeHtmlImagePaths(source)
+  // H2 헤딩의 caseName 중복 제거 (키워드 밀도 과잉 방지)
+  // 패턴: "## N. {caseName} 나머지텍스트" → "## N. 나머지텍스트"
+  // 본문 대비 caseName 밀도를 ~11% → ~4%로 감소
+  source = stripCaseNameFromHeadings(source, caseName)
 
   const stat = fs.statSync(filePath)
 
@@ -1250,6 +1291,10 @@ export default async function CasePage({
 
   const recentCases = getRecentCases(decodedSlug)
   const representativeCase = getRepresentativeCase(decodedSlug)
+  // 대표 페이지인 경우 variant 목록 수집 (내부링크 노출용)
+  const rawFm = parseFrontmatter(fs.readFileSync(filePath, "utf-8"))
+  const isRepresentative = rawFm.groupRole === "representative"
+  const variantCases = isRepresentative ? getVariantCases(decodedSlug) : []
 
   // datePublished / dateModified: frontmatter 고정값만 사용
   // stat.mtime은 Vercel 빌드 시 git 커밋 타임스탬프(2018년 등)로 초기화 → 절대 사용 금지
@@ -1644,9 +1689,31 @@ export default async function CasePage({
           <ul className="related-cases-list">
             <li className="related-cases-item">
               <Link href={`/cases/${encodeURIComponent(representativeCase.slug)}`} className="related-cases-link">
-                /cases/{representativeCase.slug}
+                {representativeCase.caseName || representativeCase.slug}
               </Link>
             </li>
+          </ul>
+        </section>
+      )}
+
+      {/* 대표 페이지: 동일 유형 variant 목록 내부링크 (SEO 내부링크 망 강화) */}
+      {variantCases.length > 0 && (
+        <section className="related-cases related-cases-box">
+          <h2 className="related-cases-title">동일 유형 관련 사건 목록</h2>
+          <p className="related-cases-desc">
+            아래 사건들은 동일한 유형으로 신고·접수된 피해 사례입니다.
+          </p>
+          <ul className="related-cases-list">
+            {variantCases.map((item) => (
+              <li key={item.slug} className="related-cases-item">
+                <Link
+                  href={`/cases/${encodeURIComponent(item.slug)}`}
+                  className="related-cases-link"
+                >
+                  {item.caseName || item.slug}
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       )}
