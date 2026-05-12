@@ -368,7 +368,7 @@ export async function generateMetadata({
   const isVariant = fm.groupRole === "variant" && typeof fm.representativeSlug === "string" && fm.representativeSlug.trim() !== "" && fm.representativeSlug.trim() !== decodedSlug
   const canonicalSlug = isVariant ? fm.representativeSlug.trim() : decodedSlug
   // case-noindex 명령으로 수동 지정된 noindex 페이지
-  const isManualNoindex = fm.noindex === true || fm.noindex === "true"
+  const isManualNoindex = fm.noindex === "true"
 
   // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
   const encodedSlug = encodeURIComponent(decodedSlug)
