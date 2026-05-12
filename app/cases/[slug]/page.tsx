@@ -1096,24 +1096,74 @@ function readCaseComments(slug: string): { date: string; author: string; text: s
     .filter((item): item is { date: string; author: string; text: string } => item !== null)
 }
 
-// H2~H4 헤딩에서 caseName 반복 제거 (키워드 밀도 과잉 방지, H1은 유지)
-// "## 1. {caseName} 피해 개요" → "## 1. 피해 개요"
-// "## {caseName} 상담..." → "## 상담..."
-// H1은 첫 번째 키워드 등장이므로 제거하지 않음
-function stripCaseNameFromHeadings(source: string, caseName: string): string {
+// H2~H4 헤딩 재구성 (H1은 첫 키워드 등장이므로 유지)
+//
+// 번호 헤딩 처리:
+//   #1·#2 → caseName을 brandKeyword로 교체 (SEO 신호 유지, 밀도 절감)
+//     "## 1. ZERIUMX 사기 코인 환불 보상 스테이킹 사칭 피해 개요"
+//     → "## 1. ZERIUMX 피해 개요"
+//
+//   #3~#7 → caseName 제거 + 짧은 suffix를 설명적 문구로 확장 (타이핑 효과 길이 확보)
+//     "## 3. ... 피해 사례"         → "## 3. 실제 피해 유형별 사례 정리"
+//     "## 5. ... 대응 절차"         → "## 5. 단계별 법적 대응 절차 안내"
+//     "## 7. ... 상담 및 피해 신고" → "## 7. 법률 상담 방법과 피해 신고 절차"
+//
+//   #8 이상 → caseName만 제거, 이미 충분히 긴 원문 유지
+//
+// 번호 없는 헤딩 → caseName만 제거
+function processHeadings(source: string, caseName: string): string {
   if (!caseName) return source
+  const brandKeyword = extractBrandKeyword(caseName)
   const escaped = caseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  // 번호 있는 패턴: "## N. caseName rest"
+
+  // 섹션 suffix → 확장 문구 매핑
+  const expansionMap: Record<string, string> = {
+    // #1·#2: brandKeyword 유지
+    "피해 개요":           `${brandKeyword} 피해 개요`,
+    "접근 방식":           `${brandKeyword} 접근 방식`,
+    // #3~#7: 설명적 확장 (brandKeyword 없음)
+    "피해 사례":           "실제 피해 유형별 사례 정리",
+    "피해 즉시 확인 사항": "피해 직후 즉시 확인해야 할 사항",
+    "대응 절차":           "단계별 법적 대응 절차 안내",
+    "2차 피해 주의":       "2차 피해 예방과 주의 사항",
+    "상담 및 피해 신고":   "법률 상담 방법과 피해 신고 절차",
+  }
+
+  // 번호 있는 패턴: "## N. {caseName} {suffix}" → expansion 적용 or caseName만 제거
   source = source.replace(
-    new RegExp(`^(#{2,4}\\s+\\d+\\.\\s*)${escaped}\\s+`, "gm"),
-    "$1"
+    new RegExp(`^(#{2,4}\\s+\\d+\\.\\s*)${escaped}\\s+(.+)$`, "gm"),
+    (_match, prefix, rest) => {
+      const trimmed = rest.trim()
+      const expanded = expansionMap[trimmed]
+      return expanded ? `${prefix}${expanded}` : `${prefix}${trimmed}`
+    }
   )
-  // 번호 없는 패턴: "## caseName rest" (번호 없이 caseName으로 시작)
+
+  // 번호 없는 패턴: "## {caseName} rest" → caseName만 제거
   source = source.replace(
     new RegExp(`^(#{2,4}\\s+)${escaped}\\s+`, "gm"),
     "$1"
   )
+
   return source
+}
+
+// 섹션 1·2 본문 첫 줄의 caseName 등장 2회를 "이 사건"으로 치환
+// (h2 #1·#2에 brandKeyword를 추가한 만큼 본문 밀도를 같은 수로 상쇄)
+function reduceBodyCaseNameDensity(source: string, caseName: string, limit = 2): string {
+  if (!caseName) return source
+  const escaped = caseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  let count = 0
+  return source.replace(
+    new RegExp(`^${escaped}`, "gm"),
+    (match) => {
+      if (count < limit) {
+        count++
+        return "이 사건"
+      }
+      return match
+    }
+  )
 }
 
 // MDX 첫 번째 <figure> 블록 제거
@@ -1203,10 +1253,15 @@ export default async function CasePage({
   source = replaceTemplateImages(source, decodedSlug)
   source = normalizeMdxImagePaths(source)
   source = normalizeHtmlImagePaths(source)
-  // H2 헤딩의 caseName 중복 제거 (키워드 밀도 과잉 방지)
-  // 패턴: "## N. {caseName} 나머지텍스트" → "## N. 나머지텍스트"
-  // 본문 대비 caseName 밀도를 ~11% → ~4%로 감소
-  source = stripCaseNameFromHeadings(source, caseName)
+  // H2 헤딩 재구성:
+  //   #1·#2 → brandKeyword 교체 ("ZERIUMX 피해 개요")
+  //   #3~#7 → caseName 제거 + 설명적 확장 ("실제 피해 유형별 사례 정리")
+  //   #8 이상 → caseName만 제거, 원문 유지
+  // caseName 밀도 ~11.5% → ~4%로 감소
+  source = processHeadings(source, caseName)
+  // 섹션 1·2 본문 첫 등장 caseName → "이 사건" 치환
+  // (#1·#2 헤딩에 brandKeyword 추가분을 본문에서 2회 상쇄 → 밀도 순 변화 0)
+  source = reduceBodyCaseNameDensity(source, caseName)
 
   const stat = fs.statSync(filePath)
 
