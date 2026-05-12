@@ -128,10 +128,11 @@ npm run build
 
 ---
 
-## 최근 주요 작업 이력 (2026-05-11)
+## 최근 주요 작업 이력 (2026-05-12)
 
 | 커밋 | 내용 |
 |------|------|
+| 7c8525c | /cases noindex 처리 — 사건명 키워드 개별 페이지 노출 개선 |
 | d07888c | 템플릿 이미지 → 사건명 기반 URL 치환 (이미지 SEO) |
 | a9cb1e0 | publicImageExists 제거 (function_size_exceeded 해결) |
 | 7b5ba38 | vercel.json buildCommand 명시 |
@@ -139,3 +140,19 @@ npm run build
 | 9edd045 | IndexNow 실패 시 빌드 중단 방지 |
 | 3b81dd1 | 네이버 IndexNow 엔드포인트 추가 |
 | 856b180 | H3 bold 스타일 + 21개 그룹 링크 적용 |
+
+---
+
+## /cases 페이지 noindex 결정 (2026-05-12)
+
+**문제**: 'goldsilverex 사기', '국제귀금속거래소 사기' 등 사건명 검색 시
+개별 케이스 페이지 대신 /cases 목록 페이지가 네이버에 노출됨.
+
+**원인**: /cases 페이지가 662개 사건명을 모두 포함 → 키워드 경쟁 발생
+
+**해결**:
+- `app/cases/page.tsx`: `robots: { index: false, follow: true }`
+- `next-sitemap.config.js`: `/cases` sitemap 제외
+
+**follow: true 유지 이유**: /cases → 개별 페이지 내부 링크가 계속 크롤링되어
+PageRank(링크 권위)가 각 케이스 페이지로 전달됨. 색인 차단만, 링크 추적은 허용.
