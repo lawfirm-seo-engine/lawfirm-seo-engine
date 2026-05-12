@@ -590,18 +590,57 @@ function detectCaseType(text: string) {
   }
 }
 
-function getSameTypeCases(currentSlug: string, caseName: string) {
+// 같은 사기 유형 관련 사례 6개 반환
+//
+// 구성:
+//   Slot A (3개) — 같은 유형 최신 파일
+//     → 신선도 신호 + 현재 활성 사기 유형 클러스터링
+//   Slot B (3개) — 같은 유형 + 현재 페이지와 다른 publishedAt 날짜
+//     → 오래된 페이지로 PageRank 분산, 배치 생성 시 링크 편중 방지
+//
+// publishedAt 비교는 createdAt 앞 10자(YYYY-MM-DD)를 proxy로 사용
+function getSameTypeCases(
+  currentSlug: string,
+  caseName: string,
+  currentPublishedAt: string | null
+) {
   const currentType = detectCaseType(`${currentSlug} ${caseName}`).label
+  const currentDate = currentPublishedAt ? currentPublishedAt.slice(0, 10) : ""
 
-  return getCaseSummaries()
+  const sameType = getCaseSummaries()
     .filter((item) => item.slug !== currentSlug)
-    .map((item) => ({
-      ...item,
-      type: detectCaseType(`${item.slug} ${item.caseName}`).label,
-    }))
-    .filter((item) => item.type === currentType)
+    .filter(
+      (item) =>
+        detectCaseType(`${item.slug} ${item.caseName}`).label === currentType
+    )
     .sort((a, b) => b.mtime - a.mtime)
-    .slice(0, 6)
+
+  // Slot A: 최신 3개
+  const slotA = sameType.slice(0, 3)
+  const slotASlugs = new Set(slotA.map((i) => i.slug))
+
+  // Slot B: 나머지 중 publishedAt이 다른 날짜인 파일 3개
+  // 같은 날 배치 생성 파일이 모든 슬롯을 점유하는 현상 방지
+  const remaining = sameType.filter((item) => !slotASlugs.has(item.slug))
+  const slotB = currentDate
+    ? remaining
+        .filter((item) => item.createdAt.slice(0, 10) !== currentDate)
+        .slice(0, 3)
+    : remaining.slice(0, 3)
+
+  // Slot B가 부족하면 날짜 조건 없이 채움 (전체 파일 수가 적은 유형 대응)
+  const slotBSlugs = new Set(slotB.map((i) => i.slug))
+  const slotBFilled =
+    slotB.length < 3
+      ? [
+          ...slotB,
+          ...remaining
+            .filter((item) => !slotBSlugs.has(item.slug))
+            .slice(0, 3 - slotB.length),
+        ]
+      : slotB
+
+  return [...slotA, ...slotBFilled]
 }
 
 function romanizeHangul(input: string) {
@@ -1344,7 +1383,7 @@ export default async function CasePage({
     )
   }
 
-  const recentCases = getRecentCases(decodedSlug)
+  const relatedCases = getSameTypeCases(decodedSlug, caseName, publishedAt ?? null)
   const representativeCase = getRepresentativeCase(decodedSlug)
   // 대표 페이지인 경우 variant 목록 수집 (내부링크 노출용)
   const rawFm = parseFrontmatter(fs.readFileSync(filePath, "utf-8"))
@@ -1773,17 +1812,17 @@ export default async function CasePage({
         </section>
       )}
 
-      {recentCases.length > 0 && (
+      {relatedCases.length > 0 && (
         <section className="related-cases related-cases-box">
           <h2 className="related-cases-title">
             유사한 사기 유형 피해 사례 더 보기
           </h2>
 
           <ul className="related-cases-list">
-            {recentCases.map((item) => (
+            {relatedCases.map((item) => (
               <li key={item.slug} className="related-cases-item">
                 <Link href={`/cases/${encodeURIComponent(item.slug)}`} className="related-cases-link">
-                  {item.title.replace(/-/g, " ").replace(/사기$/, "")} 사기 피해 사례
+                  {item.caseName} 피해 사례
                 </Link>
               </li>
             ))}
