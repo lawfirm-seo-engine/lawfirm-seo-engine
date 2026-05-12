@@ -24,6 +24,7 @@ module.exports = {
 
   exclude: [
     "/cases/_template",
+    "/cases",          // noindex 페이지 — 개별 케이스 페이지와의 키워드 경쟁 차단
     "/server-sitemap.xml",
     "/api/*",
     "/admin/*",
@@ -82,13 +83,9 @@ module.exports = {
       }
     })
 
-    // /cases 목록 페이지를 sitemap에 명시적으로 포함
-    casePaths.unshift({
-      loc: "/cases",
-      changefreq: "daily",
-      priority: 0.9,
-      lastmod: new Date().toISOString(),
-    })
+    // /cases 목록 페이지: noindex 처리로 검색 노출 제외 → sitemap 제거
+    // (개별 케이스 페이지가 사건명 키워드로 노출되도록 키워드 경쟁 차단)
+    // casePaths.unshift({ loc: "/cases", ... }) — 의도적으로 제거
 
     casePaths.unshift(
       {

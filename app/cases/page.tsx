@@ -19,7 +19,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "팀미션 사기, 주식리딩방 사기, 코인리딩방 사기, 방송환전 사기 등 실제 피해 사례를 유형별로 정리한 사건 목록 페이지입니다.",
     robots: {
-      index: true,
+      // 개별 케이스 페이지가 사건명 키워드로 노출되어야 함.
+      // /cases 목록 페이지가 662개 사건명을 모두 포함해 키워드 경쟁 발생 → noindex 처리.
+      // follow 유지: /cases → 개별 페이지 링크의 권위 전달은 계속됨.
+      index: false,
       follow: true,
     },
     alternates: {
