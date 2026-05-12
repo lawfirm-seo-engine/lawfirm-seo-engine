@@ -369,6 +369,64 @@ function getTypeDetails(text) {
   return TYPE_DETAILS[detectCaseType(text)] || TYPE_DETAILS["기타"]
 }
 
+// ── SEO 키워드 추출 (page.tsx와 동일 로직) ──────────────────────────────────
+const AFTER_HARD_STOP = new Set([
+  "피해", "허위", "사례", "어플", "앱", "안내", "복구", "신고", "방법", "경고", "주의",
+])
+const AFTER_BRAND_STOP = new Set([
+  "사칭", "리딩방", "해외선물", "지수거래", "자동매매", "투자", "코인", "비트코인", "국내주식",
+])
+
+function extractSeoKeyword(caseName) {
+  const match = caseName.match(/^(.*?)\s+사기(?:\s+(.*))?$/)
+  if (!match) return caseName
+  const beforePart = (match[1] || "").trim()
+  const afterPart  = (match[2] || "").trim()
+  if (!afterPart) return `${beforePart} 사기`
+
+  const hasSachingBefore = beforePart.split(/\s+/).includes("사칭")
+  const taken = []
+
+  for (const token of afterPart.split(/\s+/).filter(Boolean)) {
+    if (token === "사칭" && hasSachingBefore) break
+    if (AFTER_HARD_STOP.has(token)) break
+    if (AFTER_BRAND_STOP.has(token)) {
+      if (taken.length === 0) taken.push(token)
+      break
+    }
+    if (/[A-Za-z]/.test(token)) { taken.push(token); break }
+    taken.push(token)
+  }
+
+  const afterStr = taken.join(" ")
+  return afterStr ? `${beforePart} 사기 ${afterStr}` : `${beforePart} 사기`
+}
+
+// caseType별 title / H1 suffix (create-case.js의 detectCaseType 기준)
+const CREATE_SUFFIX_MAP = {
+  "주식리딩방": { typeWord: "리딩방",   titleSuffix: "리딩방 피해 사례",   h1Suffix: "리딩방 피해 신고와 구제 방안"   },
+  "코인":       { typeWord: "코인",     titleSuffix: "코인 피해 사례",     h1Suffix: "코인 피해 신고와 구제 방안"     },
+  "쇼핑몰":     { typeWord: "쇼핑몰",   titleSuffix: "쇼핑몰 피해 사례",   h1Suffix: "쇼핑몰 피해 신고와 구제 방안"   },
+  "여행사":     { typeWord: "여행사",   titleSuffix: "여행사 피해 사례",   h1Suffix: "여행사 피해 신고와 구제 방안"   },
+  "영화사":     { typeWord: "영화사",   titleSuffix: "영화사 피해 사례",   h1Suffix: "영화사 피해 신고와 구제 방안"   },
+  "부업":       { typeWord: "부업",     titleSuffix: "부업 피해 사례",     h1Suffix: "부업 피해 신고와 구제 방안"     },
+  "라이브방송": { typeWord: "방송",     titleSuffix: "방송 피해 사례",     h1Suffix: "방송 피해 신고와 구제 방안"     },
+  "로맨스스캠": { typeWord: "로맨스스캠", titleSuffix: "로맨스스캠 피해 사례", h1Suffix: "로맨스스캠 피해 신고와 구제 방안" },
+  "기타":       { typeWord: "사칭",     titleSuffix: "사칭 피해 사례",     h1Suffix: "사칭 피해 신고와 구제 방안"     },
+}
+
+function buildTypedTitle(caseName, kind) {
+  const extracted  = extractSeoKeyword(caseName)
+  const caseType   = detectCaseType(`${caseName}`)
+  const map        = CREATE_SUFFIX_MAP[caseType] || CREATE_SUFFIX_MAP["기타"]
+  const lastToken  = extracted.split(" ").pop() || ""
+  const noTypeWord = lastToken === map.typeWord
+  const suffix = noTypeWord
+    ? (kind === "meta" ? "피해 사례" : "피해 신고와 구제 방안")
+    : (kind === "meta" ? map.titleSuffix : map.h1Suffix)
+  return `${extracted} ${suffix}`
+}
+
 // ============================================================
 // 유형별 진행 단계 표 데이터 (섹션 8)
 // ============================================================
@@ -986,7 +1044,8 @@ frontmatter 생성
 ========================================
 */
 
-const seoTitle = `${caseDisplayName} 특징과 환불 가능성`
+const seoTitle = buildTypedTitle(cleanCaseName, "meta")
+const h1Title  = buildTypedTitle(cleanCaseName, "h1")
 
 const td = getTypeDetails(`${slug} ${cleanCaseName}`)
 const seoDescription = `${cleanCaseName} ${td.descSuffix}`
@@ -1229,6 +1288,10 @@ function buildMdx() {
   const imagePath = `/images/cases/${slug}.png`
 
   template = template
+    .replaceAll(
+      "{{H1_TITLE}}",
+      h1Title
+    )
     .replaceAll(
       "{{CASE_NAME}}",
       cleanCaseName

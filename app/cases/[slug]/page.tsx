@@ -243,8 +243,74 @@ function buildSearchKeyword(caseName: string) {
   return withKeyword(withKeyword(caseName, "사기"), "사칭")
 }
 
+// ── SEO 키워드 추출 ──────────────────────────────────────────────────────────
+// "사기" 앞: 전체 유지 / "사기" 뒤: 불필요 수식어 제거하고 핵심 식별자만 추출
+// 예) "NGAJPM 사기 JP모건 사칭 허위 어플" → "NGAJPM 사기 JP모건"
+// 예) "드림게임 사칭 사기 복권 예측 피해" → "드림게임 사칭 사기 복권 예측"
+
+const AFTER_HARD_STOP = new Set([
+  "피해", "허위", "사례", "어플", "앱", "안내", "복구", "신고", "방법", "경고", "주의",
+])
+// 첫 토큰이면 유지 후 중단 / 두 번째 이후면 중단 (브랜드 등장 후 장식어 차단)
+const AFTER_BRAND_STOP = new Set([
+  "사칭", "리딩방", "해외선물", "지수거래", "자동매매", "투자", "코인", "비트코인", "국내주식",
+])
+
+function extractSeoKeyword(caseName: string): string {
+  const match = caseName.match(/^(.*?)\s+사기(?:\s+(.*))?$/)
+  if (!match) return caseName
+  const beforePart = (match[1] ?? "").trim()
+  const afterPart  = (match[2] ?? "").trim()
+  if (!afterPart) return `${beforePart} 사기`
+
+  const beforeTokens = beforePart.split(/\s+/).filter(Boolean)
+  const hasSachingBefore = beforeTokens.includes("사칭")
+  const taken: string[] = []
+
+  for (const token of afterPart.split(/\s+/).filter(Boolean)) {
+    if (token === "사칭" && hasSachingBefore) break   // 사칭 중복 차단
+    if (AFTER_HARD_STOP.has(token)) break             // 즉시 중단
+    if (AFTER_BRAND_STOP.has(token)) {
+      if (taken.length === 0) taken.push(token)       // 첫 토큰만 허용
+      break
+    }
+    if (/[A-Za-z]/.test(token)) { taken.push(token); break } // 영문: 유지 후 중단
+    taken.push(token)                                 // 일반 한국어: 유지 후 계속
+  }
+
+  const afterStr = taken.join(" ")
+  return afterStr ? `${beforePart} 사기 ${afterStr}` : `${beforePart} 사기`
+}
+
+// caseType별 title / H1 suffix 맵
+// detectCaseType() 반환 label 기준
+const CASE_TYPE_SUFFIX: Record<string, { typeWord: string; title: string; h1: string }> = {
+  "증권사 사칭 사기":     { typeWord: "리딩방",   title: "리딩방 피해 사례",   h1: "리딩방 피해 신고와 구제 방안"   },
+  "쇼핑몰 사칭 사기":    { typeWord: "쇼핑몰",   title: "쇼핑몰 피해 사례",   h1: "쇼핑몰 피해 신고와 구제 방안"   },
+  "코인 거래소 사칭 사기": { typeWord: "코인",   title: "코인 피해 사례",     h1: "코인 피해 신고와 구제 방안"     },
+  "해외선물 사칭 사기":   { typeWord: "해외선물", title: "해외선물 피해 사례", h1: "해외선물 피해 신고와 구제 방안" },
+  "방송 환전 사칭 사기":  { typeWord: "방송",    title: "방송 피해 사례",     h1: "방송 피해 신고와 구제 방안"     },
+  "플랫폼 사칭 사기":    { typeWord: "사칭",    title: "사칭 피해 사례",     h1: "사칭 피해 신고와 구제 방안"     },
+}
+
+function buildTypedTitle(caseName: string, kind: "meta" | "h1"): string {
+  const extracted = extractSeoKeyword(caseName)
+  const label     = detectCaseType(caseName).label
+  const map       = CASE_TYPE_SUFFIX[label] ?? CASE_TYPE_SUFFIX["플랫폼 사칭 사기"]
+  const lastToken = extracted.split(" ").pop() ?? ""
+  const noTypeWord = lastToken === map.typeWord  // 추출 결과 끝이 typeWord와 같으면 중복 생략
+  const suffix    = noTypeWord
+    ? (kind === "meta" ? "피해 사례" : "피해 신고와 구제 방안")
+    : (kind === "meta" ? map.title   : map.h1)
+  return `${extracted} ${suffix}`
+}
+
+function buildMetaTitle(caseName: string): string {
+  return buildTypedTitle(caseName, "meta")
+}
+
 function buildSeoTitle(caseName: string) {
-  return `${buildCaseDisplayName(caseName)} 피해 신고와 구제 방안`
+  return buildTypedTitle(caseName, "h1")
 }
 
 // FAQ 질문용 브랜드명 추출: "사기" 앞 텍스트만 사용해 키워드 밀도 과적재 방지
@@ -283,6 +349,7 @@ function getCaseMeta(decodedSlug: string) {
       caseName: fallbackCaseName,
       searchKeyword: buildSearchKeyword(fallbackCaseName),
       seoTitle: buildSeoTitle(fallbackCaseName),
+      metaTitle: buildMetaTitle(fallbackCaseName),
       seoDescription: buildSeoDescription(fallbackCaseName),
     }
   }
@@ -300,7 +367,8 @@ function getCaseMeta(decodedSlug: string) {
   const caseDisplayName = buildCaseDisplayName(caseName)
 
   const searchKeyword = buildSearchKeyword(caseName)
-  const seoTitle = buildSeoTitle(caseName)
+  const seoTitle  = buildSeoTitle(caseName)   // H1 / JSON-LD headline / breadcrumb
+  const metaTitle = buildMetaTitle(caseName)  // <title> / og:title / twitter:title
 
   const seoDescription =
     frontmatter.description && !frontmatter.description.includes("관련 대표 사건 안내")
@@ -343,6 +411,7 @@ function getCaseMeta(decodedSlug: string) {
     caseName,
     searchKeyword,
     seoTitle,
+    metaTitle,
     seoDescription,
     publishedAt,
     modifiedAt,
@@ -357,7 +426,7 @@ export async function generateMetadata({
   const { slug } = await params
 
   const decodedSlug = decodeURIComponent(slug)
-  const { searchKeyword, seoTitle, seoDescription, publishedAt, modifiedAt } = getCaseMeta(decodedSlug)
+  const { searchKeyword, seoTitle, metaTitle, seoDescription, publishedAt, modifiedAt } = getCaseMeta(decodedSlug)
 
   // variant 페이지는 대표 페이지로 canonical 집중 (링크 주스 분산 방지)
   // representative 페이지는 자기 자신을 canonical로 유지
@@ -391,7 +460,7 @@ export async function generateMetadata({
     : datePublished
 
   return {
-    title: seoTitle,
+    title: metaTitle,
     description: seoDescription,
 
     robots: {
@@ -425,7 +494,7 @@ export async function generateMetadata({
     },
 
     openGraph: {
-      title: seoTitle,
+      title: metaTitle,
       description: seoDescription,
       url: pageUrl,
       siteName,
@@ -453,7 +522,7 @@ export async function generateMetadata({
 
     twitter: {
       card: "summary_large_image",
-      title: seoTitle,
+      title: metaTitle,
       description: seoDescription,
       images: [imagePng],
     },
