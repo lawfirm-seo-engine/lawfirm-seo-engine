@@ -244,7 +244,14 @@ function buildSearchKeyword(caseName: string) {
 }
 
 function buildSeoTitle(caseName: string) {
-  return `${buildCaseDisplayName(caseName)} 특징과 환불 가능성`
+  return `${buildCaseDisplayName(caseName)} 피해 신고와 구제 방안`
+}
+
+// FAQ 질문용 브랜드명 추출: "사기" 앞 텍스트만 사용해 키워드 밀도 과적재 방지
+function extractBrandKeyword(caseName: string): string {
+  const idx = caseName.indexOf("사기")
+  const brand = idx > 0 ? caseName.slice(0, idx).trim() : caseName.split(" ")[0]
+  return brand || caseName
 }
 
 function buildSeoDescription(caseName: string) {
@@ -352,9 +359,19 @@ export async function generateMetadata({
   const decodedSlug = decodeURIComponent(slug)
   const { searchKeyword, seoTitle, seoDescription, publishedAt, modifiedAt } = getCaseMeta(decodedSlug)
 
+  // variant 페이지는 대표 페이지로 canonical 집중 (링크 주스 분산 방지)
+  // representative 페이지는 자기 자신을 canonical로 유지
+  const rawSource = fs.existsSync(getCaseFilePath(decodedSlug))
+    ? fs.readFileSync(getCaseFilePath(decodedSlug), "utf-8")
+    : ""
+  const fm = parseFrontmatter(rawSource)
+  const isVariant = fm.groupRole === "variant" && typeof fm.representativeSlug === "string" && fm.representativeSlug.trim() !== "" && fm.representativeSlug.trim() !== decodedSlug
+  const canonicalSlug = isVariant ? fm.representativeSlug.trim() : decodedSlug
+
   // canonical은 항상 percent-encoded 형태로 통일 (Google·Naver 중복 URL 방지)
   const encodedSlug = encodeURIComponent(decodedSlug)
   const pageUrl = `${siteUrl}/cases/${encodedSlug}`
+  const canonicalUrl = `${siteUrl}/cases/${encodeURIComponent(canonicalSlug)}`
 
   // PNG만 OG 이미지로 사용 (AVIF는 Naver Yeti 미지원 → 중복 og:image 시 썸네일 오작동)
   const imagePngSrc = getCaseImageSrc(decodedSlug, "png")
@@ -388,9 +405,9 @@ export async function generateMetadata({
     },
 
     alternates: {
-      canonical: pageUrl,
+      canonical: canonicalUrl,
       languages: {
-        "ko-KR": pageUrl,
+        "ko-KR": canonicalUrl,
       },
     },
 
@@ -1159,6 +1176,7 @@ export default async function CasePage({
 
   const encodedSlug = encodeURIComponent(decodedSlug)
   const pageUrl = `${siteUrl}/cases/${encodedSlug}`
+  const brandKeyword = extractBrandKeyword(caseName)
   const imageUrl = getVersionedImageUrl(getCaseImageSrc(decodedSlug, "png"))
   const imageAlt = `${searchKeyword} 피해 회복을 위한 법률 정보 이미지`
   const imageCaption = `${searchKeyword} 피해 사례 및 대응 방법 안내`
@@ -1391,9 +1409,9 @@ export default async function CasePage({
       {
         "@type": "FAQPage",
         mainEntity: [
-          { "@type": "Question", name: "피해금 회복이 가능한가요?", acceptedAnswer: { "@type": "Answer", text: "사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을 검토할 수 있으며 초기 대응 속도가 중요합니다." } },
-          { "@type": "Question", name: "경찰 신고만으로 해결되나요?", acceptedAnswer: { "@type": "Answer", text: "경찰 신고는 중요하지만 실제 피해금 회복을 위해서는 민사 대응과 계좌 관련 절차가 함께 검토되어야 합니다." } },
-          { "@type": "Question", name: "대응은 언제 시작해야 하나요?", acceptedAnswer: { "@type": "Answer", text: "사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 대응을 시작하는 것이 중요합니다." } },
+          { "@type": "Question", name: `${brandKeyword} 사기 피해금을 돌려받을 수 있나요?`, acceptedAnswer: { "@type": "Answer", text: `${brandKeyword} 사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을 검토할 수 있으며 초기 대응 속도가 중요합니다.` } },
+          { "@type": "Question", name: `${brandKeyword} 피해, 경찰 신고만으로 해결되나요?`, acceptedAnswer: { "@type": "Answer", text: `${brandKeyword} 사기 피해는 경찰 신고와 함께 민사 가압류·계좌 동결을 병행해야 실질적인 피해금 회복이 가능합니다.` } },
+          { "@type": "Question", name: `${brandKeyword} 사기 피해 대응은 언제 시작해야 하나요?`, acceptedAnswer: { "@type": "Answer", text: `${brandKeyword} 사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 즉시 대응을 시작하는 것이 중요합니다.` } },
           { "@type": "Question", name: "후불제로 사건 진행을 하고 싶은데 가능한가요?", acceptedAnswer: { "@type": "Answer", text: "변호사 선임에서 후불은 불법이기에 후불이 가능하다는 곳은 변호사를 사칭하는 곳이며, 변호사가 아닌 사람의 법률 서비스 제공 또한 불법이기에 각종 전문가를 자칭하는 곳도 2차 사기 위험이 있으니 주의해야 합니다." } },
           { "@type": "Question", name: "단체 소송으로 진행하는게 좋은가요?", acceptedAnswer: { "@type": "Answer", text: "단체 소송은 대표자 선정 과정과 같은 사건의 피해자를 모집하는 기간이 길어져 의뢰인의 실익이 없기에 대온은 진행하지 않습니다." } },
         ],
@@ -1561,33 +1579,33 @@ export default async function CasePage({
         <details className="case-faq-item">
           <summary>
             <span className="case-faq-number">1</span>
-            <span>피해금 회복이 가능한가요?</span>
+            <span>{brandKeyword} 사기 피해금을 돌려받을 수 있나요?</span>
           </summary>
           <div className="case-faq-answer">
-            사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을 검토할 수
-            있으며 초기 대응 속도가 중요합니다.
+            {brandKeyword} 사기 피해는 계좌 추적과 민형사 대응을 통해 회복 가능성을
+            검토할 수 있으며 초기 대응 속도가 중요합니다.
           </div>
         </details>
 
         <details className="case-faq-item">
           <summary>
             <span className="case-faq-number">2</span>
-            <span>경찰 신고만으로 해결되나요?</span>
+            <span>{brandKeyword} 피해, 경찰 신고만으로 해결되나요?</span>
           </summary>
           <div className="case-faq-answer">
-            경찰 신고는 중요하지만 실제 피해금 회복을 위해서는 민사 대응과 계좌
-            관련 절차가 함께 검토되어야 합니다.
+            {brandKeyword} 사기 피해는 경찰 신고와 함께 민사 가압류·계좌 동결을
+            병행해야 실질적인 피해금 회복이 가능합니다.
           </div>
         </details>
 
         <details className="case-faq-item">
           <summary>
             <span className="case-faq-number">3</span>
-            <span>대응과 상담은 언제 시작해야 하나요?</span>
+            <span>{brandKeyword} 사기 피해 대응은 언제 시작해야 하나요?</span>
           </summary>
           <div className="case-faq-answer">
-            사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지 직후 바로 상담과
-            대응을 시작하는 것이 중요합니다.
+            {brandKeyword} 사기 피해는 자금 이동 속도가 빠르기 때문에 피해 인지
+            직후 즉시 대응을 시작하는 것이 중요합니다.
           </div>
         </details>
 
@@ -1880,13 +1898,107 @@ export default async function CasePage({
           </ul>
         </section>
       )}
+
+      {/* 전화·카카오톡 CTA 카드 */}
+      <section
+        style={{
+          maxWidth: "960px",
+          margin: "48px auto 80px",
+          padding: "32px 28px",
+          background: "#111827",
+          borderRadius: "20px",
+          color: "#ffffff",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            margin: "0 0 8px",
+            fontSize: "13px",
+            fontWeight: 800,
+            letterSpacing: "0.08em",
+            color: "#a7f3d0",
+            textTransform: "uppercase",
+          }}
+        >
+          DAEON FINTECH CENTER
+        </p>
+        <p style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 900 }}>
+          대표변호사 신동우
+        </p>
+        <p style={{ margin: "0 0 4px", fontSize: "15px", color: "#d1d5db" }}>
+          서울 서초구 서초대로 250 스타갤러리브릿지빌딩 802호
+        </p>
+        <p
+          style={{
+            margin: "0 0 20px",
+            fontSize: "18px",
+            fontWeight: 700,
+            color: "#d1d5db",
+          }}
+        >
+          02-6952-3695 · 24시간 긴급 상담 대응
+        </p>
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <a
+            href="tel:0269523695"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: "48px",
+              padding: "0 24px",
+              borderRadius: "12px",
+              background: "#ffffff",
+              color: "#111827",
+              fontSize: "15px",
+              fontWeight: 800,
+              textDecoration: "none",
+            }}
+          >
+            📞 전화 상담
+          </a>
+          <a
+            href="http://pf.kakao.com/_xcypmn/chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: "48px",
+              padding: "0 24px",
+              borderRadius: "12px",
+              border: "2px solid #ffffff",
+              color: "#ffffff",
+              fontSize: "15px",
+              fontWeight: 800,
+              textDecoration: "none",
+            }}
+          >
+            💬 카카오톡 상담
+          </a>
+        </div>
+      </section>
     </main>
   )
 }
 
 // P3: 사기 유형별 고유 인사이트 컴포넌트
 function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: string }) {
-  const insights: Record<string, { title: string; points: string[]; warning: string }> = {
+  type TimelineStep = { day: string; event: string; signal: string }
+  type InsightData = {
+    title: string
+    points: string[]
+    warning: string
+    timeline: TimelineStep[]
+  }
+  const insights: Record<string, InsightData> = {
     "증권사 사칭 사기": {
       title: "증권사 사칭 사기 피해 특징 및 대응 포인트",
       points: [
@@ -1896,6 +2008,13 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "계좌 추적 시 대포통장이 연결된 경우가 많아 초기 가압류 타이밍이 중요합니다.",
       ],
       warning: "증권사 사칭 피해는 입금 계좌와 담당자 대화 캡처를 즉시 보존하고 추가 입금을 중단하는 것이 최우선입니다.",
+      timeline: [
+        { day: "D+0", event: "SNS·리딩방 초대 — 전문가 행세로 접근, 수익 인증 자료 공유", signal: "경계 무너짐" },
+        { day: "D+3", event: "가짜 HTS·MTS 가입 유도, 소액 체험 입금 후 수익 표시 연출", signal: "신뢰 형성" },
+        { day: "D+7", event: "공모주·비상장주 추천으로 고액 입금 유도, 수익률 허위 표시", signal: "본격 편취" },
+        { day: "D+14", event: "출금 요청 시 세금·보증금 명목 추가 입금 요구", signal: "2차 편취" },
+        { day: "D+21", event: "연락 두절, 사이트 폐쇄, 계좌 이체 후 잠적", signal: "피해 확정" },
+      ],
     },
     "쇼핑몰 사칭 사기": {
       title: "쇼핑몰·팀미션 사기 피해 특징 및 대응 포인트",
@@ -1906,6 +2025,30 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "사이트 화면과 정산 내역 캡처, 담당자 연락처가 회수 가능성 검토의 핵심 자료입니다.",
       ],
       warning: "추가 입금 요구를 받는 단계라면 즉시 중단해야 합니다. 이미 입금한 금액에 대한 회수 가능성을 별도로 검토합니다.",
+      timeline: [
+        { day: "D+0", event: "카카오톡·문자로 '재택 구매대행·팀미션 알바' 제안, 고수익 강조", signal: "접근" },
+        { day: "D+1", event: "소액 미션 후 즉시 정산 — 신뢰 형성을 위해 실제 입금", signal: "신뢰 구축" },
+        { day: "D+3", event: "고액 상품 구매 미션 부여, '수수료 포함 전액 정산' 약속", signal: "본격 유도" },
+        { day: "D+5", event: "출금 시 세금·잔액 부족·보증금 명목 추가 입금 요구 반복", signal: "편취 반복" },
+        { day: "D+10", event: "정산 지연 후 연락 차단, 플랫폼 접속 불가", signal: "피해 확정" },
+      ],
+    },
+    "코인 가상자산 사기": {
+      title: "코인·가상자산 사기 피해 특징 및 대응 포인트",
+      points: [
+        "실제 거래소와 동일한 UI·도메인을 모방한 가짜 거래소 앱을 통해 입금을 유도합니다.",
+        "스테이킹·에어드랍 명목으로 지갑 연결을 유도하거나 추가 코인 전송을 요구합니다.",
+        "출금 신청 시 추가 세금·수수료·인증비를 요구하는 패턴이 전형적입니다.",
+        "가상자산 지갑주소와 트랜잭션 해시가 있으면 블록체인 추적이 가능합니다.",
+      ],
+      warning: "코인 출금 제한 후 추가 코인 전송을 요구받은 경우 절대 응하지 마세요. 지갑주소와 거래 내역을 즉시 보존하세요.",
+      timeline: [
+        { day: "D+0", event: "텔레그램 코인 채널 초대 — 스테이킹 고수익 수익 인증 자료 공유", signal: "접근" },
+        { day: "D+3", event: "가짜 거래소·지갑 앱 가입 유도, 소액 입금 후 수익 연출", signal: "신뢰 형성" },
+        { day: "D+7", event: "추가 스테이킹 참여 권유, 고액 코인 전송 유도", signal: "본격 편취" },
+        { day: "D+14", event: "출금 요청 시 지갑 잠금 해제·세금·수수료 명목 추가 전송 요구", signal: "2차 편취" },
+        { day: "D+20", event: "텔레그램 방 삭제, 사이트 폐쇄, 담당자 연락 두절", signal: "피해 확정" },
+      ],
     },
     "코인 거래소 사칭 사기": {
       title: "코인·가상자산 사기 피해 특징 및 대응 포인트",
@@ -1916,6 +2059,13 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "가상자산 지갑주소와 트랜잭션 해시가 있으면 블록체인 추적이 가능합니다.",
       ],
       warning: "코인 출금 제한 후 추가 코인 전송을 요구받은 경우 절대 응하지 마세요. 지갑주소와 거래 내역을 즉시 보존하세요.",
+      timeline: [
+        { day: "D+0", event: "텔레그램 코인 채널 초대 — 스테이킹 고수익 수익 인증 자료 공유", signal: "접근" },
+        { day: "D+3", event: "가짜 거래소·지갑 앱 가입 유도, 소액 입금 후 수익 연출", signal: "신뢰 형성" },
+        { day: "D+7", event: "추가 스테이킹 참여 권유, 고액 코인 전송 유도", signal: "본격 편취" },
+        { day: "D+14", event: "출금 요청 시 지갑 잠금 해제·세금·수수료 명목 추가 전송 요구", signal: "2차 편취" },
+        { day: "D+20", event: "텔레그램 방 삭제, 사이트 폐쇄, 담당자 연락 두절", signal: "피해 확정" },
+      ],
     },
     "해외선물 사칭 사기": {
       title: "해외선물 사기 피해 특징 및 대응 포인트",
@@ -1926,6 +2076,13 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "입금 계좌, 플랫폼 URL, 리딩방 초대 경로가 핵심 증거 자료입니다.",
       ],
       warning: "해외선물 거래 플랫폼은 금융위원회 등록 여부를 먼저 확인해야 합니다. 미등록 해외선물 플랫폼은 사기 가능성이 높습니다.",
+      timeline: [
+        { day: "D+0", event: "리딩방 초대 — '해외선물 단타 전문가' 행세로 수익 인증 공유", signal: "접근" },
+        { day: "D+2", event: "가짜 MT5·전용 앱 가입 유도, 소액 체험 후 수익 화면 연출", signal: "신뢰 형성" },
+        { day: "D+7", event: "나스닥·금 종목 추천으로 고액 증거금 입금 유도", signal: "본격 편취" },
+        { day: "D+14", event: "손실 발생 연출 후 추가 증거금 요구 또는 출금 시 세금 요구", signal: "2차 편취" },
+        { day: "D+21", event: "리딩방 폐쇄, 플랫폼 접속 불가, 연락 두절", signal: "피해 확정" },
+      ],
     },
     "방송 환전 사칭 사기": {
       title: "방송·포인트 환전 사기 피해 특징 및 대응 포인트",
@@ -1936,6 +2093,13 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "담당자와의 대화방 캡처와 플랫폼 URL이 중요한 증거입니다.",
       ],
       warning: "방송 플랫폼에서 외부 계좌 입금을 유도하거나 개인정보를 요구하면 즉시 중단하세요.",
+      timeline: [
+        { day: "D+0", event: "SNS·방송 채팅에서 '포인트 적립 알바·방송 후원 수익' 제안 접근", signal: "접근" },
+        { day: "D+1", event: "소액 포인트 적립 확인 후 환전 조건으로 개인정보·계좌 요구", signal: "신뢰 구축" },
+        { day: "D+3", event: "환전 수수료·인증비 명목 추가 입금 요구 시작", signal: "편취 시작" },
+        { day: "D+5", event: "환전 지연을 이유로 반복 입금 요구, 금액 점진적 증가", signal: "편취 반복" },
+        { day: "D+10", event: "연락 차단, 플랫폼 계정 정지, 대화방 삭제", signal: "피해 확정" },
+      ],
     },
     "플랫폼 사칭 사기": {
       title: "플랫폼 사칭 사기 피해 특징 및 대응 포인트",
@@ -1946,10 +2110,30 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         "동일 사이트명을 사용하는 다른 피해자와 정보를 공유하면 대응에 도움이 됩니다.",
       ],
       warning: "추가 입금 요구 단계라면 즉시 중단하고 이미 입금한 내역을 기준으로 대응 방향을 검토해야 합니다.",
+      timeline: [
+        { day: "D+0", event: "SNS·문자·지인 소개를 통해 정상 플랫폼처럼 포장된 사이트 안내", signal: "접근" },
+        { day: "D+2", event: "가입 후 소액 수익 또는 서비스 혜택 연출로 신뢰 형성", signal: "신뢰 구축" },
+        { day: "D+5", event: "고액 서비스 결제·투자 유도, 실제 수익 발생처럼 화면 조작", signal: "본격 편취" },
+        { day: "D+10", event: "출금·환불 요청 시 수수료·인증비 명목 추가 입금 요구", signal: "2차 편취" },
+        { day: "D+15", event: "사이트 폐쇄, 담당자 연락 두절, 피해금 회수 불가 상태", signal: "피해 확정" },
+      ],
     },
   }
 
   const insight = insights[caseType] ?? insights["플랫폼 사칭 사기"]
+
+  const signalColors: Record<string, { bg: string; text: string; border: string }> = {
+    "접근":     { bg: "#f0fdf4", text: "#166534", border: "#86efac" },
+    "신뢰 형성": { bg: "#eff6ff", text: "#1e40af", border: "#93c5fd" },
+    "신뢰 구축": { bg: "#eff6ff", text: "#1e40af", border: "#93c5fd" },
+    "본격 편취": { bg: "#fff7ed", text: "#9a3412", border: "#fdba74" },
+    "본격 유도": { bg: "#fff7ed", text: "#9a3412", border: "#fdba74" },
+    "편취 시작": { bg: "#fff7ed", text: "#9a3412", border: "#fdba74" },
+    "편취 반복": { bg: "#fef2f2", text: "#991b1b", border: "#fca5a5" },
+    "2차 편취": { bg: "#fef2f2", text: "#991b1b", border: "#fca5a5" },
+    "경계 무너짐": { bg: "#faf5ff", text: "#6b21a8", border: "#d8b4fe" },
+    "피해 확정": { bg: "#1f2937", text: "#f9fafb", border: "#374151" },
+  }
 
   return (
     <section
@@ -1976,7 +2160,7 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
         {insight.title}
       </h2>
 
-      <ul style={{ margin: "0 0 20px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+      <ul style={{ margin: "0 0 28px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
         {insight.points.map((point, i) => (
           <li key={i} style={{ display: "flex", gap: "10px", fontSize: "15px", lineHeight: 1.75, color: "#374151" }}>
             <span style={{ flexShrink: 0, fontWeight: 900, color: "#111827" }}>✔</span>
@@ -1984,6 +2168,54 @@ function CaseTypeInsight({ caseType, caseName }: { caseType: string; caseName: s
           </li>
         ))}
       </ul>
+
+      {/* 피해 진행 타임라인 */}
+      <div style={{ marginBottom: "24px" }}>
+        <h3 style={{ margin: "0 0 14px", fontSize: "16px", fontWeight: 800, color: "#374151" }}>
+          📋 피해 진행 타임라인 — 어느 단계에 있나요?
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {insight.timeline.map((step, i) => {
+            const color = signalColors[step.signal] ?? signalColors["피해 확정"]
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "52px 1fr auto",
+                  gap: "12px",
+                  alignItems: "center",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: color.bg,
+                  border: `1px solid ${color.border}`,
+                }}
+              >
+                <span style={{ fontSize: "12px", fontWeight: 900, color: color.text, letterSpacing: "0.04em" }}>
+                  {step.day}
+                </span>
+                <span style={{ fontSize: "14px", lineHeight: 1.65, color: "#1f2937" }}>
+                  {step.event}
+                </span>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    padding: "3px 8px",
+                    borderRadius: "20px",
+                    background: color.border,
+                    color: color.text,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {step.signal}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       <div
         style={{

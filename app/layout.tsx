@@ -55,6 +55,9 @@ export const metadata: Metadata = {
     "application-name": organizationName,
     "msapplication-TileColor": "#111827",
     "theme-color": "#111827",
+    // Naver Yeti 크롤러 이미지 수집 및 콘텐츠 색인 허용 명시
+    "NaverBot": "All",
+    "Yeti": "All",
   },
 
   title: {
