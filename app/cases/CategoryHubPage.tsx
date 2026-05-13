@@ -72,8 +72,8 @@ export async function generateCategoryHubMetadata(
     title,
     description: `${category.description} 관련 실제 사칭 사건과 대응 방향을 유형별로 정리했습니다.`,
     robots: {
-      index: true,
-      follow: true,
+      index: false,  // 허브 페이지가 브랜드 키워드 흡수 방지 — /cases 목록과 동일 처리
+      follow: true,  // 내부 링크 → 개별 케이스 PageRank 흐름 유지
     },
     alternates: {
       canonical: pageUrl,

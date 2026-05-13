@@ -641,9 +641,12 @@ function detectCaseType(text: string) {
     }
   }
 
-  if (/코인|거래소|wallet|지갑|스테이킹|crypto|coin|bit/.test(value)) {
+  // 방송 환전 체크를 코인 앞에 배치:
+  // "라이브|방송|환전 + 코인" 혼합 케이스(예: 라이브방송 코인 환전 사칭)가
+  // 코인 패턴에 먼저 걸려 오분류되는 문제 방지 (caseCategories.ts와 동일 순서 유지)
+  if (/방송|라이브|환전|채팅|만남/.test(value)) {
     return {
-      label: "코인 거래소 사칭 사기",
+      label: "방송 환전 사칭 사기",
     }
   }
 
@@ -653,9 +656,9 @@ function detectCaseType(text: string) {
     }
   }
 
-  if (/방송|라이브|환전|채팅|만남/.test(value)) {
+  if (/코인|거래소|wallet|지갑|스테이킹|crypto|coin|bit/.test(value)) {
     return {
-      label: "방송 환전 사칭 사기",
+      label: "코인 거래소 사칭 사기",
     }
   }
 

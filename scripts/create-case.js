@@ -1447,4 +1447,16 @@ function buildMdx() {
 
   console.log("")
   console.log(`/cases/${slug}`)
+
+  // 카페 포스트 자동 생성 — D+1 네이버 색인 가능성 향상
+  // (카페에 URL 포스팅 → Naver Yeti가 카페 크롤 중 URL 발견 → 빠른 색인)
+  const { execSync } = require("child_process")
+  try {
+    console.log("\n📋 네이버 카페 포스트 생성 중...")
+    execSync(`node scripts/create-cafe-post.mjs "${cleanCaseName.replace(/"/g, '\\"')}"`, {
+      stdio: "inherit",
+    })
+  } catch (e) {
+    console.warn("⚠️  카페 포스트 생성 실패 — 수동으로 npm run case-cafe 실행하세요")
+  }
 })()

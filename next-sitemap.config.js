@@ -33,7 +33,11 @@ module.exports = {
 
   exclude: [
     "/cases/_template",
-    "/cases",          // noindex 페이지 — 개별 케이스 페이지와의 키워드 경쟁 차단
+    "/cases",               // noindex — 개별 케이스와 키워드 경쟁 차단
+    "/cases/teammission",   // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
+    "/cases/stock-room",    // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
+    "/cases/crypto-room",   // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
+    "/cases/broadcast-exchange", // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
     "/server-sitemap.xml",
     "/api/*",
     "/admin/*",
@@ -97,32 +101,8 @@ module.exports = {
     // (개별 케이스 페이지가 사건명 키워드로 노출되도록 키워드 경쟁 차단)
     // casePaths.unshift({ loc: "/cases", ... }) — 의도적으로 제거
 
-    casePaths.unshift(
-      {
-        loc: "/cases/teammission",
-        changefreq: "daily",
-        priority: 0.9,
-        lastmod: new Date().toISOString(),
-      },
-      {
-        loc: "/cases/stock-room",
-        changefreq: "daily",
-        priority: 0.9,
-        lastmod: new Date().toISOString(),
-      },
-      {
-        loc: "/cases/crypto-room",
-        changefreq: "daily",
-        priority: 0.9,
-        lastmod: new Date().toISOString(),
-      },
-      {
-        loc: "/cases/broadcast-exchange",
-        changefreq: "daily",
-        priority: 0.9,
-        lastmod: new Date().toISOString(),
-      }
-    )
+    // 허브 페이지 4개는 noindex 처리 → sitemap 제외
+    // (허브 페이지가 브랜드 키워드를 흡수하여 개별 케이스 페이지와 키워드 경쟁 발생 방지)
 
     return casePaths
   },
