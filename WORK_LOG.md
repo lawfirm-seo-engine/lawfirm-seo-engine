@@ -1,7 +1,7 @@
 # WORK LOG — 대온 법률사무소 SEO 엔진
 
 > 새 PC에서 작업 시작 전 반드시 이 파일을 먼저 읽을 것.
-> 업데이트: 2026-05-11
+> 업데이트: 2026-05-13
 
 ---
 
@@ -156,3 +156,97 @@ npm run build
 
 **follow: true 유지 이유**: /cases → 개별 페이지 내부 링크가 계속 크롤링되어
 PageRank(링크 권위)가 각 케이스 페이지로 전달됨. 색인 차단만, 링크 추적은 허용.
+
+---
+
+## 주요 작업 이력 (2026-05-13)
+
+| 커밋 | 내용 |
+|------|------|
+| ca64344 | SEO: variant noindex, 을/를 문법 전체 교정, keywords 자동생성, zenith 본문 고유화 |
+| 3d93a95 | SX-Algo ~ SL Company 및 5/13 MDX 생성 |
+| 28fe278 | fix: .keywords 유형별 공통 키워드 중복 제거 (91개 파일, 284건) |
+| 10a1701 | fix: 3d93a95에서 생성된 .keywords 파일 공통 키워드 중복 제거 (3개 파일) |
+
+### 5/13 작업 상세
+
+#### 1. variant 페이지 noindex (`ca64344`)
+- `app/cases/[slug]/page.tsx` robots 조건에 `!isVariant` 추가
+- variant 페이지는 canonical이 대표 페이지를 가리키므로 색인 시 중복 콘텐츠 패널티 위험
+- `isVariant`: `groupRole === "variant" && representativeSlug 유효 && 자기 자신이 아닌 경우`
+
+#### 2. 을/를 문법 전체 교정 (`ca64344`)
+- `scripts/create-case.js`에 `euReul(word)` 함수 추가
+  - 마지막 음절 유니코드 `(code - 0xAC00) % 28 === 0` → 받침 없으면 "를", 있으면 "을"
+- 기존 MDX 748개 파일 일괄 교정: 1,506건 수정
+  - `자금 이체을` → `자금 이체를`, `선납 요구을` → `선납 요구를` 등 14가지 패턴
+
+#### 3. .keywords 자동 생성 (`ca64344`)
+- MDX 생성 시 `buildKeywords(caseName, slug)` → `.keywords` 파일 자동 작성
+- 동시에 `~/Downloads/{slug}.keywords.txt`로 저장
+- **포함 키워드**: 브랜드명, 인물명+사칭, slug 변형 등 케이스 고유 키워드만
+- **미포함**: 유형 공통 키워드("리딩방 사기" 등) — `page.tsx`의 `scamTopicKeywords`가 모든 페이지에 자동 적용하므로 중복 방지
+
+#### 4. .keywords 공통 키워드 중복 제거 (`28fe278`, `10a1701`)
+- `page.tsx` `scamTopicKeywords` 배열(15개)과 겹치는 키워드를 전체 `.keywords` 파일에서 제거
+- 제거 대상: `주식리딩방 사기`, `리딩방 사기`, `코인 사기`, `투자 사기 피해`, `주식 사기` 등
+- `buildKeywords()` 함수에서도 typeKws 섹션 완전 제거 (신규 생성 파일도 안전)
+- 총 100개 파일 전수 정리 완료
+
+#### 5. zenith 케이스 본문 고유화 (`ca64344`)
+- "박두환" → "박두환 사칭" 형식으로 통일 (사칭 명시)
+- 섹션 1·2에 "박두환 사칭" 자연어로 삽입 → 검색어·본문 일치도 개선
+
+---
+
+## 아키텍처 논의 결정사항 (2026-05-13)
+
+### 유형 판정 로직 단일화 현황
+
+`lib/caseTypes.js`가 사실상 단일 소스. `COIN_PATTERN → STOCK_PATTERN → SHOPPING_PATTERN` 순서로 판정.
+
+**현재 판정 우선순위** (이미 올바르게 구현됨):
+```
+1순위: COIN_PATTERN  (코인|coin|wallet|거래소|crypto|staking...)
+2순위: STOCK_PATTERN (stock|ETF|asset|investment|trading|securities|futures|HTS|MTS|공모주|비상장|증권|해외선물...)
+3순위: SHOPPING_PATTERN (mall|shop|market|쇼핑...)
+```
+→ stock/ETF/해외선물 키워드가 있으면 market/shop이 있어도 주식리딩방으로 판정
+→ "코인 해외선물"은 COIN이 먼저 잡혀 crypto-room 판정
+
+**미결: 특수규칙 블록이 COIN/STOCK 체크보다 앞에 있는지 확인 필요**
+
+### caseType 정본화 방향 (미적용, 검토 중)
+
+현재 `page.tsx`가 프론트매터 `caseType`을 무시하고 slug에서 재판정. 개선안:
+```typescript
+// 프론트매터 caseType 있으면 우선, 없으면 slug에서 자동감지
+const caseTypeKey = fm.caseType
+  ? LEGACY_KEY_MAP[fm.caseType] ?? detectCaseTypeKey(`${slug} ${caseName}`)
+  : detectCaseTypeKey(`${slug} ${caseName}`)
+```
+
+### 감사(audit) 로직 보강 필요 항목
+
+현재 audit-cases.js에서 **빠진 검사** (향후 추가 예정):
+```
+① 대표-variant 간 caseType 불일치
+② aliases(식별 토큰) 충돌 — 두 케이스가 같은 브랜드명/인물명 공유
+③ representative 없는 고아 variant 그룹
+④ .keywords primaryKeyword ↔ MDX caseName 불일치
+```
+
+### description 차별화 방향 (미적용, 검토 중)
+
+현재 description 패턴이 caseName만 다르고 나머지 동일 → 중복 설명 경고 위험.
+개선: `buildGeneratedDescription()`에서 aliases(인물명·앱명) 주입.
+
+### 추가하지 않기로 결정한 필드
+
+- `qualityChecked: true` — 파일 수정 시 stale되어 신뢰도 낮음. git 이력로 대체.
+- `indexIntent: representative|variant|noindex` — 현재 `groupRole` + `noindex` 조합으로 충분. 748개 마이그레이션 비용 대비 실익 없음.
+
+### 문법 유틸 공통화 방향 (미적용, 검토 중)
+
+`euReul()` 등 문법 함수를 `lib/grammarUtils.js`로 추출 → create-case.js·audit-cases.js 양쪽에서 import.
+생성 단계(예방) + 감사 단계(회귀 감지) 모두 적용하는 것이 이상적.
