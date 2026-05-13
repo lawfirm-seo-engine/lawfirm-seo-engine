@@ -1072,6 +1072,96 @@ ${representativeSlug && representativeSlug !== slug ? `representativeSlug: "${re
 ${representativeBlock}
 `
 
+// ─── 한국어 목적격 조사 자동 선택 ─────────────────────────────────────────────
+// 앞 음절이 받침(종성) 있으면 '을', 없으면 '를' 반환
+function euReul(word) {
+  if (!word) return "을"
+  const last = word[word.length - 1]
+  const code = last.charCodeAt(0)
+  if (code < 0xAC00 || code > 0xD7A3) return "을"          // 한글 범위 밖 → 기본값
+  return (code - 0xAC00) % 28 === 0 ? "를" : "을"           // 받침 없으면 '를'
+}
+
+// ─── .keywords 파일 및 Downloads txt 생성 ────────────────────────────────────
+function buildKeywords(caseName, slug, typeLabel) {
+  const kw = new Set()
+
+  // 1. caseName 전체 및 기본 변형
+  kw.add(caseName)
+  kw.add(`${caseName} 피해`)
+  kw.add(`${caseName} 신고`)
+  kw.add(`${caseName} 피해 사례`)
+
+  // 2. "사기" 앞 브랜드 키워드
+  const sagiIdx = caseName.indexOf("사기")
+  const brand = sagiIdx > 0 ? caseName.slice(0, sagiIdx).trim() : ""
+  if (brand && brand !== caseName) {
+    kw.add(`${brand} 사기`)
+    kw.add(`${brand} 사기 피해`)
+    kw.add(`${brand} 피해`)
+    kw.add(`${brand} 피해 신고`)
+    // 영문 소문자 변형
+    const brandLow = brand.toLowerCase().replace(/\s+/g, "")
+    if (/[a-z]/i.test(brand) && brandLow !== brand.toLowerCase()) {
+      kw.add(`${brandLow} 사기`)
+    }
+    // 한글+영문 혼합이면 공백 제거 변형도 추가
+    if (/[a-z]/i.test(brand) && brand.includes(" ")) {
+      kw.add(`${brand.replace(/\s+/g, "")} 사기`)
+    }
+  }
+
+  // 3. "사기" 뒤 토큰 (인물명, 서비스명 등)
+  const afterSagi = sagiIdx >= 0 ? caseName.slice(sagiIdx + 2).trim() : ""
+  if (afterSagi) {
+    const tokens = afterSagi.split(/[\s\-]+/).filter((t) => t.length >= 2 && !/^(사칭|피해|사례|리딩방|투자|코인|사기|쇼핑몰|거래소|증권사|부업|방송)$/.test(t))
+    tokens.forEach((t) => {
+      kw.add(`${t} 사칭`)
+      kw.add(`${t} 사기`)
+      if (brand) kw.add(`${brand} ${t} 사기`)
+    })
+  }
+
+  // 4. 유형별 공통 키워드
+  const typeKws = {
+    "주식리딩방·투자":  ["리딩방 사기", "주식리딩방 사기", "투자 사기 피해"],
+    "코인·가상자산":    ["코인 사기", "가상자산 사기", "코인 투자 사기"],
+    "쇼핑몰·팀미션":    ["쇼핑몰 사기", "팀미션 사기", "구매대행 사기"],
+    "부업·팀미션":      ["부업 사기", "체험단 사기", "알바 사기"],
+    "라이브방송·팀미션":["라이브방송 사기", "방송 팀미션 사기"],
+    "여행사·팀미션":    ["여행사 사기", "여행 사기"],
+    "영화사·팀미션":    ["영화사 사기", "영상 구매 사기"],
+    "로맨스스캠":       ["로맨스스캠", "SNS 사기", "투자 사기"],
+  }
+  ;(typeKws[typeLabel] || ["금융사기 피해"]).forEach((k) => kw.add(k))
+
+  return Array.from(kw)
+}
+
+function writeKeywordsFiles(slug, keywords) {
+  const casesDir2 = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
+  const keywordsPath = path.join(casesDir2, `${slug}.keywords`)
+  fs.writeFileSync(keywordsPath, keywords.join("\n") + "\n", "utf-8")
+
+  // Windows Downloads 폴더에 리뷰용 txt 저장
+  const homeDir = process.env.USERPROFILE || process.env.HOME || ""
+  const downloadsDir = path.join(homeDir, "Downloads")
+  if (fs.existsSync(downloadsDir)) {
+    const txtPath = path.join(downloadsDir, `${slug}-keywords.txt`)
+    const txtContent = [
+      `# ${slug} 키워드 목록`,
+      `# 생성일: ${new Date().toISOString().slice(0, 10)}`,
+      `# 총 ${keywords.length}개`,
+      "",
+      ...keywords,
+    ].join("\n")
+    fs.writeFileSync(txtPath, txtContent, "utf-8")
+    console.log(`📄 키워드 txt: ${txtPath}`)
+  }
+
+  console.log(`🔑 .keywords 생성: ${keywordsPath} (${keywords.length}개)`)
+}
+
 function detectKeywordRole(value) {
   const normalized = value.toLowerCase()
   const subject = normalized
@@ -1182,7 +1272,7 @@ ${plainName}은 ${td.caseType} 유형입니다.
 
 특징은 ${td.approach} 방식으로 피해자에게 접근한다는 점입니다.
 
-피해자는 ${td.victimAction}을 요청받습니다.
+피해자는 ${td.victimAction}${euReul(td.victimAction)} 요청받습니다.
 
 이후 ${td.mechanism} 명목으로 금전을 요구하며, ${td.delayType}를 이유로 추가 입금을 반복 요구하는 것이 이 유형의 전형적인 구조입니다.
 
@@ -1192,11 +1282,11 @@ ${imageBlock("02", `${plainName} ${td.label} 사칭 피해 구조 안내 이미�
 
 ${td.label} 사기는 ${td.approach} 방식을 통해 피해자를 끌어들입니다.
 
-처음에는 ${td.victimAction}을 요청받고, 신뢰가 쌓인 뒤 점차 ${td.mechanism} 명목으로 금전을 요구받습니다.
+처음에는 ${td.victimAction}${euReul(td.victimAction)} 요청받고, 신뢰가 쌓인 뒤 점차 ${td.mechanism} 명목으로 금전을 요구받습니다.
 
 처음에는 소액으로 시작해 실제로 수익이 발생하는 것처럼 보이도록 유도합니다.
 
-출금이나 환불을 요청하면 ${td.delayType}을 이유로 추가 입금을 요구합니다.
+출금이나 환불을 요청하면 ${td.delayType}${euReul(td.delayType)} 이유로 추가 입금을 요구합니다.
 
 이 구조는 피해 금액이 커질 때까지 반복됩니다.
 
@@ -1358,6 +1448,11 @@ function buildMdx() {
 
   buildMdx()
   syncRepresentativeLinks()
+
+  // .keywords 파일 자동 생성
+  const tdForKw = getTypeDetails(`${slug} ${cleanCaseName}`)
+  const keywords = buildKeywords(cleanCaseName, slug, tdForKw.label)
+  writeKeywordsFiles(slug, keywords)
 
   console.log("")
   console.log(`/cases/${slug}`)

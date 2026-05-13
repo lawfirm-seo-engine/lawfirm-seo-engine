@@ -464,12 +464,13 @@ export async function generateMetadata({
     description: seoDescription,
 
     robots: {
-      // case-noindex 명령으로 noindex: true가 설정된 페이지는 색인 제외
-      // groupRole과 무관하게 독립적으로 동작 — 그룹 재편 시 색인 상태 흔들림 없음
-      index: !isManualNoindex,
+      // variant 페이지: canonical이 대표 페이지로 집중되므로 색인 제외
+      //   → 중복 콘텐츠 패널티 방지 + 대표 페이지로 PageRank 집중
+      // case-noindex 명령으로 수동 지정된 페이지도 색인 제외
+      index: !isManualNoindex && !isVariant,
       follow: true,
       googleBot: {
-        index: !isManualNoindex,
+        index: !isManualNoindex && !isVariant,
         follow: true,
         "max-image-preview": "large",
         "max-snippet": -1,
