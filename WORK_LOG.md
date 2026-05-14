@@ -1,7 +1,7 @@
 # WORK LOG — 대온 법률사무소 SEO 엔진
 
 > 새 PC에서 작업 시작 전 반드시 이 파일을 먼저 읽을 것.
-> 업데이트: 2026-05-13
+> 업데이트: 2026-05-14
 
 ---
 
@@ -156,6 +156,37 @@ npm run build
 
 **follow: true 유지 이유**: /cases → 개별 페이지 내부 링크가 계속 크롤링되어
 PageRank(링크 권위)가 각 케이스 페이지로 전달됨. 색인 차단만, 링크 추적은 허용.
+
+---
+
+## 주요 작업 이력 (2026-05-14)
+
+| 커밋 | 내용 |
+|------|------|
+| 3102bd9 | fix: 허브 noindex + 분류 순서 + 그룹 정리 + D+1 자동화 |
+| 5893277 | 키워드 사기 MDX 생성 |
+
+### 3102bd9 작업 상세
+
+#### 1. 허브 페이지 4개 noindex (`CategoryHubPage.tsx`)
+- `/cases/crypto-room`, `/cases/stock-room`, `/cases/teammission`, `/cases/broadcast-exchange`
+- `robots: { index: false, follow: true }` — 허브 페이지가 브랜드 키워드를 흡수해 개별 케이스 페이지와 키워드 경쟁하는 문제 해소
+- `next-sitemap.config.js`: 허브 URL 4개 sitemap 제외 목록에 추가
+- **follow: true 유지**: 허브 → 개별 케이스 내부 링크로 PageRank 흐름은 유지
+
+#### 2. 분류 순서 수정 (`lib/caseCategories.ts`)
+- `broadcast-exchange`를 `crypto-room` **앞**으로 이동
+- **이유**: "라이브|방송|환전+코인" 혼합 케이스가 COIN_PATTERN에 먼저 걸려 crypto-room으로 오분류되던 문제 수정
+- `getCaseCategoryForText()`는 배열 순서대로 첫 번째 매칭 반환하므로 순서가 판정 결과에 직결
+
+#### 3. 그룹 재편
+- **틴그스라이브**: 라이브펄스 그룹 variant → 독립 케이스(representative)로 전환, robots.index=true 복원
+- **TRX 그룹**: trx-forex1com을 해외선물-나스닥-리딩방-사기 그룹에서 해제 → trx트레이드(representative) + trx-forex1com(variant) 새 그룹으로 재연결
+
+#### 4. case-cafe D+1 자동화 (`scripts/create-case.js`)
+- MDX 생성 완료 후 자동으로 `node scripts/create-cafe-post.mjs "{caseName}"` 실행
+- **목적**: 네이버 카페에 케이스 URL 포스팅 → Naver Yeti가 카페 크롤 중 URL 발견 → D+1 네이버 색인 가능성 향상
+- 실패 시 빌드 중단 없이 경고만 출력: `⚠️ 카페 포스트 생성 실패 — 수동으로 npm run case-cafe 실행하세요`
 
 ---
 
