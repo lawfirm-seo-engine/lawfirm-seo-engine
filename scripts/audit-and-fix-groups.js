@@ -57,6 +57,8 @@ const GENERIC_EN = new Set([
   // 도메인 · 법인 형태
   "app","biz","com","corp","co","inc","io","kr","ltd","me","net","org",
   "site","top","vip","xyz",
+  // 도메인 합성 패턴 (.kr.com → krcom 등 브랜드가 아닌 도메인 부산물)
+  "krcom","krcом","comkr",
   // 금융·투자 업종어
   "asset","assets","bank","banking","capital","coin","crypto","exchange",
   "finance","financial","fund","global","gold","group","invest","investment",

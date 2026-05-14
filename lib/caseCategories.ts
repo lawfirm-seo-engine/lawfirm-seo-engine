@@ -63,6 +63,24 @@ export function getCaseCategoryById(id: string) {
 }
 
 export function getCaseCategoryForText(value: string) {
+  // ── 강시그널 우선 처리 ──────────────────────────────────────────────────
+  // market·마켓·shop 등 공통 패턴이 있어도 아래 조건이면 해당 카테고리로 덮어씀
+
+  // 코인 거래소 사칭 → crypto-room (코인마켓캡 등 "마켓"이 브랜드명에 포함된 경우)
+  const CRYPTO_PRIORITY =
+    /코인마켓캡|coinmarketcap|코인.*거래소|거래소.*코인|코인.*지갑|지갑.*코인/i
+  if (CRYPTO_PRIORITY.test(value)) {
+    return caseCategories.find((c) => c.id === "crypto-room")!
+  }
+
+  // 리딩방·주식리딩·해외선물리딩 → stock-room
+  // (troymarket 주식리딩, ABR GlobalMarkets 해외선물 리딩방 등 오분류 방지)
+  const STOCK_PRIORITY =
+    /리딩방|주식.{0,4}리딩|리딩.{0,4}주식|해외선물.{0,4}리딩|리딩.{0,4}해외선물|etf.{0,10}리딩방/i
+  if (STOCK_PRIORITY.test(value)) {
+    return caseCategories.find((c) => c.id === "stock-room")!
+  }
+
   return (
     caseCategories.find((category) => category.match.test(value)) ||
     caseCategories[1]
