@@ -281,3 +281,89 @@ const caseTypeKey = fm.caseType
 
 `euReul()` 등 문법 함수를 `lib/grammarUtils.js`로 추출 → create-case.js·audit-cases.js 양쪽에서 import.
 생성 단계(예방) + 감사 단계(회귀 감지) 모두 적용하는 것이 이상적.
+
+---
+
+## 주요 작업 이력 (2026-05-14) — 그룹핑·카테고리 전면 개선
+
+| 커밋 | 내용 |
+|------|------|
+| 64ef0ec | feat: 그룹핑 로직 강화 + 서비스 페이지 UX 개선 |
+| 9043294 | fix: 잘못 묶인 그룹 분리·누락 그룹 생성 및 카테고리 오분류 수정 |
+
+---
+
+### 64ef0ec 작업 상세
+
+#### 1. 서비스 페이지 정렬 (`app/services/page.tsx`)
+- 그룹·단독 케이스 모두 **publishedAt 내림차순** (최신 생성순) 정렬
+- 기존: `localeCompare` 알파벳 순 → 변경: `groupLatest()` 함수로 그룹 내 최신 날짜 기준
+
+#### 2. attorney 페이지 문구 변경 (`app/attorney/page.tsx`)
+- "상담 가능 시간" 카드 라벨 → "상담 대응"
+- "평일 09:00 – 18:00 / 주말·공휴일 제외" → "24시간 긴급 상담 대응"
+
+#### 3. consulting 페이지 하이퍼링크 추가 (`app/consulting/page.tsx`)
+- FAQ 2번 항목 "전화(02-6952-3695)" → `<Link href="tel:0269523695">` 적용
+- "카카오톡 채널(대온 법률사무소)" → `<Link href="http://pf.kakao.com/_xcypmn/chat">` 적용
+- `FaqItem` 타입에 `aNode?: ReactNode` 추가, 렌더 시 `f.aNode ?? f.a` 로 분기
+
+#### 4. caseCategories.ts — 카테고리 오분류 수정 (`lib/caseCategories.ts`)
+- `broadcast-exchange`를 `crypto-room` **앞**으로 배치 (혼합 케이스 오분류 방지)
+- teammission regex에 `트래블|트레블|트립|여행플랫폼` 추가 (트래블릿지 등 여행 키워드 오분류 해소)
+- `getCaseCategoryForText()` 함수에 우선처리 로직 2개 추가:
+  - `CRYPTO_PRIORITY`: 코인마켓캡·코인+거래소 조합 → crypto-room 강제
+  - `STOCK_PRIORITY`: 리딩방·주식리딩·해외선물리딩 → stock-room 강제
+  - **해결 케이스**: troymarket(주식리딩), fwdmuxqs(해외선물리딩), ABRGlobalMarkets(ETF리딩방), 코인마켓캡(거래소사칭) 오분류 해소
+
+#### 5. audit-and-fix-groups.js 알고리즘 강화
+- **`GENERIC_GROUP_IDS`** 신규 추가: 프론트매터 `caseGroupId`가 일반어("프로젝트", "뱅크", "트레이닝" 등)인 경우 Step 1 유니온에서 제외
+  - 기존 문제: `caseGroupId: "프로젝트"`가 17개 무관한 케이스를 연결하는 허위 클러스터 생성
+- **`GENERIC_EN`** 대폭 확장: bank, banking, training, academy, club, team, room, korea, trust, wealth, futures, forward, option, margin, company, center, service, network, platform, strategy, price, value, partner, advisor 등 자연어 추가
+  - 기존 문제: "futures" 스템이 ambergrid·futures-kr·svi-trade·sm-futures-investment를 잘못 연결
+- 237개 MDX 파일 `--fix` 적용 (그룹 재조정)
+
+---
+
+### 9043294 작업 상세
+
+#### A. 잘못 묶인 그룹 분리 (수동 수정)
+
+| 파일 | 기존 그룹 | 처리 |
+|------|-----------|------|
+| 휘파람투어-사기-사칭-여행사-부업-리뷰알바.mdx | starticket | 독립 (브랜드명 불일치) |
+| 쿠폰스토리-사기-여행사-사칭.mdx | starticket | 독립 (브랜드명 불일치) |
+| smartkorea-사기-smart-krcom-해외선물.mdx | ourbit | 독립 (브랜드명 불일치) |
+| smartkorea-사기.mdx | ourbit | 독립 (브랜드명 불일치) |
+| smarttrading-사기-스마트트레이딩-자동매매-리딩방.mdx | ourbit | 독립 (브랜드명 불일치) |
+
+**원인**: aliases 필드의 공통 스템(`krcom` 등)이 서로 다른 브랜드를 허위 연결
+
+#### B. 누락 그룹 신규 생성 (수동 수정)
+
+| 그룹ID | 대표 케이스 | variant | 이유 |
+|--------|-------------|---------|------|
+| `daesang` | 대상여행사-사기 | 대상트립-사기 | 한글 브랜드 "대상" — 알고리즘이 한글 단일어 매칭 불가 |
+| `imatraining` | ima스마트트레이닝-프로젝트-사기-db증권-사칭 | db증권-사칭-사기-ima스마트트레이닝-프로젝트-리딩방 | "db"(2자), "ima"(3자) — 스템 최솟값(5자) 미달 |
+| `smartkorea` | smartkorea-사기 | smartkorea-사기-smart-krcom-해외선물 | 알고리즘 자동 매칭 후 `--fix` 적용 |
+
+#### C. 알고리즘 개선 — GENERIC_EN에 `krcom` 추가
+
+- **문제**: `smart-kr.com` 도메인 → aliases에 "krcom" → ourbit 그룹의 "ourbit-krcom" aliases "krcom" 공유 → 허위 연결
+- **해결**: "krcom" (`.kr.com` 도메인 합성 패턴) → GENERIC_EN 추가로 스템 매칭 대상에서 제외
+
+---
+
+### 현재 그룹 현황 (2026-05-14 기준)
+
+- 총 케이스: 987개
+- 정상 클러스터: 179개
+- 미결 이슈: 0개
+
+---
+
+### 알려진 한계 및 향후 개선 필요 항목
+
+1. **한글 단일 브랜드 자동 감지 불가**: "대상", "휘파람" 등 영문 스템 없는 한글 브랜드는 알고리즘이 매칭 불가 → 수동 그룹 생성 필요
+2. **2~4자 영문 코드 자동 감지 불가**: "db", "ima", "csn" 등 5자 미만 → 수동 그룹 생성 필요
+3. **aliases 오염 위험**: aliases에 도메인 패턴 토큰("krcom", "smart" 등)을 직접 기재하면 무관한 케이스와 허위 연결 발생 — aliases에는 순수 브랜드명만 기재할 것
