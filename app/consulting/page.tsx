@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 const siteUrl = "https://daeonlawfintech.com";
@@ -64,7 +65,9 @@ const consultingItems = [
   },
 ];
 
-const faqItems = [
+type FaqItem = { q: string; a: string; aNode?: ReactNode }
+
+const faqItems: FaqItem[] = [
   {
     q: "상담은 유료인가요?",
     a: "초기 상담 내용과 비용 구조는 사건 유형에 따라 다릅니다. 후불제를 제시하는 법률 서비스는 변호사법상 허용되지 않으며, 이를 내세우는 경우 2차 피해에 주의해야 합니다.",
@@ -72,6 +75,24 @@ const faqItems = [
   {
     q: "상담 가능 시간은 언제인가요?",
     a: "24시간 긴급 상담 대응이며, 전화(02-6952-3695) 또는 카카오톡 채널(대온 법률사무소)을 통해 상담하실 수 있습니다.",
+    aNode: (
+      <>
+        24시간 긴급 상담 대응이며,{" "}
+        <Link href="tel:0269523695" style={{ color: "#059669", fontWeight: 700, textDecoration: "underline" }}>
+          전화(02-6952-3695)
+        </Link>{" "}
+        또는{" "}
+        <Link
+          href="http://pf.kakao.com/_xcypmn/chat"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#059669", fontWeight: 700, textDecoration: "underline" }}
+        >
+          카카오톡 채널(대온 법률사무소)
+        </Link>
+        을 통해 상담하실 수 있습니다.
+      </>
+    ),
   },
   {
     q: "피해 사실을 증명해야 상담이 가능한가요?",
@@ -165,7 +186,7 @@ export default function ConsultingPage() {
           {faqItems.map((f, i) => (
             <div key={i} style={{ marginBottom: "18px", padding: "20px 22px", border: "1px solid #e5e7eb", borderRadius: "14px", background: "#ffffff" }}>
               <p style={{ margin: "0 0 8px", fontSize: "17px", fontWeight: 800, color: "#111827" }}>Q. {f.q}</p>
-              <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.8, color: "#374151" }}>{f.a}</p>
+              <p style={{ margin: 0, fontSize: "15px", lineHeight: 1.8, color: "#374151" }}>{f.aNode ?? f.a}</p>
             </div>
           ))}
         </section>

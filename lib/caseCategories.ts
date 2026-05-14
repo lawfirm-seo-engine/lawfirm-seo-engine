@@ -18,7 +18,7 @@ export const caseCategories: CaseCategory[] = [
       "쇼핑몰, 여행사, 체험단, 리뷰·주문대행 방식의 부업 사칭 사건입니다.",
     keywords: ["쇼핑몰", "여행사", "체험단", "리뷰·주문대행"],
     match:
-      /팀미션|부업|쇼핑몰|마켓|스토어|몰|체험단|리뷰|주문|구매대행|예약|여행|여행사|항공|숙박|영화|예매|배급사|브릭|mall|market|shop|store|mission|review|travel|trip|tour/i,
+      /팀미션|부업|쇼핑몰|마켓|스토어|몰|체험단|리뷰|주문|구매대행|예약|여행|여행사|여행플랫폼|항공|숙박|영화|예매|배급사|브릭|트래블|트레블|트립|mall|market|shop|store|mission|review|travel|trip|tour/i,
   },
   {
     id: "stock-room",

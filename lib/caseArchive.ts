@@ -74,6 +74,7 @@ export type GroupedCaseItem = {
   groupRole: string   // "representative" | "variant" | ""
   groupOrder: number
   representativeSlug: string
+  publishedAt: string
 }
 
 export function readGroupedCaseItems(contentKey = "daeonlawfintech"): GroupedCaseItem[] {
@@ -99,6 +100,7 @@ export function readGroupedCaseItems(contentKey = "daeonlawfintech"): GroupedCas
         groupRole:          readFrontmatterValue(source, "groupRole"),
         groupOrder:         parseInt(readFrontmatterValue(source, "groupOrder") || "0") || 0,
         representativeSlug: readFrontmatterValue(source, "representativeSlug"),
+        publishedAt:        readFrontmatterValue(source, "publishedAt") || "",
       }
     })
 }

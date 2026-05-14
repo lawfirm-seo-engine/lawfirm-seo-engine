@@ -77,13 +77,17 @@ function buildGroups(items: GroupedCaseItem[]): {
     grouped.push({ groupId, representative, variants })
   }
 
-  grouped.sort((a, b) =>
-    (a.representative?.caseName ?? a.groupId).localeCompare(
-      b.representative?.caseName ?? b.groupId,
-      "ko"
-    )
-  )
-  standalone.sort((a, b) => a.caseName.localeCompare(b.caseName, "ko"))
+  // 최신 생성순 (publishedAt 내림차순) 정렬
+  // 그룹은 대표 케이스의 publishedAt, 대표 없으면 멤버 중 최신 기준
+  const groupLatest = (g: CaseGroup) => {
+    const dates = [g.representative, ...g.variants]
+      .filter(Boolean)
+      .map((m) => m!.publishedAt)
+      .filter(Boolean)
+    return dates.sort().reverse()[0] ?? ""
+  }
+  grouped.sort((a, b) => groupLatest(b).localeCompare(groupLatest(a)))
+  standalone.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
 
   return { grouped, standalone }
 }

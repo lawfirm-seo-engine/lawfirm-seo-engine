@@ -340,8 +340,8 @@ export default function AttorneyPage() {
             <p className="attorney-card-value">02-6952-3695</p>
           </div>
           <div className="attorney-card">
-            <p className="attorney-card-label">상담 가능 시간</p>
-            <p className="attorney-card-value">평일 09:00 – 18:00</p>
+            <p className="attorney-card-label">상담 대응</p>
+            <p className="attorney-card-value">24시간 긴급 상담 대응</p>
           </div>
           <div className="attorney-card">
             <p className="attorney-card-label">전문 분야</p>
@@ -431,7 +431,7 @@ export default function AttorneyPage() {
           </Link>
         </div>
         <p style={{ marginTop: "16px", fontSize: "14px", color: "#6b7280" }}>
-          상담 가능 시간: 평일 09:00 – 18:00 / 주말·공휴일 제외
+          24시간 긴급 상담 대응
         </p>
       </section>
 
