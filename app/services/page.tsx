@@ -1,39 +1,18 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import BreadcrumbJsonLd from "../components/BreadcrumbJsonLd"
-import { getPublicCaseCategories } from "@/lib/caseCategories"
+import { caseCategories } from "@/lib/caseCategories"
+import { readGroupedCaseItems, type GroupedCaseItem } from "@/lib/caseArchive"
 
 const siteUrl = "https://daeonlawfintech.com"
 const pageUrl = `${siteUrl}/services`
 
-const publicCategories = getPublicCaseCategories()
+export const metadata: Metadata = {
+  title: "유형별 그룹 현황 | 대온 핀테크센터",
+  robots: { index: false, follow: false },
+}
 
-const serviceCategories = [
-  {
-    ...publicCategories[0],
-    serviceTitle: "팀미션·부업 사기 대응",
-    serviceDescription:
-      "쇼핑몰, 여행사, 체험단, 리뷰·주문대행 사칭 구조를 확인합니다.",
-  },
-  {
-    ...publicCategories[1],
-    serviceTitle: "주식리딩방·투자 사기 대응",
-    serviceDescription:
-      "공모주·비상장, 전문가·증권사 사칭, 해외선물 피해를 분류합니다.",
-  },
-  {
-    ...publicCategories[2],
-    serviceTitle: "코인리딩방·가상자산 사기 대응",
-    serviceDescription:
-      "코인, 월렛, 거래소 사칭, 스테이킹 유도 사례를 살펴봅니다.",
-  },
-  {
-    ...publicCategories[3],
-    serviceTitle: "방송환전·포인트 사기 대응",
-    serviceDescription:
-      "라이브 방송, 포인트 환전, 채팅·만남 유도 흐름을 정리합니다.",
-  },
-]
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
 
 const faqItems = [
   {
@@ -58,68 +37,170 @@ const faqItems = [
   },
 ]
 
-export const metadata: Metadata = {
-  title: "주력분야 | 금융사기 유형별 법률 대응",
-  description:
-    "팀미션 사기, 주식리딩방 사기, 코인리딩방 사기, 방송환전 사기 등 대온 법률사무소 핀테크센터의 유형별 금융사기 대응 분야를 안내합니다.",
-  alternates: {
-    canonical: pageUrl,
-    languages: { "ko-KR": pageUrl },
-  },
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: "주력분야 | 대온 핀테크센터",
-    description:
-      "팀미션, 주식리딩방, 코인리딩방, 방송환전 등 주요 금융사기 대응 분야를 확인할 수 있습니다.",
-    url: pageUrl,
-    siteName: "대온 핀테크센터",
-    locale: "ko_KR",
-    type: "website",
-    images: [
-      {
-        url: `${siteUrl}/images/logo.png`,
-        width: 1200,
-        height: 630,
-        alt: "대온 핀테크센터 주력분야",
-      },
-    ],
-  },
+// ─── 그룹 빌더 ───────────────────────────────────────────────────────────────
+
+type CaseGroup = {
+  groupId: string
+  representative: GroupedCaseItem | null
+  variants: GroupedCaseItem[]
 }
 
-const serviceCollectionJsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "CollectionPage",
-      "@id": `${pageUrl}#collection`,
-      url: pageUrl,
-      name: "대온 핀테크센터 주력분야",
-      description:
-        "팀미션 사기, 주식리딩방 사기, 코인리딩방 사기, 방송환전 사기 대응 분야 안내",
-      inLanguage: "ko-KR",
-      isPartOf: { "@id": `${siteUrl}/#website` },
-      about: serviceCategories.map((service) => ({
-        "@type": "Service",
-        name: service.serviceTitle,
-        description: service.serviceDescription,
-        url: `${siteUrl}${service.href}`,
-        provider: { "@id": `${siteUrl}/#legalservice` },
-        areaServed: { "@type": "Country", name: "대한민국" },
-      })),
-    },
-    {
-      "@type": "FAQPage",
-      "@id": `${pageUrl}#faq`,
-      mainEntity: faqItems.map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    },
-  ],
+function buildGroups(items: GroupedCaseItem[]): {
+  grouped: CaseGroup[]
+  standalone: GroupedCaseItem[]
+} {
+  const byGroupId = new Map<string, GroupedCaseItem[]>()
+  const standalone: GroupedCaseItem[] = []
+
+  for (const item of items) {
+    if (!item.caseGroupId) {
+      standalone.push(item)
+      continue
+    }
+    const list = byGroupId.get(item.caseGroupId) ?? []
+    list.push(item)
+    byGroupId.set(item.caseGroupId, list)
+  }
+
+  const grouped: CaseGroup[] = []
+  for (const [groupId, members] of byGroupId.entries()) {
+    const representative =
+      members.find((m) => m.groupRole === "representative") ??
+      members.find((m) => !m.representativeSlug) ??
+      members[0] ??
+      null
+
+    const variants = members
+      .filter((m) => m !== representative)
+      .sort((a, b) => (a.groupOrder || 999) - (b.groupOrder || 999))
+
+    grouped.push({ groupId, representative, variants })
+  }
+
+  grouped.sort((a, b) =>
+    (a.representative?.caseName ?? a.groupId).localeCompare(
+      b.representative?.caseName ?? b.groupId,
+      "ko"
+    )
+  )
+  standalone.sort((a, b) => a.caseName.localeCompare(b.caseName, "ko"))
+
+  return { grouped, standalone }
 }
+
+// ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
+
+function CaseLink({ slug, caseName }: { slug: string; caseName: string }) {
+  return (
+    <Link
+      href={`/cases/${encodeURIComponent(slug)}`}
+      className="hover:text-emerald-700 hover:underline"
+    >
+      {caseName}
+    </Link>
+  )
+}
+
+function GroupBlock({ group }: { group: CaseGroup }) {
+  const { groupId, representative, variants } = group
+  const total = 1 + variants.length
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-500">
+          {groupId}
+        </span>
+        <span className="text-xs text-slate-400">{total}개</span>
+      </div>
+
+      {representative && (
+        <div className="flex items-start gap-2 text-sm font-bold text-slate-900">
+          <span className="mt-0.5 shrink-0 text-emerald-600">★</span>
+          <CaseLink slug={representative.slug} caseName={representative.caseName} />
+        </div>
+      )}
+
+      {variants.map((v) => (
+        <div key={v.slug} className="ml-4 mt-1.5 flex items-start gap-2 text-sm text-slate-600">
+          <span className="mt-0.5 shrink-0 text-slate-400">└ #{v.groupOrder || "?"}</span>
+          <CaseLink slug={v.slug} caseName={v.caseName} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function StandaloneBlock({ items }: { items: GroupedCaseItem[] }) {
+  if (items.length === 0) return null
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+      <p className="mb-2 text-xs font-bold text-slate-400">
+        독립 케이스 ({items.length}개)
+      </p>
+      <div className="space-y-1.5">
+        {items.map((item) => (
+          <div key={item.slug} className="flex items-start gap-2 text-sm text-slate-600">
+            <span className="mt-0.5 shrink-0 text-slate-300">○</span>
+            <CaseLink slug={item.slug} caseName={item.caseName} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CategorySection({
+  categoryId,
+  title,
+  items,
+}: {
+  categoryId: string
+  title: string
+  items: GroupedCaseItem[]
+}) {
+  const { grouped, standalone } = buildGroups(items)
+  const total = items.length
+  const groupCount = grouped.length
+  const standaloneCount = standalone.length
+
+  return (
+    <section id={categoryId} className="scroll-mt-24">
+      <div className="mb-4 flex flex-wrap items-baseline gap-3">
+        <h2 className="text-xl font-black text-slate-900">{title}</h2>
+        <span className="text-sm text-slate-500">
+          전체 {total}개 · 그룹 {groupCount}개 · 독립 {standaloneCount}개
+        </span>
+      </div>
+      <div className="space-y-3">
+        {grouped.map((group) => (
+          <GroupBlock key={group.groupId} group={group} />
+        ))}
+        <StandaloneBlock items={standalone} />
+      </div>
+    </section>
+  )
+}
+
+// ─── 페이지 ───────────────────────────────────────────────────────────────────
 
 export default function ServicesPage() {
+  const all = readGroupedCaseItems()
+
+  const byCategory = caseCategories.reduce<Record<string, GroupedCaseItem[]>>(
+    (acc, cat) => {
+      acc[cat.id] = all.filter((item) => item.categoryId === cat.id)
+      return acc
+    },
+    {}
+  )
+
+  const totalGroups = caseCategories.reduce((sum, cat) => {
+    const items = byCategory[cat.id] ?? []
+    const ids = new Set(items.filter((i) => i.caseGroupId).map((i) => i.caseGroupId))
+    return sum + ids.size
+  }, 0)
+
   return (
     <>
       <BreadcrumbJsonLd
@@ -129,106 +210,91 @@ export default function ServicesPage() {
         ]}
       />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(serviceCollectionJsonLd).replace(/</g, "\\u003c"),
-        }}
-      />
+      <main className="min-h-screen bg-[#f6f7fb] px-5 py-10">
+        <div className="mx-auto max-w-4xl">
 
-      <main className="min-h-screen bg-[#f6f7fb] px-5 py-12">
-        <section className="mx-auto max-w-6xl">
-          <p className="text-sm font-bold text-emerald-700">
-            FINTECH LEGAL RESPONSE CENTER
-          </p>
-          <h1 className="mt-3 break-keep text-4xl font-black text-slate-950 md:text-5xl">
-            금융사기 유형별 주력분야
-          </h1>
-          <p className="mt-5 max-w-4xl break-keep text-base leading-8 text-slate-600 md:text-lg">
-            대온 법률사무소 핀테크센터는 사건 구조를 4개 핵심 유형으로 나누어
-            사칭 방식, 입금 흐름, 초기 대응 방향을 검토합니다.
-          </p>
+          {/* 헤더 */}
+          <div className="mb-8">
+            <p className="text-xs font-bold tracking-widest text-emerald-700">
+              FINTECH LEGAL RESPONSE CENTER
+            </p>
+            <h1 className="mt-1 text-3xl font-black text-slate-900">
+              유형별 그룹 현황
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              전체 {all.length}개 케이스 · 그룹 {totalGroups}개
+            </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {serviceCategories.map((service) => (
-              <Link
-                key={service.id}
-                href={service.href}
-                className="group min-h-[300px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl"
-              >
-                <div className="flex min-h-[105px] items-center justify-between gap-4 bg-emerald-700 px-7 py-6 text-white">
-                  <h2 className="break-keep text-2xl font-black">
-                    {service.serviceTitle}
-                  </h2>
-                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-black text-emerald-800">
-                    사례 보기
-                  </span>
-                </div>
+            {/* 카테고리 앵커 탭 */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {caseCategories.map((cat) => (
+                <a
+                  key={cat.id}
+                  href={`#${cat.id}`}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-emerald-500 hover:text-emerald-700"
+                >
+                  {cat.shortTitle} ({byCategory[cat.id]?.length ?? 0})
+                </a>
+              ))}
+            </div>
+          </div>
 
-                <div className="p-7">
-                  <p className="break-keep text-base font-semibold leading-8 text-slate-600">
-                    {service.serviceDescription}
+          {/* 유형별 그룹 현황 */}
+          <div className="space-y-12">
+            {caseCategories.map((cat) => (
+              <CategorySection
+                key={cat.id}
+                categoryId={cat.id}
+                title={cat.title}
+                items={byCategory[cat.id] ?? []}
+              />
+            ))}
+          </div>
+
+          {/* FAQ */}
+          <section className="mt-16">
+            <h2 className="border-b-4 border-slate-950 pb-4 text-2xl font-black text-slate-950">
+              자주 묻는 질문
+            </h2>
+            <div className="mt-6 space-y-4">
+              {faqItems.map((item) => (
+                <div
+                  key={item.q}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                >
+                  <p className="text-lg font-black text-slate-950">Q. {item.q}</p>
+                  <p className="mt-2 break-keep text-sm leading-7 text-slate-600">
+                    {item.a}
                   </p>
-                  <div className="mt-6 flex flex-wrap gap-2">
-                    {service.keywords.map((keyword) => (
-                      <span
-                        key={keyword}
-                        className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        <section className="mx-auto mt-16 max-w-3xl">
-          <h2 className="border-b-4 border-slate-950 pb-4 text-2xl font-black text-slate-950">
-            자주 묻는 질문
-          </h2>
-          <div className="mt-6 space-y-4">
-            {faqItems.map((item) => (
-              <div
-                key={item.q}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          {/* 하단 연락처 */}
+          <section className="mt-12 rounded-3xl bg-emerald-700 px-7 py-8 text-center text-white">
+            <p className="text-sm font-black text-emerald-100">DAEON FINTECH CENTER</p>
+            <p className="mt-2 text-2xl font-black">대온 법률사무소 · 02-6952-3695</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link
+                href="tel:0269523695"
+                className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-sm font-black text-emerald-800"
               >
-                <p className="text-lg font-black text-slate-950">Q. {item.q}</p>
-                <p className="mt-2 break-keep text-sm leading-7 text-slate-600">
-                  {item.a}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+                전화 상담
+              </Link>
+              <Link
+                href="http://pf.kakao.com/_xcypmn/chat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 items-center rounded-xl border-2 border-white px-6 text-sm font-black text-white"
+              >
+                카카오톡 상담
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-emerald-100">24시간 긴급 상담 대응</p>
+          </section>
 
-        <section className="mx-auto mt-12 max-w-3xl rounded-3xl bg-emerald-700 px-7 py-8 text-center text-white">
-          <p className="text-sm font-black text-emerald-100">
-            DAEON FINTECH CENTER
-          </p>
-          <p className="mt-2 text-2xl font-black">
-            대온 법률사무소 · 02-6952-3695
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="tel:0269523695"
-              className="inline-flex h-12 items-center rounded-xl bg-white px-6 text-sm font-black text-emerald-800"
-            >
-              전화 상담
-            </Link>
-            <Link
-              href="http://pf.kakao.com/_xcypmn/chat"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-12 items-center rounded-xl border-2 border-white px-6 text-sm font-black text-white"
-            >
-              카카오톡 상담
-            </Link>
-          </div>
-          <p className="mt-4 text-sm text-emerald-100">24시간 긴급 상담 대응</p>
-        </section>
+        </div>
       </main>
     </>
   )

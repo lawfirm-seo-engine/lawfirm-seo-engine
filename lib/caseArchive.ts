@@ -63,3 +63,42 @@ export function groupCasesByCategory(cases: CaseItem[]) {
     return acc
   }, {})
 }
+
+// ─── 그룹 현황용 확장 타입 ───────────────────────────────────────────────────
+
+export type GroupedCaseItem = {
+  slug: string
+  caseName: string
+  categoryId: string
+  caseGroupId: string
+  groupRole: string   // "representative" | "variant" | ""
+  groupOrder: number
+  representativeSlug: string
+}
+
+export function readGroupedCaseItems(contentKey = "daeonlawfintech"): GroupedCaseItem[] {
+  const casesDirectory = path.join(process.cwd(), "content", contentKey, "cases")
+
+  const filenames = fs.existsSync(casesDirectory)
+    ? fs.readdirSync(casesDirectory)
+    : []
+
+  return filenames
+    .filter((f) => f.endsWith(".mdx") && f !== "_template.mdx" && !f.startsWith("_"))
+    .map((filename) => {
+      const slug = filename.replace(/\.mdx$/, "")
+      const source = fs.readFileSync(path.join(casesDirectory, filename), "utf8")
+      const caseName = readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ")
+      const category = getCaseCategoryForText(`${slug} ${caseName}`)
+
+      return {
+        slug,
+        caseName,
+        categoryId: category.id,
+        caseGroupId:        readFrontmatterValue(source, "caseGroupId"),
+        groupRole:          readFrontmatterValue(source, "groupRole"),
+        groupOrder:         parseInt(readFrontmatterValue(source, "groupOrder") || "0") || 0,
+        representativeSlug: readFrontmatterValue(source, "representativeSlug"),
+      }
+    })
+}

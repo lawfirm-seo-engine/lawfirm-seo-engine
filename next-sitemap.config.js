@@ -38,6 +38,7 @@ module.exports = {
     "/cases/stock-room",    // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
     "/cases/crypto-room",   // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
     "/cases/broadcast-exchange", // noindex — 허브 페이지가 브랜드 키워드 흡수 방지
+    "/services",                // noindex — 내부 그룹 현황 관리 페이지
     "/server-sitemap.xml",
     "/api/*",
     "/admin/*",
