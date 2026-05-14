@@ -204,10 +204,19 @@ const genericEnglishTokens = new Set([
 ])
 
 const aliasGroups = [
+  // 벨라비 / bellaxb
   ["bellaxb", "벨라비"],
-  ["deepellie", "디프엘리"],
+  // 디프엘리 / deepellie (마켓 파생 포함)
+  ["deepellie", "deepelliemarket", "디프엘리", "디프엘리마켓"],
+  // 다인스토어 / dayinstore (dayin 약칭 포함)
+  ["dayinstore", "dayin", "다인스토어"],
+  // 에트비어 / etbeermarket
+  ["etbeermarket", "에트비어"],
+  // 포니몰 / forneymoll
+  ["forneymoll", "포니몰"],
+  // 금융·증권 기관
   ["daishin", "대신증권"],
-  ["allspring", "allspringmin", "\uace8\ub4dc\ub4dc\ub9bc", "goldeudeulim"],
+  ["allspring", "allspringmin", "골드드림", "goldeudeulim"],
 ]
 
 const representativeRules = [
