@@ -138,15 +138,23 @@ function GroupBlock({ group }: { group: CaseGroup }) {
 function StandaloneBlock({ items }: { items: GroupedCaseItem[] }) {
   if (items.length === 0) return null
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-      <p className="mb-2 text-xs font-bold text-slate-400">
+    <div className="mt-6 border-t border-slate-200 pt-6">
+      <p className="mb-3 text-xs font-bold text-slate-400">
         독립 케이스 ({items.length}개)
       </p>
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {items.map((item) => (
-          <div key={item.slug} className="flex items-start gap-2 text-sm text-slate-600">
-            <span className="mt-0.5 shrink-0 text-slate-300">○</span>
-            <CaseLink slug={item.slug} caseName={item.caseName} />
+          <div
+            key={item.slug}
+            className="rounded-xl border border-slate-100 bg-slate-50 p-4 shadow-sm"
+          >
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs text-slate-300">○</span>
+              <span className="text-xs text-slate-400">독립</span>
+            </div>
+            <div className="text-sm font-bold text-slate-700">
+              <CaseLink slug={item.slug} caseName={item.caseName} />
+            </div>
           </div>
         ))}
       </div>
@@ -176,12 +184,12 @@ function CategorySection({
           전체 {total}개 · 그룹 {groupCount}개 · 독립 {standaloneCount}개
         </span>
       </div>
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {grouped.map((group) => (
           <GroupBlock key={group.groupId} group={group} />
         ))}
-        <StandaloneBlock items={standalone} />
       </div>
+      <StandaloneBlock items={standalone} />
     </section>
   )
 }
@@ -215,7 +223,7 @@ export default function ServicesPage() {
       />
 
       <main className="min-h-screen bg-[#f6f7fb] px-5 py-10">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-[1500px]">
 
           {/* 헤더 */}
           <div className="mb-8">
@@ -256,7 +264,7 @@ export default function ServicesPage() {
           </div>
 
           {/* FAQ */}
-          <section className="mt-16">
+          <section className="mx-auto mt-16 max-w-4xl">
             <h2 className="border-b-4 border-slate-950 pb-4 text-2xl font-black text-slate-950">
               자주 묻는 질문
             </h2>
@@ -276,7 +284,7 @@ export default function ServicesPage() {
           </section>
 
           {/* 하단 연락처 */}
-          <section className="mt-12 rounded-3xl bg-emerald-700 px-7 py-8 text-center text-white">
+          <section className="mx-auto mt-12 max-w-4xl rounded-3xl bg-emerald-700 px-7 py-8 text-center text-white">
             <p className="text-sm font-black text-emerald-100">DAEON FINTECH CENTER</p>
             <p className="mt-2 text-2xl font-black">대온 법률사무소 · 02-6952-3695</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
