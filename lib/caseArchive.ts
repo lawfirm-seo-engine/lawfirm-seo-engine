@@ -34,7 +34,10 @@ export function readCaseItems(contentKey = "daeonlawfintech"): CaseItem[] {
       const source = fs.readFileSync(filePath, "utf8")
       const caseName =
         readFrontmatterValue(source, "caseName") || slug.replace(/-/g, " ")
-      const category = getCaseCategoryForText(`${slug} ${caseName}`)
+
+      // frontmatter에 categoryId가 명시된 경우 자동 판정을 덮어씀
+      const forcedCategoryId = readFrontmatterValue(source, "categoryId")
+      const categoryId = forcedCategoryId || getCaseCategoryForText(`${slug} ${caseName}`).id
 
       const publishedAt = readFrontmatterValue(source, "publishedAt") || ""
 
@@ -44,7 +47,7 @@ export function readCaseItems(contentKey = "daeonlawfintech"): CaseItem[] {
         mtime: stat.mtime.getTime(),
         publishedAt,
         imagePath: `/images/cases/${slug}.png`,
-        categoryId: category.id,
+        categoryId,
       }
     })
     // publishedAt 내림차순 (최신 생성순) — stat.mtime은 Vercel에서 git 커밋 시점으로 초기화되어 신뢰 불가
