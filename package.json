@@ -22,7 +22,8 @@
     "case-comment-delete": "node scripts/delete-case-comment.mjs",
     "case-comment-edit": "node scripts/edit-case-comment.mjs",
     "case-watchlist": "node scripts/create-watchlist-case.mjs",
-    "case-noindex": "node scripts/case-noindex.mjs"
+    "case-noindex": "node scripts/case-noindex.mjs",
+    "case-category": "node scripts/set-category.js"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
