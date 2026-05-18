@@ -40,7 +40,7 @@ type TypeDetail = {
   descSuffix:    string
 }
 
-const TYPE_DETAILS: Record<CaseTypeKey, TypeDetail> = {
+export const TYPE_DETAILS: Record<CaseTypeKey, TypeDetail> = {
   "쇼핑몰": {
     label: "쇼핑몰·팀미션", caseType: "쇼핑몰 팀미션 사기",
     approach: "쇼핑몰 구매 대행, 리뷰 미션, 팀미션 주문 처리 방식",

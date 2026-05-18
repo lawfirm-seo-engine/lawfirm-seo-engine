@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
 import { ghGetFile, ghPutMultipleFiles, casesFilePath } from "@/lib/admin/github"
-import { generateMdx, buildSvgOverlay } from "@/lib/admin/mdxTemplate"
+import { generateMdx } from "@/lib/admin/mdxTemplate"
+import { generateCaseImage } from "@/lib/admin/imageGen"
 import type { GhFileEntry } from "@/lib/admin/github"
 
 function getUser(req: NextRequest): string | null {
@@ -25,18 +24,6 @@ export async function POST(req: NextRequest) {
     if (cases.length > 50) {
       return NextResponse.json({ error: "한 번에 최대 50개까지 생성 가능합니다." }, { status: 400 })
     }
-
-    // /tmp 폰트 준비
-    const fontSrc  = path.join(process.cwd(), "public", "fonts", "NanumGothic-Bold.ttf")
-    let fontUri: string | undefined
-    if (fs.existsSync(fontSrc)) {
-      const tmpFont = "/tmp/NanumGothic-Bold.ttf"
-      if (!fs.existsSync(tmpFont)) fs.copyFileSync(fontSrc, tmpFont)
-      fontUri = `file://${tmpFont}`
-    }
-
-    const sharp        = (await import("sharp")).default
-    const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
 
     const results: Array<{ caseName: string; slug: string; ok: boolean; error?: string }> = []
     const filesToCommit: GhFileEntry[] = []
@@ -64,15 +51,9 @@ export async function POST(req: NextRequest) {
 
         filesToCommit.push({ path: casesFilePath(generated.slug), content: generated.full })
 
-        // 이미지 생성
+        // 이미지 생성 — Sharp Pango 텍스트 렌더러로 한글 썸네일 생성
         try {
-          const displayName = caseName.includes("사칭") ? caseName : `${caseName} (사칭)`
-          const svgOverlay  = buildSvgOverlay(displayName, fontUri)
-          const pngBuffer   = await sharp(templatePath)
-            .resize(1200, 630)
-            .composite([{ input: Buffer.from(svgOverlay), gravity: "center" }])
-            .png({ quality: 90 })
-            .toBuffer()
+          const pngBuffer = await generateCaseImage(caseName)
           filesToCommit.push({ path: `public/images/cases/${generated.slug}.png`, content: pngBuffer })
         } catch {
           // 이미지 실패 무시 — MDX는 커밋

@@ -56,10 +56,22 @@ const nextConfig: NextConfig = {
 
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
-  // 관리자 목록 API는 content/ MDX 파일을 fs로 읽으므로 Lambda 번들에 포함
-  // (단일 케이스 편집은 GitHub API를 사용하므로 별도 포함 불필요)
+  // 관리자 API Lambda 번들에 포함할 파일 목록
+  // - 목록 API: content/ MDX 파일을 fs로 읽음
+  // - 생성/대량생성 API: Sharp Pango 텍스트 렌더러용 폰트 + 템플릿 이미지
+  // 관리자 API Lambda 번들에 포함할 파일 목록
+  // - 목록/생성 API: content/ MDX + Sharp Pango 렌더러용 폰트 + 템플릿 이미지
+  // - 대량생성 API: 동일하게 폰트 + 템플릿 이미지 필요
   outputFileTracingIncludes: {
-    "/api/admin/cases": ["./content/daeonlawfintech/cases/**"],
+    "/api/admin/cases": [
+      "./content/daeonlawfintech/cases/**",
+      "./public/fonts/**",
+      "./public/images/templates/**",
+    ],
+    "/api/admin/cases/bulk": [
+      "./public/fonts/**",
+      "./public/images/templates/**",
+    ],
   },
 
   // cases/[slug]는 generateStaticParams + dynamicParams=false로 완전 정적 생성됨.

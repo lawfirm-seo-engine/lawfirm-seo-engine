@@ -3,7 +3,8 @@ import fs from "fs"
 import path from "path"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
 import { ghGetFile, ghPutMultipleFiles, casesFilePath } from "@/lib/admin/github"
-import { generateMdx, buildSvgOverlay } from "@/lib/admin/mdxTemplate"
+import { generateMdx } from "@/lib/admin/mdxTemplate"
+import { generateCaseImage } from "@/lib/admin/imageGen"
 
 const CASES_DIR = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 
@@ -95,32 +96,10 @@ export async function POST(req: NextRequest) {
       { path: casesFilePath(generated.slug), content: generated.full },
     ]
 
-    // 이미지 생성 — /tmp에 폰트 복사 후 file:// URI로 librsvg에 전달 (한글 렌더링)
+    // 이미지 생성 — Sharp Pango 텍스트 렌더러로 한글 썸네일 생성
     let imageCommitted = false
     try {
-      const sharp        = (await import("sharp")).default
-      const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
-      const fontSrc      = path.join(process.cwd(), "public", "fonts", "NanumGothic-Bold.ttf")
-
-      // /tmp에 폰트 복사 (Vercel 서버리스는 /tmp 만 쓰기 가능)
-      let fontUri: string | undefined
-      if (fs.existsSync(fontSrc)) {
-        const tmpFont = "/tmp/NanumGothic-Bold.ttf"
-        if (!fs.existsSync(tmpFont)) fs.copyFileSync(fontSrc, tmpFont)
-        fontUri = `file://${tmpFont}`
-      }
-
-      const displayName = caseName.trim().includes("사칭")
-        ? caseName.trim()
-        : `${caseName.trim()} (사칭)`
-      const svgOverlay  = buildSvgOverlay(displayName, fontUri)
-
-      const pngBuffer   = await sharp(templatePath)
-        .resize(1200, 630)
-        .composite([{ input: Buffer.from(svgOverlay), gravity: "center" }])
-        .png({ quality: 90 })
-        .toBuffer()
-
+      const pngBuffer = await generateCaseImage(caseName.trim())
       filesToCommit.push({ path: `public/images/cases/${generated.slug}.png`, content: pngBuffer })
       imageCommitted = true
     } catch (imgErr) {

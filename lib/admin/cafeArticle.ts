@@ -28,7 +28,7 @@ export function generateCafeArticle(data: CafeArticleData): string {
   const td         = TYPE_DETAILS[detectCaseType(`${slug} ${caseName}`)] || TYPE_DETAILS["기타"]
 
   // 체크리스트 항목
-  const checklist  = td.checklistItems.map((item) => `✔ ${item}`).join("\n")
+  const checklist  = td.checklistItems.map((item: string) => `✔ ${item}`).join("\n")
 
   // 해시태그 — primaryKeyword + aliases 기반
   const tagBase = [primary, ...(aliases ? aliases.split(/[,，]/).map((s) => s.trim()) : [])]
