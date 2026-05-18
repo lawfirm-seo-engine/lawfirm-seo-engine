@@ -22,7 +22,9 @@ function ghHeaders(): HeadersInit {
 }
 
 function apiUrl(path: string): string {
-  return `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`
+  // 한글 등 비ASCII 문자를 포함한 경로를 올바르게 인코딩
+  const encoded = path.split("/").map(encodeURIComponent).join("/")
+  return `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encoded}`
 }
 
 // ─── 파일 읽기 ────────────────────────────────────────────────────────────────

@@ -27,34 +27,39 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   const user = getUser(req)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { slug }   = await ctx.params
-  const { content } = await req.json()
+  try {
+    const { slug }    = await ctx.params
+    const { content } = await req.json()
 
-  if (!content?.trim()) {
-    return NextResponse.json({ error: "메모 내용이 비어있습니다." }, { status: 400 })
-  }
-
-  // .memo 파일 읽기 (없으면 빈 내용)
-  const memoFile = await ghGetFile(casesFilePath(slug, "memo"))
-  const today    = new Date().toISOString().slice(0, 10)
-  const newEntry = `[${today}] ${content.trim()}\n`
-  const newMemos = (memoFile?.content ?? "") + newEntry
-
-  // .memo 커밋
-  const memoMsg = `content: ${slug} 메모 추가 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
-  await ghPutFile(casesFilePath(slug, "memo"), newMemos, memoMsg, memoFile?.sha)
-
-  // MDX의 modifiedAt 갱신
-  const mdxFile = await ghGetFile(casesFilePath(slug))
-  if (mdxFile) {
-    const match = mdxFile.content.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
-    if (match) {
-      const updatedFm  = updateModifiedAt(match[1])
-      const newContent = `---\n${updatedFm}\n---\n${match[2]}`
-      const mdxMsg     = `content: ${slug} modifiedAt 갱신 (메모)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
-      await ghPutFile(casesFilePath(slug), newContent, mdxMsg, mdxFile.sha)
+    if (!content?.trim()) {
+      return NextResponse.json({ error: "메모 내용이 비어있습니다." }, { status: 400 })
     }
-  }
 
-  return NextResponse.json({ ok: true, memos: newMemos })
+    // .memo 파일 읽기 (없으면 빈 내용)
+    const memoFile = await ghGetFile(casesFilePath(slug, "memo"))
+    const today    = new Date().toISOString().slice(0, 10)
+    const newEntry = `[${today}] ${content.trim()}\n`
+    const newMemos = (memoFile?.content ?? "") + newEntry
+
+    // .memo 커밋
+    const memoMsg = `content: ${slug} 메모 추가 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+    await ghPutFile(casesFilePath(slug, "memo"), newMemos, memoMsg, memoFile?.sha)
+
+    // MDX의 modifiedAt 갱신
+    const mdxFile = await ghGetFile(casesFilePath(slug))
+    if (mdxFile) {
+      const match = mdxFile.content.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+      if (match) {
+        const updatedFm  = updateModifiedAt(match[1])
+        const newContent = `---\n${updatedFm}\n---\n${match[2]}`
+        const mdxMsg     = `content: ${slug} modifiedAt 갱신 (메모)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+        await ghPutFile(casesFilePath(slug), newContent, mdxMsg, mdxFile.sha)
+      }
+    }
+
+    return NextResponse.json({ ok: true, memos: newMemos })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 }
