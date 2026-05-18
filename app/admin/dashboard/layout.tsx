@@ -5,16 +5,17 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
 const NAV = [
-  { href: "/admin/dashboard/cases",            label: "📋 케이스 목록" },
-  { href: "/admin/dashboard/cases/new",        label: "✏️ 새 사건 만들기" },
-  { href: "/admin/dashboard/cases/bulk",       label: "📦 대량 생성" },
-  { href: "/admin/dashboard/keywords",         label: "🔑 키워드 관리" },
-  { href: "/admin/dashboard/memos",            label: "📝 메모 관리" },
-  { href: "/admin/dashboard/comments",         label: "💬 댓글 관리" },
-  { href: "/admin/dashboard/cafe-article",     label: "✍️ 카페 원고" },
+  { href: "/admin/dashboard/cases",             label: "📋 케이스 목록" },
+  { href: "/admin/dashboard/cases/new",         label: "✏️ 새 사건 만들기" },
+  { href: "/admin/dashboard/cases/bulk",        label: "📦 대량 생성" },
+  { href: "/admin/dashboard/watchlist",         label: "👁️ 감시 목록 생성" },
+  { href: "/admin/dashboard/keywords",          label: "🔑 키워드 관리" },
+  { href: "/admin/dashboard/memos",             label: "📝 메모 관리" },
+  { href: "/admin/dashboard/comments",          label: "💬 댓글 관리" },
+  { href: "/admin/dashboard/cafe-article",      label: "✍️ 카페 원고" },
   { href: "/admin/dashboard/cafe-article/bulk", label: "✍️ 대량 카페 원고" },
   { href: "/admin/dashboard/redirects",         label: "🔀 301 리다이렉션" },
-  { href: "/admin/dashboard/deploy",           label: "🚀 배포" },
+  { href: "/admin/dashboard/deploy",            label: "🚀 배포" },
 ]
 
 function Sidebar({ onClose }: { onClose?: () => void }) {

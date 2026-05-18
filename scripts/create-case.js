@@ -1198,6 +1198,8 @@ function detectKeywordRole(value) {
   return "korean-short"
 }
 
+// slug 기반 경로를 사용하고 next.config.ts rewrites로 template 파일을 서빙함
+// /images/cases/{slug}--02.jpg → /images/cases/template-02.jpg (rewrite)
 function imageBlock(number, alt) {
   const templateImageExtensions = {
     "03": "png",
@@ -1208,7 +1210,7 @@ function imageBlock(number, alt) {
   const extension = templateImageExtensions[number] ?? "jpg"
 
   return `<img
-  src="/images/cases/template-${number}.${extension}"
+  src="/images/cases/${slug}--${number}.${extension}"
   alt="${alt}"
 />`
 }
@@ -1220,7 +1222,7 @@ function kakaoImageBlock(alt) {
   rel="noopener noreferrer"
 >
   <img
-    src="/images/cases/template-06.jpg"
+    src="/images/cases/${slug}--06.jpg"
     alt="${alt}"
   />
 </a>`
@@ -1229,7 +1231,7 @@ function kakaoImageBlock(alt) {
 function phoneImageBlock(alt) {
   return `<a href="tel:0269523695">
   <img
-    src="/images/cases/template-07.gif"
+    src="/images/cases/${slug}--07.gif"
     alt="${alt}"
   />
 </a>`

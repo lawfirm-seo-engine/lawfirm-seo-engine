@@ -248,18 +248,20 @@ function euReul(word: string): string {
   return (code - 0xAC00) % 28 === 0 ? "를" : "을"
 }
 
-function imageBlock(number: string, alt: string): string {
+// slug 기반 경로를 사용하고 next.config.ts rewrites로 template 파일을 서빙함
+// /images/cases/{slug}--02.jpg → /images/cases/template-02.jpg (rewrite)
+function imageBlock(number: string, alt: string, slug: string): string {
   const exts: Record<string, string> = { "03": "png", "05": "png", "07": "gif", "08": "png" }
   const ext = exts[number] ?? "jpg"
-  return `<img\n  src="/images/cases/template-${number}.${ext}"\n  alt="${alt}"\n/>`
+  return `<img\n  src="/images/cases/${slug}--${number}.${ext}"\n  alt="${alt}"\n/>`
 }
 
-function kakaoImageBlock(alt: string): string {
-  return `<a\n  href="http://pf.kakao.com/_xcypmn/chat"\n  target="_blank"\n  rel="noopener noreferrer"\n>\n  <img\n    src="/images/cases/template-06.jpg"\n    alt="${alt}"\n  />\n</a>`
+function kakaoImageBlock(alt: string, slug: string): string {
+  return `<a\n  href="http://pf.kakao.com/_xcypmn/chat"\n  target="_blank"\n  rel="noopener noreferrer"\n>\n  <img\n    src="/images/cases/${slug}--06.jpg"\n    alt="${alt}"\n  />\n</a>`
 }
 
-function phoneImageBlock(alt: string): string {
-  return `<a href="tel:0269523695">\n  <img\n    src="/images/cases/template-07.gif"\n    alt="${alt}"\n  />\n</a>`
+function phoneImageBlock(alt: string, slug: string): string {
+  return `<a href="tel:0269523695">\n  <img\n    src="/images/cases/${slug}--07.gif"\n    alt="${alt}"\n  />\n</a>`
 }
 
 // SEO 키워드 추출 (create-case.js extractSeoKeyword 포팅)
@@ -417,7 +419,7 @@ ${plainName}은 ${td.caseType} 유형입니다.
 
 이후 ${td.mechanism} 명목으로 금전을 요구하며, ${td.delayType}를 이유로 추가 입금을 반복 요구하는 것이 이 유형의 전형적인 구조입니다.
 
-${imageBlock("02", `${plainName} ${td.label} 사칭 피해 구조 안내 이미지`)}
+${imageBlock("02", `${plainName} ${td.label} 사칭 피해 구조 안내 이미지`, slug)}
 
 ## 2. ${name} 접근 방식
 
@@ -431,7 +433,7 @@ ${td.label} 사기는 ${td.approach} 방식을 통해 피해자를 끌어들입�
 
 이 구조는 피해 금액이 커질 때까지 반복됩니다.
 
-${imageBlock("03", `${plainName} 피해 대온 법률사무소 주력분야 안내 이미지`)}
+${imageBlock("03", `${plainName} 피해 대온 법률사무소 주력분야 안내 이미지`, slug)}
 
 ## 3. ${name} 피해 사례
 
@@ -447,7 +449,7 @@ ${td.caseB}
 
 ${td.caseC}
 
-${imageBlock("04", `${plainName} ${td.label} 피해 사례 상세 이미지`)}
+${imageBlock("04", `${plainName} ${td.label} 피해 사례 상세 이미지`, slug)}
 
 ## 4. ${name} 피해 즉시 확인 사항
 
@@ -455,7 +457,7 @@ ${td.stopMessage}
 
 ${checklistText}
 
-${imageBlock("05", `${plainName} 피해 자료 수집 체크리스트 이미지`)}
+${imageBlock("05", `${plainName} 피해 자료 수집 체크리스트 이미지`, slug)}
 
 ## 5. ${name} 대응 절차
 
@@ -486,13 +488,13 @@ ${plainName} 피해는 초기 대응 속도가 피해 회복률에 직접적인 
 
 초기 자료만 있으면 상담이 가능합니다.
 
-${kakaoImageBlock(`${plainName} ${td.label} 피해 법률 상담 안내 이미지`)}
+${kakaoImageBlock(`${plainName} ${td.label} 피해 법률 상담 안내 이미지`, slug)}
 
 ## 6. ${name} 2차 피해 주의
 
 ${commonCaution}
 
-${imageBlock("08", `${plainName} ${td.label} 2차 피해 주의 안내 이미지`)}
+${imageBlock("08", `${plainName} ${td.label} 2차 피해 주의 안내 이미지`, slug)}
 
 ## 7. ${name} 상담 및 피해 신고
 
@@ -500,7 +502,7 @@ ${plainName} 피해와 관련한 상담은 아래 방법으로 접수할 수 있
 
 입금 규모와 무관하게 초기 자료만 있으면 상담이 가능합니다.
 
-${phoneImageBlock(`${plainName} 사기 피해 복구 골든타임 법률 상담 이미지`)}
+${phoneImageBlock(`${plainName} 사기 피해 복구 골든타임 법률 상담 이미지`, slug)}
 
 ## 8. 진행 과정과 상황 분석에 필요한 정보
 
