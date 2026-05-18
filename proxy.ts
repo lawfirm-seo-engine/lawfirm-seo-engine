@@ -61,9 +61,9 @@ async function isValidToken(token: string): Promise<boolean> {
   }
 }
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
+// ─── Proxy (구 Middleware) ────────────────────────────────────────────────────
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (!pathname.startsWith("/admin") && !pathname.startsWith("/api/admin")) {
