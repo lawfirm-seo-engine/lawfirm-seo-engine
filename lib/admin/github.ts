@@ -141,6 +141,81 @@ export async function ghRecentCommits(n = 20): Promise<GhCommit[]> {
   }))
 }
 
+// ─── 다중 파일 단일 커밋 (Trees API) ─────────────────────────────────────────
+// MDX + 이미지를 한 번의 커밋으로 처리 → Vercel 배포 1회만 트리거
+
+export type GhFileEntry = {
+  path:    string
+  content: string | Buffer  // string이면 UTF-8, Buffer이면 바이너리
+}
+
+export async function ghPutMultipleFiles(
+  files:   GhFileEntry[],
+  message: string,
+): Promise<void> {
+  const headers = ghHeaders()
+
+  // 1. 현재 브랜치 HEAD 커밋 SHA 조회
+  const refRes = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/git/refs/heads/${BRANCH}`,
+    { headers, cache: "no-store" },
+  )
+  if (!refRes.ok) throw new Error(`GitHub ref 조회 실패 (${refRes.status}): ${await refRes.text()}`)
+  const refData      = await refRes.json() as { object: { sha: string } }
+  const headSha      = refData.object.sha
+
+  // 2. HEAD 커밋에서 트리 SHA 조회
+  const commitRes = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/git/commits/${headSha}`,
+    { headers, cache: "no-store" },
+  )
+  if (!commitRes.ok) throw new Error(`GitHub commit 조회 실패 (${commitRes.status})`)
+  const commitData = await commitRes.json() as { tree: { sha: string } }
+  const baseSha    = commitData.tree.sha
+
+  // 3. 각 파일 → blob 생성
+  const treeItems = await Promise.all(
+    files.map(async (f) => {
+      const b64 = Buffer.isBuffer(f.content)
+        ? f.content.toString("base64")
+        : Buffer.from(f.content as string, "utf8").toString("base64")
+      const blobRes = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/git/blobs`,
+        { method: "POST", headers, body: JSON.stringify({ content: b64, encoding: "base64" }) },
+      )
+      if (!blobRes.ok) throw new Error(`blob 생성 실패 (${blobRes.status}): ${f.path}`)
+      const blobData = await blobRes.json() as { sha: string }
+      return { path: f.path, mode: "100644", type: "blob", sha: blobData.sha }
+    }),
+  )
+
+  // 4. 새 트리 생성
+  const treeRes = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/git/trees`,
+    { method: "POST", headers, body: JSON.stringify({ base_tree: baseSha, tree: treeItems }) },
+  )
+  if (!treeRes.ok) throw new Error(`트리 생성 실패 (${treeRes.status}): ${await treeRes.text()}`)
+  const treeData = await treeRes.json() as { sha: string }
+
+  // 5. 새 커밋 생성
+  const newCommitRes = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/git/commits`,
+    {
+      method: "POST", headers,
+      body: JSON.stringify({ message, tree: treeData.sha, parents: [headSha] }),
+    },
+  )
+  if (!newCommitRes.ok) throw new Error(`커밋 생성 실패 (${newCommitRes.status}): ${await newCommitRes.text()}`)
+  const newCommit = await newCommitRes.json() as { sha: string }
+
+  // 6. 브랜치 ref 업데이트
+  const updateRes = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/git/refs/heads/${BRANCH}`,
+    { method: "PATCH", headers, body: JSON.stringify({ sha: newCommit.sha }) },
+  )
+  if (!updateRes.ok) throw new Error(`ref 업데이트 실패 (${updateRes.status}): ${await updateRes.text()}`)
+}
+
 // ─── 헬퍼: cases 경로 ────────────────────────────────────────────────────────
 
 export function casesFilePath(slug: string, ext = "mdx"): string {

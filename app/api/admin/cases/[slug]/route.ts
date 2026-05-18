@@ -20,7 +20,7 @@ function splitMdx(raw: string): { frontmatter: string; body: string } {
 
 type RouteContext = { params: Promise<{ slug: string }> }
 
-// ─── GET: 파일시스템에서 읽기 (빠름, 한글 슬러그 문제 없음) ──────────────────
+// ─── GET: 파일시스템 우선 → 없으면 GitHub API 폴백 (신규 생성 직후 대응) ──────
 
 export async function GET(req: NextRequest, ctx: RouteContext) {
   if (!getUser(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -31,16 +31,26 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     const memoPath  = path.join(CASES_DIR, `${slug}.memo`)
     const commPath  = path.join(CASES_DIR, `${slug}.comments`)
 
-    if (!fs.existsSync(mdxPath)) {
-      return NextResponse.json({ error: "파일 없음" }, { status: 404 })
+    // ① 로컬 파일시스템에 있으면 빠르게 읽기
+    if (fs.existsSync(mdxPath)) {
+      const raw            = fs.readFileSync(mdxPath, "utf8")
+      const { frontmatter, body } = splitMdx(raw)
+      const memos          = fs.existsSync(memoPath) ? fs.readFileSync(memoPath,  "utf8") : ""
+      const comments       = fs.existsSync(commPath) ? fs.readFileSync(commPath, "utf8") : ""
+      return NextResponse.json({ slug, frontmatter, body, memos, comments, source: "fs" })
     }
 
-    const raw            = fs.readFileSync(mdxPath, "utf8")
-    const { frontmatter, body } = splitMdx(raw)
-    const memos          = fs.existsSync(memoPath) ? fs.readFileSync(memoPath,  "utf8") : ""
-    const comments       = fs.existsSync(commPath) ? fs.readFileSync(commPath, "utf8") : ""
+    // ② 로컬에 없으면 GitHub API 폴백 (신규 생성 직후, Vercel 재배포 전)
+    const ghMdx      = await ghGetFile(casesFilePath(slug))
+    if (!ghMdx) return NextResponse.json({ error: "파일 없음" }, { status: 404 })
 
-    return NextResponse.json({ slug, frontmatter, body, memos, comments })
+    const { frontmatter, body } = splitMdx(ghMdx.content)
+    const ghMemo     = await ghGetFile(casesFilePath(slug, "memo"))
+    const ghComm     = await ghGetFile(casesFilePath(slug, "comments"))
+    const memos      = ghMemo?.content  ?? ""
+    const comments   = ghComm?.content  ?? ""
+
+    return NextResponse.json({ slug, frontmatter, body, memos, comments, source: "github" })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: msg }, { status: 500 })

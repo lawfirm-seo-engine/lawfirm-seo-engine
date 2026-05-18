@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
-import { ghGetFile, ghPutFile, ghPutBinary, casesFilePath } from "@/lib/admin/github"
-import { generateMdx, buildSvgOverlay } from "@/lib/admin/mdxTemplate"
+import { ghGetFile, ghPutMultipleFiles, casesFilePath } from "@/lib/admin/github"
+import { generateMdx } from "@/lib/admin/mdxTemplate"
 
 const CASES_DIR = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 
@@ -86,31 +86,29 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // MDX 파일 커밋
-    const commitMsg = `content: ${generated.slug} 신규 등록 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
-    await ghPutFile(casesFilePath(generated.slug), generated.full, commitMsg)
+    // MDX + 이미지를 단일 커밋으로 처리 (Vercel 배포 1회만 트리거)
+    const commitMsg  = `content: ${generated.slug} 신규 등록 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+    const filesToCommit: import("@/lib/admin/github").GhFileEntry[] = [
+      { path: casesFilePath(generated.slug), content: generated.full },
+    ]
 
-    // 이미지 생성 및 커밋 (Sharp 사용)
+    // 이미지 생성 (텍스트 오버레이 없이 템플릿만 리사이즈 — Vercel에 한글 폰트 없음)
     let imageCommitted = false
     try {
-      const sharp = (await import("sharp")).default
+      const sharp        = (await import("sharp")).default
       const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
-      const svgOverlay   = buildSvgOverlay(
-        caseName.trim().includes("사칭") ? caseName.trim() : `${caseName.trim()} (사칭)`
-      )
-      const pngBuffer = await sharp(templatePath)
+      const pngBuffer    = await sharp(templatePath)
         .resize(1200, 630)
-        .composite([{ input: Buffer.from(svgOverlay) }])
         .png({ quality: 90 })
         .toBuffer()
 
-      const imgPath    = `public/images/cases/${generated.slug}.png`
-      const imgCommitMsg = `content: ${generated.slug} 대표 이미지 추가\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
-      await ghPutBinary(imgPath, pngBuffer, imgCommitMsg)
+      filesToCommit.push({ path: `public/images/cases/${generated.slug}.png`, content: pngBuffer })
       imageCommitted = true
     } catch (imgErr) {
-      console.warn("이미지 생성/커밋 실패 (무시):", imgErr)
+      console.warn("이미지 생성 실패 (MDX만 커밋):", imgErr)
     }
+
+    await ghPutMultipleFiles(filesToCommit, commitMsg)
 
     return NextResponse.json({
       ok:    true,

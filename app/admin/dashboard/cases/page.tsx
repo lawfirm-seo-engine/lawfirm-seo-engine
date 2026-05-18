@@ -50,6 +50,18 @@ export default function CasesListPage() {
 
   return (
     <div>
+      {/* 신규 생성 안내 배너 */}
+      <div className="mb-4 rounded-xl border border-amber-700/50 bg-amber-950/50 px-4 py-3 text-xs text-amber-300">
+        ⚠️ 새로 생성한 파일은 <strong>Vercel 재배포 완료 후(약 1~2분)</strong> 이 목록에 표시됩니다.
+        생성 직후 편집은 상단 링크를 통해 바로 접근 가능합니다.
+        <button
+          onClick={load}
+          className="ml-3 rounded border border-amber-600 px-2 py-0.5 hover:bg-amber-900"
+        >
+          새로고침
+        </button>
+      </div>
+
       {/* 헤더 */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
