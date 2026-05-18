@@ -118,12 +118,10 @@ export default function NewCasePage() {
             {result.ok ? (
               <>
                 <p className="font-bold">✓ 생성 완료: {result.slug}</p>
-                <p className="mt-1 text-xs opacity-75">편집 페이지로 이동 중...</p>
-                {result.stdout && (
-                  <pre className="mt-3 overflow-x-auto whitespace-pre-wrap rounded bg-black/30 p-3 font-mono text-xs opacity-75">
-                    {result.stdout}
-                  </pre>
-                )}
+                <p className="mt-1 text-xs opacity-75">
+                  {result.imageCommitted ? "📸 이미지 포함 GitHub 커밋 완료." : "⚠️ MDX만 커밋됨 (이미지 생성 실패)."}
+                  {" "}Vercel이 자동 재배포를 시작합니다. 편집 페이지로 이동 중...
+                </p>
               </>
             ) : (
               <>
@@ -143,11 +141,11 @@ export default function NewCasePage() {
           disabled={loading || !caseName.trim()}
           className="mt-6 w-full rounded-xl bg-emerald-600 py-3.5 font-black text-white transition hover:bg-emerald-500 disabled:opacity-40"
         >
-          {loading ? "⏳ 생성 중... (이미지 포함, 최대 30초)" : "✏️ MDX 생성"}
+          {loading ? "⏳ 생성 중... (최대 30초)" : "✏️ MDX 생성 & GitHub 커밋"}
         </button>
 
         <p className="mt-3 text-center text-xs text-slate-500">
-          기존 create-case.js 스크립트를 실행합니다. 이미지 생성을 포함합니다.
+          MDX 생성 + 이미지 생성 후 GitHub에 커밋합니다. Vercel이 자동으로 재배포됩니다.
         </p>
       </div>
     </div>

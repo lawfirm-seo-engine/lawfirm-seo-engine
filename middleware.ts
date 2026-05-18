@@ -1,25 +1,53 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createHmac } from "crypto"
 
-const SECRET     = "daeon_admin_hmac_secret_key_2026"
+const SECRET_KEY = "daeon_admin_hmac_secret_key_2026"
 const COOKIE_NAME = "admin_session"
 
-function isValidToken(token: string): boolean {
+// ─── Web Crypto API (Edge Runtime 호환) ──────────────────────────────────────
+
+async function importKey(): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(SECRET_KEY),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  )
+}
+
+async function isValidToken(token: string): Promise<boolean> {
   try {
     const dotIdx = token.lastIndexOf(".")
     if (dotIdx < 0) return false
-    const data     = token.slice(0, dotIdx)
-    const sig      = token.slice(dotIdx + 1)
-    const expected = createHmac("sha256", SECRET).update(data).digest("base64url")
-    if (sig !== expected) return false
-    const payload  = JSON.parse(Buffer.from(data, "base64url").toString("utf8"))
+    const data    = token.slice(0, dotIdx)
+    const sigB64  = token.slice(dotIdx + 1)
+
+    // base64url → Uint8Array
+    const sigBytes = Uint8Array.from(
+      atob(sigB64.replace(/-/g, "+").replace(/_/g, "/")),
+      (c) => c.charCodeAt(0)
+    )
+
+    const key = await importKey()
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      sigBytes,
+      new TextEncoder().encode(data)
+    )
+    if (!valid) return false
+
+    // 만료 확인
+    const payload = JSON.parse(atob(data.replace(/-/g, "+").replace(/_/g, "/")))
     return typeof payload.exp === "number" && payload.exp > Date.now()
   } catch {
     return false
   }
 }
 
-export function middleware(req: NextRequest) {
+// ─── Middleware ───────────────────────────────────────────────────────────────
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // /admin 이외 경로는 통과
@@ -27,7 +55,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // 로그인 페이지·로그인 API는 인증 없이 접근 허용
+  // 로그인 페이지·로그인/로그아웃 API는 인증 없이 허용
   if (
     pathname === "/admin" ||
     pathname === "/admin/" ||
@@ -37,8 +65,7 @@ export function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(COOKIE_NAME)?.value
-  if (!token || !isValidToken(token)) {
-    // API 요청이면 401 JSON, 페이지 요청이면 로그인으로 redirect
+  if (!token || !(await isValidToken(token))) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

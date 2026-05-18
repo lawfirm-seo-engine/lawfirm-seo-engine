@@ -15,9 +15,12 @@ const USERS: Record<string, string> = {
 }
 
 // ─── 토큰 서명 / 검증 ─────────────────────────────────────────────────────────
+// 형식: base64url(JSON payload) + "." + base64url(HMAC-SHA256 signature)
+// middleware.ts의 Web Crypto 검증과 동일한 포맷을 사용합니다.
 
 function sign(payload: object): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url")
+  // Node.js createHmac의 출력 = Web Crypto subtle.sign("HMAC") 출력과 동일
   const sig  = createHmac("sha256", SECRET).update(data).digest("base64url")
   return `${data}.${sig}`
 }

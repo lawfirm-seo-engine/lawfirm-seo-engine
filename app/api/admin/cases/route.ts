@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
-import { execFile } from "child_process"
-import { promisify } from "util"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
-
-const execFileAsync = promisify(execFile)
+import { ghGetFile, ghPutFile, ghPutBinary, casesFilePath } from "@/lib/admin/github"
+import { generateMdx, buildSvgOverlay } from "@/lib/admin/mdxTemplate"
 
 const CASES_DIR = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 
@@ -19,7 +17,7 @@ function readFm(source: string, key: string): string {
   return m?.[1]?.trim() ?? ""
 }
 
-// ─── GET: 케이스 목록 ─────────────────────────────────────────────────────────
+// ─── GET: 케이스 목록 (배포된 파일시스템 기준, 빠름) ──────────────────────────
 
 export async function GET(req: NextRequest) {
   if (!getUser(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -60,45 +58,63 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ cases })
 }
 
-// ─── POST: 새 케이스 생성 ─────────────────────────────────────────────────────
+// ─── POST: 새 케이스 생성 (GitHub API로 커밋) ─────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  if (!getUser(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const user = getUser(req)
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { caseName, groupId, representativeSlug } = await req.json()
   if (!caseName?.trim()) {
     return NextResponse.json({ error: "사건명을 입력하세요." }, { status: 400 })
   }
 
-  // 슬러그 계산 (create-case.js와 동일 로직)
-  const slug = caseName
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w가-힣-]/g, "")
+  // MDX 내용 생성
+  const generated = generateMdx({
+    caseName:           caseName.trim(),
+    groupId:            groupId?.trim()            || "",
+    representativeSlug: representativeSlug?.trim() || "",
+  })
 
-  const outPath = path.join(CASES_DIR, `${slug}.mdx`)
-  if (fs.existsSync(outPath)) {
-    return NextResponse.json({ error: `이미 존재하는 슬러그입니다: ${slug}`, slug }, { status: 409 })
-  }
-
-  // 기존 create-case.js 스크립트 실행
-  const scriptPath = path.join(process.cwd(), "scripts", "create-case.js")
-  const args: string[] = [caseName.trim()]
-  if (groupId?.trim())              args.push("--group", groupId.trim())
-  if (representativeSlug?.trim())   args.push("--representative", representativeSlug.trim())
-
-  try {
-    const { stdout, stderr } = await execFileAsync("node", [scriptPath, ...args], {
-      cwd: process.cwd(),
-      timeout: 60_000,
-    })
-    return NextResponse.json({ ok: true, slug, stdout, stderr })
-  } catch (err: unknown) {
-    const e = err as { stdout?: string; stderr?: string; message?: string }
+  // 이미 존재 여부 확인 (GitHub API)
+  const existing = await ghGetFile(casesFilePath(generated.slug))
+  if (existing) {
     return NextResponse.json(
-      { error: "MDX 생성 실패", detail: e.stderr || e.message || String(err) },
-      { status: 500 }
+      { error: `이미 존재하는 슬러그입니다: ${generated.slug}`, slug: generated.slug },
+      { status: 409 }
     )
   }
+
+  // MDX 파일 커밋
+  const commitMsg = `content: ${generated.slug} 신규 등록 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+  await ghPutFile(casesFilePath(generated.slug), generated.full, commitMsg)
+
+  // 이미지 생성 및 커밋 (Sharp 사용)
+  let imageCommitted = false
+  try {
+    const sharp = (await import("sharp")).default
+    const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
+    const svgOverlay   = buildSvgOverlay(
+      caseName.trim().includes("사칭") ? caseName.trim() : `${caseName.trim()} (사칭)`
+    )
+    const pngBuffer = await sharp(templatePath)
+      .resize(1200, 630)
+      .composite([{ input: Buffer.from(svgOverlay) }])
+      .png({ quality: 90 })
+      .toBuffer()
+
+    const imgPath    = `public/images/cases/${generated.slug}.png`
+    const imgCommitMsg = `content: ${generated.slug} 대표 이미지 추가\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+    await ghPutBinary(imgPath, pngBuffer, imgCommitMsg)
+    imageCommitted = true
+  } catch (imgErr) {
+    console.warn("이미지 생성/커밋 실패 (무시):", imgErr)
+  }
+
+  return NextResponse.json({
+    ok:    true,
+    slug:  generated.slug,
+    imageCommitted,
+    message: "GitHub에 커밋 완료. Vercel이 자동 재배포를 시작합니다.",
+  })
 }
