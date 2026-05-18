@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/dashboard/comments",         label: "💬 댓글 관리" },
   { href: "/admin/dashboard/cafe-article",     label: "✍️ 카페 원고" },
   { href: "/admin/dashboard/cafe-article/bulk", label: "✍️ 대량 카페 원고" },
+  { href: "/admin/dashboard/redirects",         label: "🔀 301 리다이렉션" },
   { href: "/admin/dashboard/deploy",           label: "🚀 배포" },
 ]
 

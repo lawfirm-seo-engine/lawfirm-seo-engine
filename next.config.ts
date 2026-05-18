@@ -1,5 +1,7 @@
 import createMDX from "@next/mdx"
 import type { NextConfig } from "next"
+import fs from "fs"
+import path from "path"
 
 const withMDX = createMDX({
   extension: /\.mdx?$/,
@@ -151,7 +153,23 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
+    // content/redirects.json에서 관리자 UI로 등록된 동적 301 리다이렉션 로드
+    type RedirectRule = { source: string; destination: string }
+    let customRedirects: RedirectRule[] = []
+    try {
+      const rPath = path.join(process.cwd(), "content", "redirects.json")
+      const raw   = fs.readFileSync(rPath, "utf8")
+      customRedirects = JSON.parse(raw) as RedirectRule[]
+    } catch { /* 파일 없거나 파싱 실패 시 빈 배열 */ }
+
     return [
+      // 관리자 UI에서 등록한 규칙 (배포 시 자동 적용)
+      ...customRedirects.map(({ source, destination }) => ({
+        source,
+        destination,
+        permanent: true,
+      })),
+      // 코드 고정 리다이렉션
       {
         source: "/cases/여행사-사칭",
         destination: "/cases/여행사-사칭-사기",
