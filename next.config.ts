@@ -56,6 +56,12 @@ const nextConfig: NextConfig = {
 
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
+  // 관리자 목록 API는 content/ MDX 파일을 fs로 읽으므로 Lambda 번들에 포함
+  // (단일 케이스 편집은 GitHub API를 사용하므로 별도 포함 불필요)
+  outputFileTracingIncludes: {
+    "/api/admin/cases": ["./content/daeonlawfintech/cases/**"],
+  },
+
   // cases/[slug]는 generateStaticParams + dynamicParams=false로 완전 정적 생성됨.
   // 서버리스 함수는 런타임에 절대 호출되지 않으므로
   // 이미지(public/images)·MDX 콘텐츠·MDX 컴파일러를 번들에서 제외 → function_size_exceeded 해결.

@@ -20,37 +20,33 @@ function splitMdx(raw: string): { frontmatter: string; body: string } {
 
 type RouteContext = { params: Promise<{ slug: string }> }
 
-// ─── GET: 파일시스템 우선 → 없으면 GitHub API 폴백 (신규 생성 직후 대응) ──────
+// ─── GET: 항상 GitHub API로 읽기 ─────────────────────────────────────────────
+// Vercel Lambda는 NFT 추적 파일만 번들에 포함 → content/ 동적 읽기 불가
+// GitHub API는 항상 최신 파일을 반환하므로 단일 케이스 편집에 적합
 
 export async function GET(req: NextRequest, ctx: RouteContext) {
   if (!getUser(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
-    const { slug }  = await ctx.params
-    const mdxPath   = path.join(CASES_DIR, `${slug}.mdx`)
-    const memoPath  = path.join(CASES_DIR, `${slug}.memo`)
-    const commPath  = path.join(CASES_DIR, `${slug}.comments`)
+    const { slug } = await ctx.params
 
-    // ① 로컬 파일시스템에 있으면 빠르게 읽기
-    if (fs.existsSync(mdxPath)) {
-      const raw            = fs.readFileSync(mdxPath, "utf8")
-      const { frontmatter, body } = splitMdx(raw)
-      const memos          = fs.existsSync(memoPath) ? fs.readFileSync(memoPath,  "utf8") : ""
-      const comments       = fs.existsSync(commPath) ? fs.readFileSync(commPath, "utf8") : ""
-      return NextResponse.json({ slug, frontmatter, body, memos, comments, source: "fs" })
-    }
+    const [ghMdx, ghMemo, ghComm] = await Promise.all([
+      ghGetFile(casesFilePath(slug)),
+      ghGetFile(casesFilePath(slug, "memo")),
+      ghGetFile(casesFilePath(slug, "comments")),
+    ])
 
-    // ② 로컬에 없으면 GitHub API 폴백 (신규 생성 직후, Vercel 재배포 전)
-    const ghMdx      = await ghGetFile(casesFilePath(slug))
     if (!ghMdx) return NextResponse.json({ error: "파일 없음" }, { status: 404 })
 
     const { frontmatter, body } = splitMdx(ghMdx.content)
-    const ghMemo     = await ghGetFile(casesFilePath(slug, "memo"))
-    const ghComm     = await ghGetFile(casesFilePath(slug, "comments"))
-    const memos      = ghMemo?.content  ?? ""
-    const comments   = ghComm?.content  ?? ""
-
-    return NextResponse.json({ slug, frontmatter, body, memos, comments, source: "github" })
+    return NextResponse.json({
+      slug,
+      frontmatter,
+      body,
+      memos:    ghMemo?.content ?? "",
+      comments: ghComm?.content ?? "",
+      source:   "github",
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: msg }, { status: 500 })
