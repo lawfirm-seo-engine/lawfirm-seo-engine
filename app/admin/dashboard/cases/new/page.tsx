@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -9,33 +9,20 @@ export default function NewCasePage() {
 
   const [caseName,           setCaseName]           = useState("")
   const [groupId,            setGroupId]            = useState("")
-  const [groupIdCustom,      setGroupIdCustom]      = useState("")
   const [representativeSlug, setRepresentativeSlug] = useState("")
   const [loading,            setLoading]            = useState(false)
   const [result,             setResult]             = useState<{
     ok: boolean; slug?: string; error?: string; detail?: string; imageCommitted?: boolean
   } | null>(null)
-  const [existingGroupIds,   setExistingGroupIds]   = useState<string[]>([])
 
-  // 기존 케이스에서 groupId 목록 로드
-  useEffect(() => {
-    fetch("/api/admin/cases")
-      .then((r) => r.json())
-      .then((data) => {
-        const ids = [
-          ...new Set(
-            (data.cases ?? [])
-              .map((c: { groupId?: string }) => c.groupId)
-              .filter((id: string | undefined): id is string => Boolean(id))
-          ),
-        ] as string[]
-        setExistingGroupIds(ids.sort())
-      })
-      .catch(() => {})
-  }, [])
-
-  // 실제로 사용할 groupId 값
-  const resolvedGroupId = groupId === "__custom__" ? groupIdCustom : groupId
+  // 고정 그룹 ID 목록
+  const GROUP_OPTIONS = [
+    { id: "",                   label: "— 그룹 없음 —" },
+    { id: "teammission",        label: "팀미션 사기" },
+    { id: "stock-room",         label: "주식리딩방 사기" },
+    { id: "broadcast-exchange", label: "방송환전 사기" },
+    { id: "crypto-room",        label: "코인리딩방 사기" },
+  ]
 
   // 슬러그 미리보기
   const previewSlug = caseName
@@ -54,7 +41,7 @@ export default function NewCasePage() {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           caseName:           caseName.trim(),
-          groupId:            resolvedGroupId.trim() || undefined,
+          groupId:            groupId || undefined,
           representativeSlug: representativeSlug.trim() || undefined,
         }),
       })
@@ -104,7 +91,7 @@ export default function NewCasePage() {
             )}
           </div>
 
-          {/* 그룹 ID — 기존 목록에서 선택 */}
+          {/* 그룹 ID — 고정 4개 선택 */}
           <div>
             <label className="mb-1.5 block text-sm font-bold text-slate-300">
               그룹 ID <span className="text-slate-500 font-normal">(선택)</span>
@@ -114,22 +101,10 @@ export default function NewCasePage() {
               onChange={(e) => setGroupId(e.target.value)}
               className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none"
             >
-              <option value="">— 그룹 없음 —</option>
-              {existingGroupIds.map((id) => (
-                <option key={id} value={id}>{id}</option>
+              {GROUP_OPTIONS.map(({ id, label }) => (
+                <option key={id} value={id}>{id ? `${id}  —  ${label}` : label}</option>
               ))}
-              <option value="__custom__">✏️ 직접 입력...</option>
             </select>
-
-            {groupId === "__custom__" && (
-              <input
-                type="text"
-                value={groupIdCustom}
-                onChange={(e) => setGroupIdCustom(e.target.value)}
-                placeholder="새 그룹 ID 입력 (예: coinleading-b)"
-                className="mt-2 w-full rounded-xl border border-emerald-700 bg-slate-800 px-4 py-3 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
-              />
-            )}
           </div>
 
           {/* 대표 슬러그 (선택) */}

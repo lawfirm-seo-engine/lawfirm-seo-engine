@@ -335,11 +335,11 @@ ${rowsHtml}
 // ─── SVG 오버레이 생성 (이미지 생성 시 사용) ─────────────────────────────────
 
 /**
- * fontBase64: NanumGothic-Bold.ttf 파일을 base64로 인코딩한 문자열.
- *             제공하면 SVG 내 @font-face로 한글 폰트를 임베드합니다.
- *             없으면 Arial 폴백 (한글 깨질 수 있음).
+ * fontUri: 폰트 파일 URI (예: "file:///tmp/NanumGothic-Bold.ttf")
+ *          librsvg는 data: URI 미지원 — file:// URI 사용 필수.
+ *          없으면 Arial 폴백 (한글 깨질 수 있음).
  */
-export function buildSvgOverlay(caseDisplayName: string, fontBase64?: string): string {
+export function buildSvgOverlay(caseDisplayName: string, fontUri?: string): string {
   function escapeXml(s: string) {
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")
   }
@@ -356,14 +356,14 @@ export function buildSvgOverlay(caseDisplayName: string, fontBase64?: string): s
     return lines.slice(0, 2)
   }
 
-  const fontFace = fontBase64
+  const fontFace = fontUri
     ? `@font-face {
         font-family: 'NanumGothic';
-        src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+        src: url('${fontUri}') format('truetype');
         font-weight: 900;
       }`
     : ""
-  const fontFamily = fontBase64
+  const fontFamily = fontUri
     ? `'NanumGothic', Arial, sans-serif`
     : `Arial, sans-serif`
 

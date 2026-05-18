@@ -49,8 +49,14 @@ export async function GET(req: NextRequest) {
         hasComments: fs.existsSync(path.join(CASES_DIR, `${slug}.comments`)),
       }
     })
-    // 최근 수정(생성) 순 정렬 — mtime 기준
-    .sort((a, b) => b.mtime - a.mtime)
+    // publishedAt DESC → modifiedAt DESC → slug ASC
+    // ※ Vercel 빌드 시 mtime = git 커밋 타임스탬프로 초기화되므로 mtime 정렬 금지
+    .sort((a, b) => {
+      const da = a.publishedAt || a.modifiedAt || ""
+      const db = b.publishedAt || b.modifiedAt || ""
+      if (da !== db) return db.localeCompare(da)
+      return a.slug.localeCompare(b.slug)
+    })
 
   return NextResponse.json({ cases })
 }
@@ -89,22 +95,27 @@ export async function POST(req: NextRequest) {
       { path: casesFilePath(generated.slug), content: generated.full },
     ]
 
-    // 이미지 생성 — public/fonts/NanumGothic-Bold.ttf 있으면 한글 텍스트 오버레이 포함
+    // 이미지 생성 — /tmp에 폰트 복사 후 file:// URI로 librsvg에 전달 (한글 렌더링)
     let imageCommitted = false
     try {
       const sharp        = (await import("sharp")).default
       const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
-      const fontPath     = path.join(process.cwd(), "public", "fonts", "NanumGothic-Bold.ttf")
-      const fontBase64   = fs.existsSync(fontPath)
-        ? fs.readFileSync(fontPath).toString("base64")
-        : undefined
+      const fontSrc      = path.join(process.cwd(), "public", "fonts", "NanumGothic-Bold.ttf")
 
-      const displayName  = caseName.trim().includes("사칭")
+      // /tmp에 폰트 복사 (Vercel 서버리스는 /tmp 만 쓰기 가능)
+      let fontUri: string | undefined
+      if (fs.existsSync(fontSrc)) {
+        const tmpFont = "/tmp/NanumGothic-Bold.ttf"
+        if (!fs.existsSync(tmpFont)) fs.copyFileSync(fontSrc, tmpFont)
+        fontUri = `file://${tmpFont}`
+      }
+
+      const displayName = caseName.trim().includes("사칭")
         ? caseName.trim()
         : `${caseName.trim()} (사칭)`
-      const svgOverlay   = buildSvgOverlay(displayName, fontBase64)
+      const svgOverlay  = buildSvgOverlay(displayName, fontUri)
 
-      const pngBuffer    = await sharp(templatePath)
+      const pngBuffer   = await sharp(templatePath)
         .resize(1200, 630)
         .composite([{ input: Buffer.from(svgOverlay), gravity: "center" }])
         .png({ quality: 90 })
