@@ -3,7 +3,7 @@ import fs from "fs"
 import path from "path"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
 import { ghGetFile, ghPutMultipleFiles, casesFilePath } from "@/lib/admin/github"
-import { generateMdx } from "@/lib/admin/mdxTemplate"
+import { generateMdx, buildSvgOverlay } from "@/lib/admin/mdxTemplate"
 
 const CASES_DIR = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 
@@ -42,18 +42,15 @@ export async function GET(req: NextRequest) {
         publishedAt: readFm(source, "publishedAt"),
         modifiedAt:  readFm(source, "modifiedAt"),
         categoryId:  readFm(source, "categoryId"),
+        groupId:     readFm(source, "groupId"),
         noindex:     readFm(source, "noindex") === "true",
         mtime:       stat.mtime.getTime(),
         hasMemo:     fs.existsSync(path.join(CASES_DIR, `${slug}.memo`)),
         hasComments: fs.existsSync(path.join(CASES_DIR, `${slug}.comments`)),
       }
     })
-    .sort((a, b) => {
-      if (a.publishedAt && b.publishedAt) return b.publishedAt.localeCompare(a.publishedAt)
-      if (a.publishedAt) return -1
-      if (b.publishedAt) return 1
-      return b.mtime - a.mtime
-    })
+    // 최근 수정(생성) 순 정렬 — mtime 기준
+    .sort((a, b) => b.mtime - a.mtime)
 
   return NextResponse.json({ cases })
 }
@@ -92,13 +89,24 @@ export async function POST(req: NextRequest) {
       { path: casesFilePath(generated.slug), content: generated.full },
     ]
 
-    // 이미지 생성 (텍스트 오버레이 없이 템플릿만 리사이즈 — Vercel에 한글 폰트 없음)
+    // 이미지 생성 — public/fonts/NanumGothic-Bold.ttf 있으면 한글 텍스트 오버레이 포함
     let imageCommitted = false
     try {
       const sharp        = (await import("sharp")).default
       const templatePath = path.join(process.cwd(), "public", "images", "templates", "case-template.png")
+      const fontPath     = path.join(process.cwd(), "public", "fonts", "NanumGothic-Bold.ttf")
+      const fontBase64   = fs.existsSync(fontPath)
+        ? fs.readFileSync(fontPath).toString("base64")
+        : undefined
+
+      const displayName  = caseName.trim().includes("사칭")
+        ? caseName.trim()
+        : `${caseName.trim()} (사칭)`
+      const svgOverlay   = buildSvgOverlay(displayName, fontBase64)
+
       const pngBuffer    = await sharp(templatePath)
         .resize(1200, 630)
+        .composite([{ input: Buffer.from(svgOverlay), gravity: "center" }])
         .png({ quality: 90 })
         .toBuffer()
 

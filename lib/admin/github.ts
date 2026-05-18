@@ -89,6 +89,24 @@ export async function ghPutFile(
   }
 }
 
+// ─── 파일 삭제 ────────────────────────────────────────────────────────────────
+
+export async function ghDeleteFile(
+  path:    string,
+  sha:     string,
+  message: string,
+): Promise<void> {
+  const res = await fetch(apiUrl(path), {
+    method:  "DELETE",
+    headers: ghHeaders(),
+    body:    JSON.stringify({ message, sha, branch: BRANCH }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GitHub DELETE 실패 (${res.status}): ${text}`)
+  }
+}
+
 // ─── 바이너리 파일 쓰기 ───────────────────────────────────────────────────────
 
 export async function ghPutBinary(

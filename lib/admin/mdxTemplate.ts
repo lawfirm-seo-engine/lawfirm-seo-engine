@@ -334,37 +334,54 @@ ${rowsHtml}
 
 // ─── SVG 오버레이 생성 (이미지 생성 시 사용) ─────────────────────────────────
 
-export function buildSvgOverlay(caseDisplayName: string): string {
+/**
+ * fontBase64: NanumGothic-Bold.ttf 파일을 base64로 인코딩한 문자열.
+ *             제공하면 SVG 내 @font-face로 한글 폰트를 임베드합니다.
+ *             없으면 Arial 폴백 (한글 깨질 수 있음).
+ */
+export function buildSvgOverlay(caseDisplayName: string, fontBase64?: string): string {
   function escapeXml(s: string) {
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")
   }
-  function splitTitleLines(text: string, maxLen = 18): string[] {
-    const words = text.split(" ")
+  function splitTitleLines(text: string, maxLen = 16): string[] {
+    const chars = [...text]          // 한글 음절 단위로 분리
     const lines: string[] = []
     let current = ""
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word
-      if (next.length <= maxLen) { current = next; continue }
+    for (const ch of chars) {
+      if ((current + ch).length <= maxLen) { current += ch; continue }
       if (current) lines.push(current)
-      current = word
+      current = ch
     }
     if (current) lines.push(current)
     return lines.slice(0, 2)
   }
-  const titleLines  = splitTitleLines(caseDisplayName)
-  const titleY      = titleLines.length > 1 ? 110 : 126
-  const titleLineGap = 62
-  const subtitleY   = titleY + (titleLines.length - 1) * titleLineGap + 48
-  const titleTspans = titleLines
+
+  const fontFace = fontBase64
+    ? `@font-face {
+        font-family: 'NanumGothic';
+        src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+        font-weight: 900;
+      }`
+    : ""
+  const fontFamily = fontBase64
+    ? `'NanumGothic', Arial, sans-serif`
+    : `Arial, sans-serif`
+
+  const titleLines   = splitTitleLines(caseDisplayName)
+  const titleY       = titleLines.length > 1 ? 115 : 130
+  const titleLineGap = 68
+  const subtitleY    = titleY + (titleLines.length - 1) * titleLineGap + 55
+  const titleTspans  = titleLines
     .map((line, i) => `<tspan x="600" dy="${i === 0 ? 0 : titleLineGap}">${escapeXml(line)}</tspan>`)
     .join("")
 
-  return `<svg width="1200" height="630">
+  return `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .title { fill:#ffffff; font-size:58px; font-weight:900; text-anchor:middle; font-family:"Noto Sans KR","Malgun Gothic",Arial,sans-serif; }
-    .subtitle { fill:#ffffff; font-size:28px; font-weight:800; text-anchor:middle; font-family:"Noto Sans KR","Malgun Gothic",Arial,sans-serif; }
+    ${fontFace}
+    .title    { fill:#ffffff; font-size:62px; font-weight:900; text-anchor:middle; font-family:${fontFamily}; }
+    .subtitle { fill:#ffffffcc; font-size:30px; font-weight:700; text-anchor:middle; font-family:${fontFamily}; }
   </style>
-  <rect width="1200" height="630" fill="rgba(0,0,0,0.28)" />
+  <rect width="1200" height="630" fill="rgba(0,0,0,0.35)" />
   <text x="600" y="${titleY}" class="title">${titleTspans}</text>
   <text x="600" y="${subtitleY}" class="subtitle">피해 회복을 위한 법률 정보</text>
 </svg>`

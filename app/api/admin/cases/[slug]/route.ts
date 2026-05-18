@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
 import { verifyToken, COOKIE_NAME } from "@/lib/admin/auth"
-import { ghGetFile, ghPutFile, casesFilePath } from "@/lib/admin/github"
+import { ghGetFile, ghPutFile, ghDeleteFile, casesFilePath } from "@/lib/admin/github"
 
 const CASES_DIR = path.join(process.cwd(), "content", "daeonlawfintech", "cases")
 
@@ -86,6 +86,42 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
       slug,
       message: "GitHub에 커밋 완료. Vercel이 자동 재배포를 시작합니다.",
     })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
+}
+
+// ─── DELETE: 케이스 삭제 (MDX + memo + comments) ─────────────────────────────
+
+export async function DELETE(req: NextRequest, ctx: RouteContext) {
+  const user = getUser(req)
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  try {
+    const { slug } = await ctx.params
+
+    // MDX 삭제 (필수)
+    const mdxFile = await ghGetFile(casesFilePath(slug))
+    if (!mdxFile) {
+      return NextResponse.json({ error: "파일을 찾을 수 없습니다." }, { status: 404 })
+    }
+    const delMsg = `content: ${slug} 삭제 (관리자)\n\nCo-Authored-By: ${user} <admin@daeonlawfintech.com>`
+    await ghDeleteFile(casesFilePath(slug), mdxFile.sha, delMsg)
+
+    // memo / comments 삭제 (있을 때만)
+    const memoFile = await ghGetFile(casesFilePath(slug, "memo"))
+    if (memoFile) {
+      await ghDeleteFile(casesFilePath(slug, "memo"), memoFile.sha,
+        `content: ${slug} 메모 삭제 (관리자)`)
+    }
+    const commFile = await ghGetFile(casesFilePath(slug, "comments"))
+    if (commFile) {
+      await ghDeleteFile(casesFilePath(slug, "comments"), commFile.sha,
+        `content: ${slug} 댓글 삭제 (관리자)`)
+    }
+
+    return NextResponse.json({ ok: true, slug })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: msg }, { status: 500 })
