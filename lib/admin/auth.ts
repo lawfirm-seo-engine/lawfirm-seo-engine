@@ -15,12 +15,11 @@ const USERS: Record<string, string> = {
 }
 
 // ─── 토큰 서명 / 검증 ─────────────────────────────────────────────────────────
-// 형식: base64url(JSON payload) + "." + base64url(HMAC-SHA256 signature)
+// 포맷: base64url(JSON) + "." + base64url(HMAC-SHA256)
 // middleware.ts의 Web Crypto 검증과 동일한 포맷을 사용합니다.
 
 function sign(payload: object): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url")
-  // Node.js createHmac의 출력 = Web Crypto subtle.sign("HMAC") 출력과 동일
   const sig  = createHmac("sha256", SECRET).update(data).digest("base64url")
   return `${data}.${sig}`
 }
@@ -51,17 +50,21 @@ export function createSessionToken(username: string): string {
   return sign({ user: username, exp: Date.now() + SESSION_MS })
 }
 
-/** 토큰 문자열로부터 username 반환. 유효하지 않으면 null. */
 export function verifyToken(token: string): string | null {
   const payload = verify(token)
   if (!payload || typeof payload.user !== "string") return null
   return payload.user
 }
 
+// ─── 쿠키 옵션 ───────────────────────────────────────────────────────────────
+// secure: true → HTTPS에서만 전송 (Vercel 프로덕션 필수)
+// sameSite: "lax" → 같은 사이트 내 이동 시 쿠키 포함 허용
+
 export const SESSION_COOKIE = {
   name:     COOKIE_NAME,
   httpOnly: true,
-  sameSite: "strict" as const,
+  sameSite: "lax" as const,
   path:     "/",
   maxAge:   24 * 60 * 60,
+  secure:   process.env.NODE_ENV === "production",
 } as const

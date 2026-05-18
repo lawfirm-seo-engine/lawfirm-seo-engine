@@ -11,7 +11,7 @@ export default function NewCasePage() {
   const [groupId,            setGroupId]            = useState("")
   const [representativeSlug, setRepresentativeSlug] = useState("")
   const [loading,            setLoading]            = useState(false)
-  const [result,             setResult]             = useState<{ ok: boolean; slug?: string; error?: string; detail?: string; stdout?: string } | null>(null)
+  const [result,             setResult]             = useState<{ ok: boolean; slug?: string; error?: string; detail?: string; stdout?: string; imageCommitted?: boolean } | null>(null)
 
   // 슬러그 미리보기
   const previewSlug = caseName
