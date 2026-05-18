@@ -2,17 +2,30 @@ import { createHmac } from "crypto"
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
-const SECRET = "daeon_admin_hmac_secret_key_2026"
+// 환경변수 우선 → 없으면 하드코딩 폴백 (proxy.ts와 반드시 동일해야 함)
+export const SECRET = process.env.ADMIN_SECRET_KEY ?? "daeon_admin_hmac_secret_key_2026"
 export const COOKIE_NAME = "admin_session"
 const SESSION_MS = 24 * 60 * 60 * 1000 // 24시간
 
-/** 허가된 계정 목록 */
-const USERS: Record<string, string> = {
-  phytomer:  "daeonadmin",
-  sunthelaw: "daeonadmin",
-  noleosi:   "daeonadmin",
-  cantury77: "daeonadmin",
+/** 허가된 계정 목록 (환경변수 ADMIN_USERS="user1:pw1,user2:pw2" 우선) */
+function buildUsers(): Record<string, string> {
+  const envUsers = process.env.ADMIN_USERS
+  if (envUsers) {
+    return Object.fromEntries(
+      envUsers.split(",").map((pair) => {
+        const [u, ...rest] = pair.trim().split(":")
+        return [u, rest.join(":")]
+      })
+    )
+  }
+  return {
+    phytomer:  "daeonadmin",
+    sunthelaw: "daeonadmin",
+    noleosi:   "daeonadmin",
+    cantury77: "daeonadmin",
+  }
 }
+const USERS = buildUsers()
 
 // ─── 토큰 서명 / 검증 ─────────────────────────────────────────────────────────
 // 포맷: base64url(JSON) + "." + base64url(HMAC-SHA256)

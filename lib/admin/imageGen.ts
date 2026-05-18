@@ -39,7 +39,7 @@ export async function generateCaseImage(caseName: string): Promise<Buffer> {
       // 제목
       const titleBuf = await sharp({
         text: {
-          text:     `<span foreground="white" size="62000" weight="ultrabold">${esc(displayName)}</span>`,
+          text:     `<span foreground="white" size="40000" weight="ultrabold">${esc(displayName)}</span>`,
           fontfile: FONT_PATH,
           font:     "NanumGothic",
           width:    1060,
@@ -55,7 +55,7 @@ export async function generateCaseImage(caseName: string): Promise<Buffer> {
       // 부제목
       const subBuf = await sharp({
         text: {
-          text:     '<span foreground="white" size="28000">피해 회복을 위한 법률 정보</span>',
+          text:     '<span foreground="white" size="22000">피해 회복을 위한 법률 정보</span>',
           fontfile: FONT_PATH,
           font:     "NanumGothic",
           width:    900,

@@ -36,26 +36,26 @@ export async function GET(req: NextRequest) {
       const slug     = filename.replace(/\.mdx$/, "")
       const filePath = path.join(CASES_DIR, filename)
       const source   = fs.readFileSync(filePath, "utf8")
-      const stat     = fs.statSync(filePath)
       return {
         slug,
         caseName:    readFm(source, "caseName") || slug,
+        createdAt:   readFm(source, "createdAt"),   // ISO 타임스탬프 (정렬 기준)
         publishedAt: readFm(source, "publishedAt"),
         modifiedAt:  readFm(source, "modifiedAt"),
         categoryId:  readFm(source, "categoryId"),
         groupId:     readFm(source, "groupId"),
         noindex:     readFm(source, "noindex") === "true",
-        mtime:       stat.mtime.getTime(),
         hasMemo:     fs.existsSync(path.join(CASES_DIR, `${slug}.memo`)),
         hasComments: fs.existsSync(path.join(CASES_DIR, `${slug}.comments`)),
       }
     })
-    // publishedAt DESC → modifiedAt DESC → slug ASC
-    // ※ Vercel 빌드 시 mtime = git 커밋 타임스탬프로 초기화되므로 mtime 정렬 금지
+    // createdAt DESC (ISO 타임스탬프) → publishedAt DESC → slug ASC
+    // ※ mtime은 Vercel 빌드 시 git 커밋 시각으로 초기화되므로 사용 금지
     .sort((a, b) => {
-      const da = a.publishedAt || a.modifiedAt || ""
-      const db = b.publishedAt || b.modifiedAt || ""
-      if (da !== db) return db.localeCompare(da)
+      // createdAt: "2026-05-18T07:30:00.000Z" 형식 → 정확한 시각 비교
+      const ca = a.createdAt || a.publishedAt || ""
+      const cb = b.createdAt || b.publishedAt || ""
+      if (ca !== cb) return cb.localeCompare(ca)
       return a.slug.localeCompare(b.slug)
     })
 

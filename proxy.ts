@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const SECRET_KEY  = "daeon_admin_hmac_secret_key_2026"
+// auth.ts의 SECRET과 반드시 동일해야 함 → 환경변수로 중앙 관리
+// (proxy는 Edge 런타임이라 auth.ts를 직접 import 불가)
+const SECRET_KEY  = process.env.ADMIN_SECRET_KEY ?? "daeon_admin_hmac_secret_key_2026"
 const COOKIE_NAME = "admin_session"
 
 // ─── base64url → Uint8Array (패딩 자동 보완) ─────────────────────────────────

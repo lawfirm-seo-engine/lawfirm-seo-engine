@@ -83,7 +83,11 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
       message: "GitHub에 커밋 완료. Vercel이 자동 재배포를 시작합니다.",
     })
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
+    const raw = err instanceof Error ? err.message : String(err)
+    // GitHub SHA 충돌 (동시 편집): 409 → 사용자 친화적 메시지
+    const msg = raw.includes("409") || raw.toLowerCase().includes("conflict")
+      ? "다른 관리자가 방금 이 파일을 수정했습니다. 페이지를 새로고침 후 다시 저장하세요."
+      : raw
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
