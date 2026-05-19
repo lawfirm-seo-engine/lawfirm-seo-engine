@@ -19,6 +19,8 @@ const EMPTY_ITEM = (): WatchlistItem => ({
 const SCAM_TYPES = [
   "사칭 사기", "쇼핑몰 사칭", "리딩방 사기", "코인 사기",
   "해외선물 사기", "방송 환전 사기", "로맨스스캠", "공모주 사기",
+  "여행사 사기", "부업 사기", "영화예매 사기", "리뷰 사기",
+  "팀미션 사기", "어플 사기",
 ]
 
 export default function WatchlistPage() {
