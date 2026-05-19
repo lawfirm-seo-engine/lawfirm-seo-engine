@@ -39,7 +39,7 @@ export async function generateCaseImage(caseName: string): Promise<Buffer> {
       // 제목
       const titleBuf = await sharp({
         text: {
-          text:     `<span foreground="white" size="40000" weight="ultrabold">${esc(displayName)}</span>`,
+          text:     `<span foreground="white" size="34000" weight="ultrabold">${esc(displayName)}</span>`,
           fontfile: FONT_PATH,
           font:     "NanumGothic",
           width:    1060,
@@ -55,7 +55,7 @@ export async function generateCaseImage(caseName: string): Promise<Buffer> {
       // 부제목
       const subBuf = await sharp({
         text: {
-          text:     '<span foreground="white" size="22000">피해 회복을 위한 법률 정보</span>',
+          text:     '<span foreground="white" size="19000">피해 회복을 위한 법률 정보</span>',
           fontfile: FONT_PATH,
           font:     "NanumGothic",
           width:    900,
@@ -68,11 +68,10 @@ export async function generateCaseImage(caseName: string): Promise<Buffer> {
 
       const { width: sw = 0 } = await sharp(subBuf).metadata()
 
-      // 수직 중앙 정렬 (제목 + 여백 + 부제목)
-      const cx      = 600
-      const cy      = 315
-      const titleTop = Math.max(0, Math.round(cy - th / 2) - 30)
-      const subTop   = titleTop + th + 24
+      // 상단 배치 (top: 60px 기준, 제목 → 간격 16px → 부제목)
+      const cx       = 600
+      const titleTop = 60
+      const subTop   = titleTop + th + 16
 
       overlays.push(
         { input: titleBuf, left: Math.max(0, Math.round(cx - tw / 2)), top: titleTop },
