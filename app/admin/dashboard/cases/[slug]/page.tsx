@@ -12,59 +12,6 @@ type CaseData = {
   comments:    string
 }
 
-// ─── 간이 마크다운 → HTML 변환 (미리보기용) ──────────────────────────────────
-
-function simpleMarkdown(md: string): string {
-  const lines  = md.split("\n")
-  const output: string[] = []
-  let inPara = false
-
-  const flush = () => { if (inPara) { output.push("</p>"); inPara = false } }
-  const inline = (s: string) =>
-    s
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g,     "<em>$1</em>")
-      .replace(/`(.+?)`/g,       "<code class='bg-slate-800 px-1 rounded text-emerald-300 font-mono text-xs'>$1</code>")
-      .replace(/\[(.+?)\]\((.+?)\)/g, "<a href='$2' class='text-emerald-400 underline' target='_blank'>$1</a>")
-
-  for (const raw of lines) {
-    const line = raw.trimEnd()
-
-    // JSX 컴포넌트 (<Component .../> 또는 <Component>...</Component>) 는 회색 박스로 표시
-    if (/^<[A-Z][A-Za-z]*[\s/>]/.test(line.trim())) {
-      flush()
-      output.push(`<div class='my-2 rounded border border-slate-700 bg-slate-800/50 px-3 py-1.5 font-mono text-xs text-slate-500'>${line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>`)
-      continue
-    }
-
-    if (line === "") { flush(); continue }
-
-    const h6 = line.match(/^######\s+(.+)/)
-    const h5 = line.match(/^#####\s+(.+)/)
-    const h4 = line.match(/^####\s+(.+)/)
-    const h3 = line.match(/^###\s+(.+)/)
-    const h2 = line.match(/^##\s+(.+)/)
-    const h1 = line.match(/^#\s+(.+)/)
-    const li = line.match(/^[-*]\s+(.+)/)
-    const hr = line.match(/^---+$/)
-
-    if (h6) { flush(); output.push(`<h6 class='mt-3 mb-1 text-xs font-bold text-slate-400'>${inline(h6[1])}</h6>`); continue }
-    if (h5) { flush(); output.push(`<h5 class='mt-3 mb-1 text-sm font-bold text-slate-300'>${inline(h5[1])}</h5>`); continue }
-    if (h4) { flush(); output.push(`<h4 class='mt-4 mb-1 text-base font-bold text-slate-200'>${inline(h4[1])}</h4>`); continue }
-    if (h3) { flush(); output.push(`<h3 class='mt-5 mb-2 text-lg font-bold text-slate-100'>${inline(h3[1])}</h3>`); continue }
-    if (h2) { flush(); output.push(`<h2 class='mt-6 mb-2 border-b border-slate-700 pb-1 text-xl font-black text-white'>${inline(h2[1])}</h2>`); continue }
-    if (h1) { flush(); output.push(`<h1 class='mt-6 mb-3 text-2xl font-black text-white'>${inline(h1[1])}</h1>`); continue }
-    if (li) { flush(); output.push(`<div class='flex gap-2 my-0.5 text-sm text-slate-300'><span class='mt-0.5 text-slate-500'>•</span><span>${inline(li[1])}</span></div>`); continue }
-    if (hr) { flush(); output.push(`<hr class='my-4 border-slate-700' />`); continue }
-
-    if (!inPara) { output.push("<p class='my-2 text-sm leading-relaxed text-slate-300'>"); inPara = true }
-    output.push(inline(line) + " ")
-  }
-  flush()
-  return output.join("")
-}
-
 // ─── 메모 섹션 ────────────────────────────────────────────────────────────────
 
 function MemoSection({ slug, initialMemos }: { slug: string; initialMemos: string }) {
@@ -197,6 +144,7 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
   const [saveMsg,     setSaveMsg]     = useState("")
   const [dirty,       setDirty]       = useState(false)
   const [bodyTab,     setBodyTab]     = useState<"edit" | "preview">("edit")
+  const [iframeKey,   setIframeKey]   = useState(0)
   const [deleting,    setDeleting]    = useState(false)
   const [confirmDel,  setConfirmDel]  = useState(false)
 
@@ -220,7 +168,7 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
         body:   JSON.stringify({ frontmatter, body }),
       })
       const d = await res.json()
-      if (res.ok) { setSaveMsg("✓ 저장 완료"); setDirty(false) }
+      if (res.ok) { setSaveMsg("✓ 저장 완료 (Vercel 재배포 후 미리보기 새로고침)"); setDirty(false) }
       else          setSaveMsg("✗ " + d.error)
     } finally { setSaving(false) }
   }
@@ -247,6 +195,8 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
       <Link href="/admin/dashboard/cases" className="mt-4 inline-block text-sm text-slate-400 hover:text-white">← 목록으로</Link>
     </div>
   )
+
+  const casePageUrl = `/cases/${encodeURIComponent(decodedSlug)}`
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -283,7 +233,7 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
           </Link>
           <div>
             <h1 className="text-xl font-black text-white">{decodedSlug}</h1>
-            <a href={`/cases/${encodeURIComponent(decodedSlug)}`} target="_blank" rel="noopener noreferrer"
+            <a href={casePageUrl} target="_blank" rel="noopener noreferrer"
               className="text-xs text-emerald-500 hover:underline">
               ↗ 페이지 보기
             </a>
@@ -319,7 +269,7 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
           />
         </section>
 
-        {/* 본문 편집 + 미리보기 */}
+        {/* 본문 편집 + 웹 미리보기 */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
           <div className="mb-3 flex items-center justify-between">
             {/* 탭 */}
@@ -329,8 +279,8 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
                 ✏️ 편집
               </button>
               <button onClick={() => setBodyTab("preview")}
-                className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${bodyTab === "preview" ? "bg-slate-600 text-white" : "text-slate-400 hover:text-white"}`}>
-                👁 미리보기
+                className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${bodyTab === "preview" ? "bg-emerald-700 text-white" : "text-slate-400 hover:text-white"}`}>
+                🌐 웹 미리보기
               </button>
             </div>
             <span className="text-xs text-slate-500">{body.length.toLocaleString()} chars</span>
@@ -342,10 +292,41 @@ export default function EditCasePage(props: { params: Promise<{ slug: string }> 
               className="w-full rounded-xl border border-slate-700 bg-slate-950 p-4 font-mono text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
             />
           ) : (
-            <div
-              className="min-h-[400px] w-full overflow-auto rounded-xl border border-slate-700 bg-slate-950 p-6"
-              dangerouslySetInnerHTML={{ __html: simpleMarkdown(body) }}
-            />
+            <div>
+              {/* 안내 배너 */}
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-amber-900/40 bg-amber-950/20 px-4 py-2.5">
+                <span className="text-xs text-amber-300">
+                  ⓘ <strong>마지막으로 배포된 버전</strong>을 표시합니다.
+                  편집 내용은 💾 저장 → Vercel 재배포 완료 후 아래 새로고침을 누르면 반영됩니다.
+                </span>
+                <div className="ml-auto flex shrink-0 gap-2">
+                  <button
+                    onClick={() => setIframeKey((k) => k + 1)}
+                    className="rounded-lg border border-amber-700 px-3 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-900/30"
+                  >
+                    ↺ 새로고침
+                  </button>
+                  <a
+                    href={casePageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-400 transition hover:border-slate-400 hover:text-white"
+                  >
+                    ↗ 새 탭
+                  </a>
+                </div>
+              </div>
+
+              {/* 실제 페이지 iframe */}
+              <iframe
+                key={iframeKey}
+                src={casePageUrl}
+                title={`${decodedSlug} 미리보기`}
+                className="w-full rounded-xl border border-slate-700 bg-white"
+                style={{ height: "900px" }}
+                loading="lazy"
+              />
+            </div>
           )}
         </section>
 
